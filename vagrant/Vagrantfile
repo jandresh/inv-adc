@@ -17,6 +17,7 @@ config.ssh.forward_x11 = true
   config.vm.box = "hashicorp/bionic64"
   config.vm.provision :shell, path: "bootstrap.sh"
   config.vm.network :forwarded_port, guest: 80, host: 4567
+  config.vm.network :forwarded_port, guest: 8000, host: 4568
   # Disable automatic box update checking. If you disable this, then
   # boxes will only be checked for updates when the user runs
   # `vagrant box outdated`. This is not recommended.
@@ -62,7 +63,11 @@ config.ssh.forward_x11 = true
   #
   # View the documentation for the provider you are using for more
   # information on available options.
-
+  config.vm.provider "virtualbox" do |vb|
+    #vb.gui = true
+    vb.memory = "2048"
+    vb.customize ["modifyvm", :id, "--vram", "12"]
+  end
   # Enable provisioning with a shell script. Additional provisioners such as
   # Ansible, Chef, Docker, Puppet and Salt are also available. Please see the
   # documentation for more information about their specific syntax and use.

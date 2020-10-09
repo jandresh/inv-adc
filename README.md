@@ -1,7 +1,7 @@
 # inv-adc
 Investigación Analitica de datos de Cancer en Cali
 
-#Implementación de una maquina virtual para pruebas de software del proyecto
+# Implementación de una maquina virtual para pruebas de software del proyecto
 
 Se usa tecnología de vagrant con virtualBox para la creación de una maquina virtual usando como host cualquier sistema operativo que permita la instalación de vagrant o vitualBox. Revisar [tutorial vagrant](https://learn.hashicorp.com/vagrant)
 
@@ -30,5 +30,32 @@ Dentro de la maquina virtual en el directorio raiz esta la capeta ```/vagrant```
 cd /vagrant
 ```
 
+# Instalación de app django-pwa
 
+Se utilizó el repositorio de [django-pwa](https://gitlab.com/Jenselme/django-pwa) para empezar la implementación de una interfaz de usuario de prueba. En el proceso de implementación se requiere la instalación de pipenv y se sigue el procedimeinto de las [notas de instalación](https://gist.github.com/planetceres/8adb62494717c71e93c96d8adad26f5c) utilizando Python3.
 
+Adicional instalar python3.7 con el siguiente comando:
+
+```
+sudo apt install python3.7
+```
+
+A continuación ejecutar los siguientes comandos para iniciar un entorno virtual con pipenv:
+
+```
+pipenv install
+pipenv shell
+```
+Correr las migraciones por defecto, esto creara la base de datos SQlite con el comando:
+```
+python manage.py migrate
+```
+Iniciar el servidor con el comando:
+```
+python manage.py runserver
+```
+De esta manera se ha creado un servidor web en la maquina virtual direción 127.0.0.1/8000
+
+# Instalación de Ngrok
+
+Ngrock permite facilmente publicar temporalmente en la web. Siga el tutorial [NGROK](https://ngrok.com/download) para ver su sitio en la web.
