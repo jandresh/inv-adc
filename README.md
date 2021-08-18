@@ -10,7 +10,7 @@ Se usa tecnología de vagrant con virtualBox para la creación de una maquina vi
 web-server-vm/
 ```
 
-# Implementaci[on de un pipeline de microservicios para analítica de datos de cáncer en Cali 
+# Implementación de un pipeline de microservicios para analítica de datos de cáncer en Cali 
 
 Se utilizan tecnologías Jenkins, docker-compose y kubernetes para despliegue de una app basada en microservicios para la analítica de datos de cáncer en la ciudad de Cali.  
 
