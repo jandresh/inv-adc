@@ -5,12 +5,22 @@ pipeline {
     }
     */
     stages {
-        stage('Build') {
+        stage('Build mysqlws') {
+            steps {
+                echo "Deploy mysqlws"
+                build 'mysqlws'
+            }
+        }
+        stage('Build metapubws') {
+            steps {
+                echo "Deploy metapubws"
+                build 'metapubws'
+            }
+        }
+        stage('Build ontopws') {
             steps {
                 // sh 'python --version'
-                echo "Deployment test environment"
-                build 'mysqlws'
-                build 'metapubws'
+                echo "Depoly ontopws"
                 build 'ontopws'
             }
         }
@@ -30,7 +40,7 @@ pipeline {
                 echo "Container push to DockerHub"
             }
         }
-        stage('Deploy') {
+        stage('Deploy prod') {
             steps {
                 /*
                 retry(3) {
