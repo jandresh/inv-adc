@@ -1,42 +1,34 @@
 pipeline {
     agent any
-    /*environment {
-        DB_ENGINE    = 'sqlite'
-    }
-    */
     stages {
         stage('Build mysqlws') {
             steps {
-                echo "Deploy mysqlws"
+                echo "Deploy mysqlws test environment"
                 build 'mysqlws'
             }
         }
         stage('Build metapubws') {
             steps {
-                echo "Deploy metapubws"
+                echo "Deploy metapubws test environment"
                 build 'metapubws'
             }
         }
         stage('Build ontopws') {
             steps {
                 // sh 'python --version'
-                echo "Depoly ontopws"
+                echo "Deploy ontopws test environment"
                 build 'ontopws'
             }
         }
         stage('Test') {
             steps {
-                // 
                 // sh 'python --version'
                 sh 'echo "Success!"; exit 0'
             }
         }
         stage('Publish') {
             steps {
-                // sh 'python --version'
-                // echo "Database engine is ${DB_ENGINE}"
-                // echo "DISABLE_AUTH is ${DISABLE_AUTH}"
-                // build 'containerPublish'
+                build 'containerPublish'
                 echo "Container push to DockerHub"
             }
         }
@@ -53,7 +45,8 @@ pipeline {
                     sh './health-check.sh'
                 }
                 */
-                echo 'Deployment'
+                build 'composeDeploy'
+                echo 'Success on docker-compose deployment'
             }
         }
     }
