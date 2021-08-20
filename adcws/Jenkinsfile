@@ -15,14 +15,6 @@ pipeline {
                 echo "metapub deployed successfuly"
             }
         }
-        stage('Build ontopws') {
-            steps {
-                // sh 'python --version'
-                echo "Deploy ontopws test environment"
-                build 'ontopws'
-                echo "ontopws deployed successfuly"
-            }
-        }
         stage('Test') {
             steps {
                 // sh 'python --version'
@@ -50,6 +42,8 @@ pipeline {
                 */
                 build 'composeDeploy'
                 echo 'Success on docker-compose deployment'
+                build 'ontopws'
+                echo "ontopws deployed successfuly"
             }
         }
     }
