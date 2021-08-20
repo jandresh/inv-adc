@@ -1,0 +1,8 @@
+version: "3.7"
+services:
+  metapubws:
+    container_name: metapubws
+    restart: always
+    image: jandresh/metapubws:latest
+    ports:
+      - "5000:5000"
