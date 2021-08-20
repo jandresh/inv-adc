@@ -5,12 +5,14 @@ pipeline {
             steps {
                 echo "Deploy mysqlws test environment"
                 build 'mysqlws'
+                echo "mysqlws deployed successfuly"
             }
         }
         stage('Build metapubws') {
             steps {
                 echo "Deploy metapubws test environment"
                 build 'metapubws'
+                echo "metapub deployed successfuly"
             }
         }
         stage('Build ontopws') {
@@ -18,6 +20,7 @@ pipeline {
                 // sh 'python --version'
                 echo "Deploy ontopws test environment"
                 build 'ontopws'
+                echo "ontopws deployed successfuly"
             }
         }
         stage('Test') {
