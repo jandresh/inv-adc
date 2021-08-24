@@ -15,6 +15,7 @@ def patterns() -> List[Dict]:
         'database': 'test'
     }
     connection = mysql.connector.connect(**config)
+    # connection.set_charset_collation('utf8')
     cursor = connection.cursor()
     cursor.execute('SELECT pattern, description FROM pattern')
     results = [{pattern: description} for (pattern, description) in cursor]
