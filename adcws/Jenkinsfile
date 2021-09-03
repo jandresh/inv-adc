@@ -1,18 +1,18 @@
 pipeline {
     agent any
     stages {
-        stage('Build mysqlws') {
-            steps {
-                echo "Deploy mysqlws test environment"
-                build 'mysqlws'
-                echo "mysqlws deployed successfuly"
-            }
-        }
         stage('Build metapubws') {
             steps {
                 echo "Deploy metapubws test environment"
                 build 'metapubws'
                 echo "metapub deployed successfuly"
+            }
+        }
+        stage('Build mysqlws') {
+            steps {
+                echo "Deploy mysqlws test environment"
+                build 'mysqlws'
+                echo "mysqlws deployed successfuly"
             }
         }
         stage('Test') {
