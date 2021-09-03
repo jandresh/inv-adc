@@ -6,3 +6,9 @@ services:
     image: jandresh/metapubws:latest
     ports:
       - "5000:5000"
+    networks:
+      - pipeline
+networks:
+  pipeline:
+    name: custom_pipeline
+    driver: bridge

@@ -1,5 +1,4 @@
-# Basado en https://github.com/stavshamir/docker-tutorial
-version: "2"
+version: "3.7"
 services:
   app:
     image: jandresh/mysqlws:latest
@@ -7,7 +6,8 @@ services:
       - db
     ports:
       - "5001:5000"
-
+    networks: 
+      - pipeline
   db:
     image: mysql:5.7
     ports:
@@ -16,3 +16,9 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - ./../db:/docker-entrypoint-initdb.d/:ro
+    networks: 
+      - pipeline
+networks: 
+  pipeline:
+    external: true
+    name: custom_pipeline
