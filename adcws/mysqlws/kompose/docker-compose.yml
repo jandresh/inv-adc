@@ -21,4 +21,4 @@ services:
 networks: 
   pipeline:
     external: true
-    name: custom_pipeline
+    name: custompipeline

@@ -10,5 +10,5 @@ services:
       - pipeline
 networks:
   pipeline:
-    name: custom_pipeline
+    name: custompipeline
     driver: bridge
