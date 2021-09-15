@@ -58,7 +58,7 @@ pipeline {
                 kubernetes {
                     label 'compdistuv-app'
                     defaultContainer 'jnlp'
-                    yamlFile 'pod-template.yaml'
+                    yamlFile 'adcws/pod-template.yaml'
                 }
             }
             steps {
@@ -71,7 +71,8 @@ pipeline {
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/metapubws/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/mysqlws/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/mysqlws/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
-                    sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment blog --replicas=4")
+                    sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment metapubws --replicas=4")
+                    sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment app --replicas=4")
                     sh("echo http://`kubectl --namespace=${env.BRANCH_NAME} get service/${FE_SVC_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${FE_SVC_NAME}:3000")
                 }
             }
@@ -83,7 +84,7 @@ pipeline {
                 kubernetes {
                     label 'compdistuv-app'
                     defaultContainer 'jnlp'
-                    yamlFile 'pod-template.yaml'
+                    yamlFile 'adcws/pod-template.yaml'
                 }
             }
             steps {
@@ -108,7 +109,7 @@ pipeline {
                 kubernetes {
                     label 'compdistuv-app'
                     defaultContainer 'jnlp'
-                    yamlFile 'pod-template.yaml'
+                    yamlFile 'adcws/pod-template.yaml'
                 }
             }
             steps{
@@ -121,7 +122,8 @@ pipeline {
                     step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/metapubws/kube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/mysqlws/kkube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace:'production', projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/mysqlws/kkube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
-                    sh("kubectl --namespace=production scale deployment blog --replicas=4")
+                    sh("kubectl --namespace=production scale deployment metapubws --replicas=4")
+                    sh("kubectl --namespace=production scale deployment app --replicas=4")
                     sh("echo http://`kubectl --namespace=production get service/${FE_SVC_NAME} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` > ${FE_SVC_NAME}:3000")
                 }
             }
