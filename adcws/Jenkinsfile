@@ -18,7 +18,7 @@ pipeline {
             }
             steps {
                 echo "Deployment test environment from docker-compose.yml"
-                sh 'chmod 777 test-environment1.sh'
+                sh 'chmod 777 adcws/test-environment1.sh'
                 sh 'sh adcws/test-environment1.sh'
             }
         }
@@ -28,7 +28,7 @@ pipeline {
             }
             steps {
                 echo "Container push to DockerHub"
-                sh 'chmod 777 container-publish.sh'
+                sh 'chmod 777 adcws/container-publish.sh'
                 sh 'sh adcws/container-publish.sh'
                 script {
                     IMAGE_TAG=sh (
@@ -44,7 +44,7 @@ pipeline {
             }
             steps {
                 echo "Deployment test environment from docker hub"
-                sh 'chmod 777 test-environment2.sh'
+                sh 'chmod 777 adcws/test-environment2.sh'
                 sh 'sh adcws/test-environment2.sh'
             }
         }
