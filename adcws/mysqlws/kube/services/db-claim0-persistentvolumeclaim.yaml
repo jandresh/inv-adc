@@ -6,9 +6,11 @@ metadata:
     io.kompose.service: db-claim0
   name: db-claim0
 spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
   accessModes:
     - ReadWriteMany
-  resources:
-    requests:
-      storage: 100Mi
+  hostPath:
+    path: "/mnt/data"
 status: {}
