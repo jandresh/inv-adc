@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  creationTimestamp: null
+  name: custom_pipeline
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              io.kompose.network/custom_pipeline: "true"
+  podSelector:
+    matchLabels:
+      io.kompose.network/custom_pipeline: "true"
