@@ -2,7 +2,7 @@
 
 Investigación Analitica de datos de Cáncer en Cali-Colombia
 
-# Implementación de una maquina virtual para pruebas de software del proyecto
+# Implementación de una maquina virtual para pruebas de software del proyecto inv-adc
 
 Se usa tecnología de vagrant con virtualBox para la creación de una maquina virtual con un servidor web y despliegue de una app WPA como front end del proyecto.
 
