@@ -124,3 +124,6 @@ def metadata_from_pmid():
     # year=article.year,
     # history=article.history
     )
+    # buscar varios conceptos con el AND CANCER MAMA TRATADOS CON CISPLASTINO
+    # Recibir un filtro de fecha
+    #Validar info descargada

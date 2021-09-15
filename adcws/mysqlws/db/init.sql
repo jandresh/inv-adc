@@ -18,7 +18,7 @@ CREATE TABLE searches (
 INSERT INTO 
     patterns (pattern, description)
 VALUES 
-    ('Cancer de mama','Principales'),
+    ('Cancer de mama AND 2017-09-03 2021-09-04[f]','Principales'),
     ('Breast cancer','Main'),
     ('Cancer de cervix','Principales'),
     ('Cervical Cancer','Main'),
