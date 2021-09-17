@@ -6,13 +6,17 @@ metadata:
     io.kompose.service: my-db
   name: my-db
 spec:
-  storageClassName: manual
+  storageClassName: standard
   capacity:
     storage: 20Gi
   accessModes:
     - ReadWriteMany
   hostPath:
     path: "/mnt/data"
+  gcePersistentDisk:
+    pdName: my-db
+    fsType: ext4
+    readOnly: false
 status: {}
 ---
 apiVersion: v1
