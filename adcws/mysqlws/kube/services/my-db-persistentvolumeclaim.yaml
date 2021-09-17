@@ -3,8 +3,8 @@ kind: PersistentVolume
 metadata:
   creationTimestamp: null
   labels:
-    io.kompose.service: my-db-production
-  name: my-db-production
+    io.kompose.service: my-db
+  name: my-db
 spec:
   storageClassName: standard
   capacity:
@@ -19,7 +19,6 @@ spec:
   gcePersistentDisk:
     pdName: my-db-production
     fsType: ext4
-    readOnly: false
 status: {}
 ---
 apiVersion: v1
