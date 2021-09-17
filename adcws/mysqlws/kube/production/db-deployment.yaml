@@ -33,15 +33,12 @@ spec:
           name: db
           ports:
             - containerPort: 3306
-          resources: {}
           volumeMounts:
-            - mountPath: /docker-entrypoint-initdb.d/
-              name: db-claim0
-              readOnly: true
+            - mountPath: /var/lib/mysql
+              name: db-claim0              
       restartPolicy: Always
       volumes:
         - name: db-claim0
           persistentVolumeClaim:
             claimName: db-claim0
-            readOnly: true
-status: {}
+            

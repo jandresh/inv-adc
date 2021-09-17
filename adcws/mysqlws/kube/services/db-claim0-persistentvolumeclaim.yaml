@@ -6,9 +6,10 @@ metadata:
     io.kompose.service: db-claim0
   name: db-claim0
 spec:
+  storageClassName: generic
   accessModes:
-    - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
-      storage: 2Gi
-status: {}
+      storage: 2Gi  
+  

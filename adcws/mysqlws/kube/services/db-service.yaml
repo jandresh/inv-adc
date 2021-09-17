@@ -9,11 +9,11 @@ metadata:
     io.kompose.service: db
   name: db
 spec:
+  type: LoadBalancer
   ports:
     - name: "32000"
       port: 32000
       targetPort: 3306
   selector:
     io.kompose.service: db
-status:
-  loadBalancer: {}
+
