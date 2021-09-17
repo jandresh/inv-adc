@@ -13,6 +13,9 @@ spec:
     - ReadWriteMany
   hostPath:
     path: "/mnt/data"
+  claimRef:
+    namespace: development
+    name: my-db-pvc
   gcePersistentDisk:
     pdName: my-db
     fsType: ext4
@@ -27,6 +30,7 @@ metadata:
     io.kompose.service: my-db-pvc
   name: my-db-pvc
 spec:
+  storageClassName: standard
   accessModes:
     - ReadWriteMany
   resources:
