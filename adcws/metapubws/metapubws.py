@@ -79,7 +79,10 @@ def metadata_from_pmid():
   if not request.json:
     abort(400)
   pmid = request.json['id']
-  article = fetch.article_by_pmid(pmid)
+  try:
+    article = fetch.article_by_pmid(pmid)
+  except:#Pendiente manejo excepciones
+    article=None
   return jsonify(
     pmid=article.pmid,
     title=article.title,

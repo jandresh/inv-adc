@@ -10,15 +10,23 @@ services:
       - pipeline
   db:
     image: mysql:5.7
-    ports:
-      - "32000:3306"
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: 'adccali'
+      MYSQL_USER: 'adccali'
+      MYSQL_PASSWORD: 'adccali'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
     volumes:
-      - ./../db:/var/lib/mysql
+      - my-db:/var/lib/mysql
     networks: 
       - pipeline
 networks: 
   pipeline:
     external: true
     name: custompipeline
+volumes:
+  my-db:
