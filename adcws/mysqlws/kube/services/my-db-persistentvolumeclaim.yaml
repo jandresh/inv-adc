@@ -1,26 +1,26 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  creationTimestamp: null
-  labels:
-    io.kompose.service: my-db
-  name: my-db
-spec:
-  storageClassName: standard
-  capacity:
-    storage: 20Gi
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
-  claimRef:
-    namespace: development
-    name: my-db-pvc
-  gcePersistentDisk:
-    pdName: my-db-production
-    fsType: ext4
-status: {}
----
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     io.kompose.service: my-db
+#   name: my-db
+# spec:
+#   storageClassName: standard
+#   capacity:
+#     storage: 20Gi
+#   accessModes:
+#     - ReadWriteMany
+#   hostPath:
+#     path: "/mnt/data"
+#   claimRef:
+#     namespace: development
+#     name: my-db-pvc
+#   gcePersistentDisk:
+#     pdName: my-db-production
+#     fsType: ext4
+# status: {}
+# ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -35,4 +35,5 @@ spec:
   resources:
     requests:
       storage: 20Gi
+  storageClassName: regionalpd-storageclass
 status: {}
