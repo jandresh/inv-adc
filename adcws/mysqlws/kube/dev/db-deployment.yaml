@@ -47,5 +47,5 @@ spec:
       volumes:
         - name: my-db
           persistentVolumeClaim:
-            claimName: my-db
+            claimName: my-db-pvc
 status: {}
