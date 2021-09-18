@@ -2,13 +2,8 @@ kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
   name: regionalpd-storageclass
-provisioner: pd.csi.storage.gke.io
+provisioner: kubernetes.io/gce-pd
 parameters:
   type: pd-standard
-  replication-type: regional-pd
-volumeBindingMode: WaitForFirstConsumer
-allowedTopologies:
-- matchLabelExpressions:
-  - key: topology.gke.io/zone
-    values:
-    - us-est1-d
+  fstype: ext4
+  replication-type: none
