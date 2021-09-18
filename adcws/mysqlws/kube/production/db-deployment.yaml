@@ -42,10 +42,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: /var/lib/mysql
-              name: my-db-production
+              name: my-db
       restartPolicy: Always
       volumes:
-        - name: my-db-production
+        - name: my-db
           persistentVolumeClaim:
             claimName: my-db-pvc
 status: {}
