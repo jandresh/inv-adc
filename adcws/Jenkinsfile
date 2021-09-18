@@ -68,7 +68,7 @@ pipeline {
                     // sh("gcloud compute disks create --size=20GB --zone=us-east1-d my-db-${env.BRANCH_NAME} || gcloud compute disks describe my-db-${env.BRANCH_NAME} --zone us-east1-d")                    
                     sh("sed -i.bak 's#jandresh/metapubws:latest#jandresh/metapubws:${IMAGE_TAG}#' ./adcws/metapubws/kube/dev/*.yaml")
                     sh("sed -i.bak 's#jandresh/mysqlws:latest#jandresh/mysqlws:${IMAGE_TAG}#' ./adcws/mysqlws/kube/dev/*.yaml")
-                    sh("sed -i.bak 's#my-db-production#my-db-${env.BRANCH_NAME}#' ./adcws/mysqlws/kube/dev/*.yaml")
+                    sh("sed -i.bak 's#my-db-production#my-db-${env.BRANCH_NAME}#' ./adcws/mysqlws/kube/services/*.yaml")
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/metapubws/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/metapubws/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'adcws/mysqlws/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
