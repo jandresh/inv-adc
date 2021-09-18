@@ -6,7 +6,7 @@ metadata:
     io.kompose.service: my-db
   name: my-db
 spec:
-  storageClassName: ""
+  storageClassName: regionalpd-storageclass
   capacity:
     storage: 20Gi
   accessModes:
@@ -29,7 +29,7 @@ metadata:
     io.kompose.service: my-db-pvc
   name: my-db-pvc
 spec:
-  storageClassName: ""
+  storageClassName: regionalpd-storageclass
   accessModes:
     - ReadWriteMany
   resources:
