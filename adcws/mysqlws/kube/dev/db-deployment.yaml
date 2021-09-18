@@ -37,6 +37,8 @@ spec:
               value: adccali
           image: mysql:5.7
           name: db
+          args:
+            - "--ignore-db-dir=lost+found"
           ports:
             - containerPort: 3306
           resources: {}
