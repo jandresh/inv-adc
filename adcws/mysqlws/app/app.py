@@ -77,14 +77,14 @@ def init():
                 """CREATE TABLE patterns (
                     id INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
                     pattern TEXT NOT NULL,
-                    description TEXT NOT NULL
+                    description TEXT
                 )""", connection)
         execute_mysql_query2(
                 """CREATE TABLE searches (
                     id_pattern INT(10) NOT NULL,
                     pmid INT(10) NOT NULL,
-                    title TEXT NOT NULL,
-                    abstract TEXT NOT NULL,
+                    title TEXT,
+                    abstract TEXT,
                     PRIMARY KEY (id_pattern,pmid)
                 )""", connection)
         execute_mysql_query2(
@@ -129,29 +129,50 @@ def execute():
     results=execute_mysql_query('SELECT * FROM patterns', connection)
     for pattern in results:
         # {'id': 1, 'pattern': 'Cancer de mama', 'description': 'Principales'}
+        get_metadata=True
         try:
-            pmids_json=post_json_request('http://metapubws:5000/pmids',{"query": pattern['pattern']})
-        except:#Pendiente manejo excepciones
-            pmids_json=None
-        pmids=pmids_json['pmids']
-        for pmid in pmids:
-            print(pattern['id'])
-            print(pattern['pattern'])
-            print(pmid)
-            if pmid is not None:
-                try:
-                    metadata_json=post_json_request('http://metapubws:5000/metadata',{"id": pmid})
-                except:#Pendiente manejo excepciones
-                    metadata_json=None
-                #print(metadata_json['title'])
-                #print(metadata_json['abstract'])
-                # time.sleep(0.3)
-                #query='INSERT INTO searches (id_pattern, pmid, title, abstract) VALUES (%s,%s,"%s","%s") ON DUPLICATE KEY UPDATE title="%s", abstract="%s";'%(pattern['id'],pmid,metadata_json['title'],metadata_json['abstract'],metadata_json['title'],metadata_json['abstract'])
-                try:
-                    query='INSERT INTO searches (id_pattern, pmid, title, abstract) VALUES (%s,%s,"%s","%s") ON DUPLICATE KEY UPDATE title="%s", abstract="%s";'%(pattern['id'],pmid,metadata_json['title'].replace('"',''),metadata_json['abstract'].replace('"',''),metadata_json['title'].replace('"',''),metadata_json['abstract'].replace('"',''))
-                    results=execute_mysql_query2(query, connection)
-                except:#Pendiente manejo excepciones
-                    query="Mysql not executed"                
+            pmids_json=post_json_request('http://metapubws:5000/pmids',{"query": pattern['pattern']})            
+        except:
+            get_metadata=False
+        if get_metadata:
+            pmids=pmids_json['pmids']
+            pmid_counter=0
+            insert_counter=0
+            for pmid in pmids:
+                print("id_pattern:%s"%pattern['id'])
+                print("pattern:%s"%pattern['pattern'])
+                print("pmid:%s"%pmid)
+                pmid_counter+=1
+                print("pmid_counter:%s"%pmid_counter)
+                success=0
+                if pmid is not None:
+                    insert_mysql=True
+                    try:
+                        metadata_json=post_json_request('http://metapubws:5000/metadata',{"id": pmid})
+                    except:
+                        insert_mysql=False
+                    print("title:%s"%metadata_json['title'])
+                    print("abstract:%s"%metadata_json['abstract'])
+                    # time.sleep(0.3)
+                    if(metadata_json['abstract']==None):
+                        insert_abstract=""
+                    else:
+                        insert_abstract=metadata_json['abstract']
+                    if(metadata_json['abstract']==None):
+                        insert_title=""
+                    else:
+                        insert_title=metadata_json['abstract']    
+                    if insert_mysql: 
+                        try:
+                            query='INSERT INTO searches (id_pattern, pmid, title, abstract) VALUES (%s,%s,"%s","%s") ON DUPLICATE KEY UPDATE title="%s", abstract="%s";'%(pattern['id'],pmid,insert_title.replace('"','').replace('\n',''),insert_abstract.replace('"','').replace('\n',''),insert_title.replace('"','').replace('\n',''),insert_abstract.replace('"','').replace('\n',''))
+                            results=execute_mysql_query2(query, connection)
+                            success=1
+                        except:
+                            query="Mysql not executed"
+                            success=0
+                insert_counter+=success            
+                print("insert_counter:%s"%insert_counter)
+                                        
     results=execute_mysql_query('SELECT id_pattern, title, abstract FROM searches',connection)
     connection.close()
     return jsonify(results)
