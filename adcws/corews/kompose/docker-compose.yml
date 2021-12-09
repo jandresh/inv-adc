@@ -1,12 +1,12 @@
 version: "3.7"
 services:
-  mysqlws:
-    build: ./app
+  app:
+    image: jandresh/mysqlws:latest
     links:
       - db
     ports:
       - "5001:5000"
-    networks:
+    networks: 
       - pipeline
   db:
     image: mysql:5.7
@@ -22,11 +22,11 @@ services:
       - '3306'
     volumes:
       - my-db:/var/lib/mysql
-    networks:
+    networks: 
       - pipeline
-networks:
+networks: 
   pipeline:
     external: true
     name: custompipeline
 volumes:
-  my-db: null
+  my-db:
