@@ -1,3 +1,4 @@
+import csv
 from flask import Flask, jsonify, request
 import mysql.connector
 import requests
@@ -13,7 +14,8 @@ config = {
     'port': '3306',
     'database': 'adccali'
 }
-
+time.sleep(20)
+# connection = mysql.connector.connect(user='adccali', database='adccali', password='adccali', host='db', port='3306')
 # Initial database creation
 # def database_init():
 #     try:
@@ -40,15 +42,19 @@ def post_json_request(url, obj):
 
 
 def execute_mysql_query(query, connection):
-    # connection = mysql.connector.connect(**config)
     # connection.set_charset_collation('utf8')
+    # connection.set_character_set('utf8')
     cursor = connection.cursor()
-    cursor.execute(query)
     try:
+        # cursor.execute('SET NAMES utf8;')
+        # cursor.execute('SET CHARACTER SET utf8;')
+        # cursor.execute('SET character_set_connection=utf8;')
+        cursor.execute(query)
         columns = cursor.description
         results = [{columns[index][0]:column for index,
                     column in enumerate(value)} for value in cursor.fetchall()]
-    except:
+    except Exception as e:
+        print (str(e))
         results = None
     # results=cursor.fetchall()
     cursor.close()
@@ -57,19 +63,23 @@ def execute_mysql_query(query, connection):
 
 
 def execute_mysql_query2(query, connection):
+    # connection.set_charset_collation('utf8')
+    # connection.set_character_set('utf8')
+    cursor = connection.cursor()
     try:
-        # connection = mysql.connector.connect(**config)
-        # connection.set_charset_collation('utf8')
-        cursor = connection.cursor()
+        # cursor.execute('SET NAMES utf8;')
+        # cursor.execute('SET CHARACTER SET utf8;')
+        # cursor.execute('SET character_set_connection=utf8;')
         cursor.execute(query)
         connection.commit()
-        columns = cursor.description
-        results = [{columns[index][0]:column for index,
-                    column in enumerate(value)} for value in cursor.fetchall()]
+        # columns = cursor.description
+        # results = [{columns[index][0]:column for index,
+        #             column in enumerate(value)} for value in cursor.fetchall()]
         # results=cursor.fetchall()
         cursor.close()
         # connection.close()
-    except:
+    except Exception as e:
+        print (str(e))
         results = None
     return results
 
@@ -113,7 +123,7 @@ def init():
                     docid INT(10) NOT NULL,
                     title TEXT,
                     abs TEXT,
-                    ftext TEXT,
+                    ftext MEDIUMTEXT,
                     PRIMARY KEY (patid,docid)
                 )""", connection)
         # execute_mysql_query2(
@@ -201,29 +211,50 @@ def search_insert():
     title = request.json['title']
     abstract = request.json['abstract']
     fulltext = request.json['fulltext']
+    file_name = '{}.csv'.format(patternid)
+
+    
     try:
-        query = '''INSERT INTO searches (
-            patid,
-            docid,
-            title,
-            abs, 
-            ftext
-            ) 
-            VALUES ("%s", "%s", "%s", "%s", "%s") 
-            ON DUPLICATE KEY UPDATE 
-            title="%s", 
-            abs="%s", 
-            ftext="%s"
-            ;'''%(
-            patternid,
-            docid, 
-            title.replace('"', '').replace('\n', ''), 
-            abstract.replace('"', '').replace('\n', ''), 
-            fulltext.replace('"', '').replace('\n', ''),
-            title.replace('"', '').replace('\n', ''), 
-            abstract.replace('"', '').replace('\n', ''), 
-            fulltext.replace('"', '').replace('\n', ''))
-        execute_mysql_query2(query, connection)
+        with open(file_name, mode='a') as file:
+            writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([
+                patternid,
+                docid,
+                ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),
+                ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))),
+                ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', fulltext.capitalize())))
+                ])
+            file.close()
+        # query = """INSERT INTO searches (
+        #     patid,
+        #     docid,
+        #     title,
+        #     abs, 
+        #     ftext
+        #     ) 
+        #     VALUES ('%s', '%s', '%s', '%s', '%s') 
+        #     ON DUPLICATE KEY UPDATE 
+        #     title='%s', 
+        #     abs='%s', 
+        #     ftext='%s'
+        #     ;"""%(
+        #     patternid,
+        #     docid, 
+        #     title,  
+        #     abstract, 
+        #     fulltext,
+        #     title,
+        #     abstract,
+        #     fulltext)
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),  
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))), 
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', fulltext.capitalize()))),
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))),
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', fulltext.capitalize()))))
+        #     # title.decode("utf-8").encode("windows-1252").decode("utf-8"),.encode("utf-8", "ignore").decode("utf-8")
+        #     # title.replace('"', '').replace('\n', '').encode(encoding="ascii",errors="xmlcharrefreplace"), 
+        # execute_mysql_query2(query, connection)
         result = 0
     except:
         result = 1
@@ -448,3 +479,8 @@ def pipeline2():
 # Eliminar volumenes en docker
 # sudo docker volume rm mysqlws_my-db
 # sudo docker volume ls
+# Conectar a container mysql
+# sudo docker exec -it 0cb bash -l
+# Conectar a container alpine
+# sudo docker exec -it 0cb sh
+# 
