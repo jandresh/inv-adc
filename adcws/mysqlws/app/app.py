@@ -14,7 +14,7 @@ config = {
     'port': '3306',
     'database': 'adccali'
 }
-time.sleep(20)
+# time.sleep(20)
 # connection = mysql.connector.connect(user='adccali', database='adccali', password='adccali', host='db', port='3306')
 # Initial database creation
 # def database_init():
@@ -213,7 +213,7 @@ def search_insert():
     fulltext = request.json['fulltext']
     file_name = '{}.csv'.format(patternid)
 
-    
+
     try:
         with open(file_name, mode='a') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -229,31 +229,31 @@ def search_insert():
         #     patid,
         #     docid,
         #     title,
-        #     abs, 
+        #     abs,
         #     ftext
-        #     ) 
-        #     VALUES ('%s', '%s', '%s', '%s', '%s') 
-        #     ON DUPLICATE KEY UPDATE 
-        #     title='%s', 
-        #     abs='%s', 
+        #     )
+        #     VALUES ('%s', '%s', '%s', '%s', '%s')
+        #     ON DUPLICATE KEY UPDATE
+        #     title='%s',
+        #     abs='%s',
         #     ftext='%s'
         #     ;"""%(
         #     patternid,
-        #     docid, 
-        #     title,  
-        #     abstract, 
+        #     docid,
+        #     title,
+        #     abstract,
         #     fulltext,
         #     title,
         #     abstract,
         #     fulltext)
-        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),  
-        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))), 
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),
+        #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))),
         #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', fulltext.capitalize()))),
         #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', title.capitalize()))),
         #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', abstract.capitalize()))),
         #     # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', fulltext.capitalize()))))
         #     # title.decode("utf-8").encode("windows-1252").decode("utf-8"),.encode("utf-8", "ignore").decode("utf-8")
-        #     # title.replace('"', '').replace('\n', '').encode(encoding="ascii",errors="xmlcharrefreplace"), 
+        #     # title.replace('"', '').replace('\n', '').encode(encoding="ascii",errors="xmlcharrefreplace"),
         # execute_mysql_query2(query, connection)
         result = 0
     except:
@@ -261,8 +261,8 @@ def search_insert():
     connection.close()
     return jsonify(result=result)
 
-@app.route("/txt2insert", methods=['GET'])
-def txt_insert():
+@app.route("/txt2core", methods=['GET'])
+def txt_core_insert():
     connection = mysql.connector.connect(**config)
     patterns_text = txt2text('patterns.txt')
     search_queries = str2eq(r'\n', patterns_text)
@@ -286,7 +286,33 @@ def txt_insert():
         result = "%i Patterns can't be inserted" % (error_count)
     connection.close()
     return jsonify(result=result)
-
+# Carcinoma[Title/Abstract] AND lobulillar[Title/Abstract] AND mama[Title/Abstract]
+# abstract:((carcinoma AND lobulillar AND mama))
+@app.route("/txt2pubmed", methods=['GET'])
+def txt_pubmed_insert():
+    connection = mysql.connector.connect(**config)
+    patterns_text = txt2text('patterns.txt')
+    search_queries = str2eq(r'\n', patterns_text)
+    error_count = 0
+    for query_words in search_queries:
+        pattern = ''
+        for i in range(len(query_words)):
+            if(i == len(query_words)-1):
+                pattern += '%s[Title/Abstract]' % (query_words[i])
+            else:
+                pattern += '%s[Title/Abstract] AND ' % (query_words[i])
+        try:
+            query = 'INSERT INTO patterns (pattern, db, description) VALUES ("%s", "%s", "%s");' % (
+                pattern, 'PUBMED', 'Corpus 1')
+            execute_mysql_query2(query, connection)
+        except:
+            error_count += 1
+    if(i == 0):
+        result = execute_mysql_query('SELECT * FROM patterns', connection)
+    else:
+        result = "%i Patterns can't be inserted" % (error_count)
+    connection.close()
+    return jsonify(result=result)
 
 @app.route('/patterns', methods=['GET'])
 def patterns():
@@ -483,4 +509,4 @@ def pipeline2():
 # sudo docker exec -it 0cb bash -l
 # Conectar a container alpine
 # sudo docker exec -it 0cb sh
-# 
+#
