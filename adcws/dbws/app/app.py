@@ -1,16 +1,18 @@
 import csv
 from flask import Flask, jsonify, request
+import pymongo
 import mysql.connector
 import requests
-import time
 import re
+import time
+
 
 app = Flask(__name__)
 
 config = {
     'user': 'adccali',
     'password': 'adccali',
-    'host': 'db',
+    'host': 'mysql',
     'port': '3306',
     'database': 'adccali'
 }
@@ -286,8 +288,8 @@ def txt_core_insert():
         result = "%i Patterns can't be inserted" % (error_count)
     connection.close()
     return jsonify(result=result)
-# Carcinoma[Title/Abstract] AND lobulillar[Title/Abstract] AND mama[Title/Abstract]
-# abstract:((carcinoma AND lobulillar AND mama))
+
+
 @app.route("/txt2pubmed", methods=['GET'])
 def txt_pubmed_insert():
     connection = mysql.connector.connect(**config)
@@ -314,6 +316,7 @@ def txt_pubmed_insert():
     connection.close()
     return jsonify(result=result)
 
+
 @app.route('/patterns', methods=['GET'])
 def patterns():
     connection = mysql.connector.connect(**config)
@@ -329,6 +332,176 @@ def searches():
     connection.close()
     return jsonify(results)
 
+# *****mongo_db_create()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-db-create
+
+@app.route('/mongo-db-create', methods=['POST'])
+def mongo_db_create():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        client[db_name]
+    except:
+        success = 1
+    return str(success)
+
+# *****mongo_db_list()******
+# Este metodo es invocado de esta forma:
+# curl http://localhost:5001/mongo-db-list
+
+@app.route('/mongo-db-list', methods=['GET'])
+def mongo_db_list():
+    client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+    out =""
+    for db in client.list_databases():
+        out+=str(db)
+    return out
+
+# *****mongo_db_delete()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-db-delete
+
+@app.route('/mongo-db-delete', methods=['POST'])
+def mongo_db_delete():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        client.drop_database(db_name)
+    except:
+        success = 1
+    return str(success)
+
+# *****mongo_coll_create()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-coll-create
+
+@app.route('/mongo-coll-create', methods=['POST'])
+def mongo_coll_create():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        coll_name = request.json['coll-name']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+    except:
+        success = 1
+    return str(success)
+
+# *****mongo_coll_list()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-coll-list
+
+@app.route('/mongo-coll-list', methods=['POST'])
+def mongo_coll_list():
+    if not request.json:
+        abort(400)
+    client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+    db_name = request.json['db-name']
+    db = client[db_name]
+    out =""
+    for coll in db.list_collection_names():
+        out+=str(coll)
+    return out
+
+# *****mongo_coll_delete()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-coll-delete
+
+@app.route('/mongo-coll-delete', methods=['POST'])
+def mongo_coll_delete():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        coll_name = request.json['coll-name']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+        collection.drop()
+    except:
+        success = 1
+    return str(success)
+
+# *****mongo_doc_insert()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "doc-id" : "123456", "doc-name" : "Breast cancer history"}' http://localhost:5001/mongo-doc-insert
+
+@app.route('/mongo-doc-insert', methods=['POST'])
+def mongo_doc_insert():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        coll_name = request.json['coll-name']
+        doc_id = request.json['doc-id']
+        doc_name = request.json['doc-name']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+        document = { "doc_id": doc_id, "doc_name" : doc_name}
+        insert_id = collection.insert_one(document)
+        success = insert_id
+    except:
+        success = 1
+    return str(success)
+
+
+# *****mongo_doc_list()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-doc-list
+
+@app.route('/mongo-doc-list', methods=['POST'])
+def mongo_doc_list():
+    if not request.json:
+        abort(400)
+
+    db_name = request.json['db-name']
+    coll_name = request.json['coll-name']
+    client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+    db = client[db_name]
+    collection = db[coll_name]
+    out =""
+    for doc in collection.find():
+        out+=str(doc)
+    return out
+
+# *****mongo_doc_delete()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "query" : {"doc-name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-delete
+
+@app.route('/mongo-doc-delete', methods=['POST'])
+def mongo_doc_delete():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json['db-name']
+        coll_name = request.json['coll-name']
+        query = request.json['query']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+        collection.delete_one(query)
+    except:
+        success = 1
+    # return str(success)
+    return str(query)
+
+# *****pipeline1()******
+# Este metodo es invocado de esta forma:
+# curl http://localhost:5001/pipeline1
 
 @app.route('/pipeline1', methods=['GET'])
 def pipeline1():
@@ -428,9 +601,90 @@ def pipeline1():
     connection.close()
     return jsonify(results)
 
+# *****pipeline2()******
+# Este metodo es invocado de esta forma:
+# curl http://localhost:5001/pipeline2
 
 @app.route('/pipeline2', methods=['GET'])
 def pipeline2():
+    connection = mysql.connector.connect(**config)
+    # Para cada patron sacar 1000 pmid o coreid
+    # para cada pmid o coreid recuperar metadatos
+    # llenar la base de datos
+    results = execute_mysql_query('SELECT * FROM patterns', connection)
+    for pattern in results:
+        get_metadata = True
+        if (pattern['db'] == 'PUBMED'):
+            try:
+                pmids_json = post_json_request(
+                    'http://metapubws:5000/pmids', {"query": pattern['pattern']})
+            except:
+                get_metadata = False
+            if get_metadata:
+                pmids = pmids_json['pmids']
+                doc_id_counter = 0
+                insert_counter = 0
+                for doc_id in pmids:
+                    print("id_pattern:%s" % pattern['id'])
+                    print("pattern:%s" % pattern['pattern'])
+                    print("doc_id:%s" % doc_id)
+                    doc_id_counter += 1
+                    print("doc_id_counter:%s" % doc_id_counter)
+                    success = 0
+                    if doc_id is not None:
+                        insert_mysql = True
+                        try:
+                            metadata_json = post_json_request(
+                                'http://metapubws:5000/metadata', {"id": doc_id})
+                        except:
+                            insert_mysql = False
+                        print("title:%s" % metadata_json['title'])
+                        print("abstract:%s" % metadata_json['abstract'])
+                        # time.sleep(0.3)
+                        if(metadata_json['abstract'] == None):
+                            insert_abstract = ""
+                        else:
+                            insert_abstract = metadata_json['abstract']
+                        if(metadata_json['title'] == None):
+                            insert_title = ""
+                        else:
+                            insert_title = metadata_json['title']
+                        if insert_mysql:
+                            try:
+                                query = 'INSERT INTO searches (patid, docid, title, abs, ftext) VALUES (%s,%s,"%s","%s","%s") ON DUPLICATE KEY UPDATE title="%s", abs="%s", ftext="%s";' % (pattern['id'], doc_id, insert_title.replace(
+                                    '"', '').replace('\n', ''), insert_abstract.replace('"', '').replace('\n', ''), '', insert_title.replace('"', '').replace('\n', ''), insert_abstract.replace('"', '').replace('\n', ''), '')
+                                results = execute_mysql_query2(
+                                    query, connection)
+                                success = 1
+                            except:
+                                query = "Mysql not executed"
+                                success = 0
+                    insert_counter += success
+                    print("insert_counter:%s" % insert_counter)
+        elif (pattern['db'] == 'CORE'):
+            try:
+                search_json = post_json_request(
+                    'http://corews:5000/core2', {"query": pattern['pattern'], "idpattern": pattern['id']})
+            except:
+                get_metadata = False
+                print('Not Success')
+            if get_metadata:
+                print("CORE insert success:%s" % pattern['pattern'])
+                print('Spanish results: ', search_json['result'])
+            else:
+                print("CORE insert not success:%s" % pattern['pattern'])
+
+    results = execute_mysql_query(
+        'SELECT patid, docid, title FROM searches order by patid desc', connection)
+    connection.close()
+    return jsonify(results)
+
+# *****pipeline3()******
+# Este metodo es invocado de esta forma:
+# curl http://localhost:5001/pipeline3
+
+@app.route('/pipeline3', methods=['GET'])
+def pipeline3():
     connection = mysql.connector.connect(**config)
     # Para cada patron sacar 1000 pmid o coreid
     # para cada pmid o coreid recuperar metadatos
@@ -509,4 +763,4 @@ def pipeline2():
 # sudo docker exec -it 0cb bash -l
 # Conectar a container alpine
 # sudo docker exec -it 0cb sh
-#
+# https://pythonexamples.org/python-mongodb-create-collection/
