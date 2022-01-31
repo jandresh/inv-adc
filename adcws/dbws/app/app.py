@@ -105,6 +105,13 @@ def str2eq(pattern, sentences_str):
             sentences_str = sentences_str[match.end():]
     return sentences
 
+#
+# Este metodo retorna informacion de microservicios disponibles
+#
+
+@app.route('/')
+def root():
+    return 'dbws endpoints: /'
 
 @app.route('/init', methods=['GET'])
 def init():
@@ -191,7 +198,7 @@ def pattern_insert():
     except:
         result = "Pattern can't be inserted"
     connection.close()
-    return jsonify(result=result)
+    return jsonify(result)
 
 # *****search_insert()******
 # Este metodo es invocado de esta forma:
@@ -263,8 +270,8 @@ def search_insert():
     connection.close()
     return jsonify(result=result)
 
-@app.route("/txt2core", methods=['GET'])
-def txt_core_insert():
+@app.route("/txt2patterns", methods=['GET'])
+def txt_patterns_file_insert():
     connection = mysql.connector.connect(**config)
     patterns_text = txt2text('patterns.txt')
     search_queries = str2eq(r'\n', patterns_text)
@@ -282,21 +289,6 @@ def txt_core_insert():
             execute_mysql_query2(query, connection)
         except:
             error_count += 1
-    if(i == 0):
-        result = execute_mysql_query('SELECT * FROM patterns', connection)
-    else:
-        result = "%i Patterns can't be inserted" % (error_count)
-    connection.close()
-    return jsonify(result=result)
-
-
-@app.route("/txt2pubmed", methods=['GET'])
-def txt_pubmed_insert():
-    connection = mysql.connector.connect(**config)
-    patterns_text = txt2text('patterns.txt')
-    search_queries = str2eq(r'\n', patterns_text)
-    error_count = 0
-    for query_words in search_queries:
         pattern = ''
         for i in range(len(query_words)):
             if(i == len(query_words)-1):
@@ -329,6 +321,20 @@ def patterns():
 def searches():
     connection = mysql.connector.connect(**config)
     results = execute_mysql_query('SELECT * FROM searches', connection)
+    connection.close()
+    return jsonify(results)
+
+# *****mysql-query()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"query" : "select * from searches"' http://localhost:5001/mysql-query
+
+@app.route('/mysql-query', methods=['POST'])
+def mysql_query():
+    if not request.json:
+        abort(400)
+    query = request.json['query']
+    connection = mysql.connector.connect(**config)
+    results = execute_mysql_query(str(query), connection)
     connection.close()
     return jsonify(results)
 
@@ -496,8 +502,7 @@ def mongo_doc_delete():
         collection.delete_one(query)
     except:
         success = 1
-    # return str(success)
-    return str(query)
+    return str(success)
 
 # *****pipeline1()******
 # Este metodo es invocado de esta forma:
