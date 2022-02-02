@@ -326,7 +326,7 @@ def searches():
 
 # *****mysql-query()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"query" : "select * from searches"' http://localhost:5001/mysql-query
+# curl -X POST -H "Content-type: application/json" -d '{"query" : "select * from searches"}' http://localhost:5001/mysql-query
 
 @app.route('/mysql-query', methods=['POST'])
 def mysql_query():
@@ -441,7 +441,7 @@ def mongo_coll_delete():
 
 # *****mongo_doc_insert()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "doc-id" : "123456", "doc-name" : "Breast cancer history"}' http://localhost:5001/mongo-doc-insert
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "document" : {"doc-id" : "123456", "doc-name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
 
 @app.route('/mongo-doc-insert', methods=['POST'])
 def mongo_doc_insert():
@@ -451,12 +451,10 @@ def mongo_doc_insert():
     try:
         db_name = request.json['db-name']
         coll_name = request.json['coll-name']
-        doc_id = request.json['doc-id']
-        doc_name = request.json['doc-name']
+        document = request.json['document']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
         collection = db[coll_name]
-        document = { "doc_id": doc_id, "doc_name" : doc_name}
         insert_id = collection.insert_one(document)
         success = insert_id
     except:
@@ -478,10 +476,8 @@ def mongo_doc_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
     db = client[db_name]
     collection = db[coll_name]
-    out =""
-    for doc in collection.find():
-        out+=str(doc)
-    return out
+    out = collection.find()
+    return str(list(out))
 
 # *****mongo_doc_delete()******
 # Este metodo es invocado de esta forma:
@@ -503,6 +499,27 @@ def mongo_doc_delete():
     except:
         success = 1
     return str(success)
+
+
+# *****mongo_doc_find()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "query" : {"doc-name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-find
+
+@app.route('/mongo-doc-find', methods=['POST'])
+def mongo_doc_find():
+    if not request.json:
+        abort(400)
+    try:
+        db_name = request.json['db-name']
+        coll_name = request.json['coll-name']
+        query = request.json['query']
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+        out = collection.find({}, query)
+    except:
+        out = None
+    return str(list(out))
 
 # *****pipeline1()******
 # Este metodo es invocado de esta forma:

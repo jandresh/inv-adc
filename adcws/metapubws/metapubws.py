@@ -102,9 +102,9 @@ def metadata_from_pmid():
         url=article.url,
         authors=article.authors,
         # author_list=article.author_list, #Puede no funionar porque devuelve una lista
-        authors_str=article.authors_str,
-        author1_last_fm=article.author1_last_fm,
-        author1_lastfm=article.author1_lastfm,
+        # authors_str=article.authors_str,
+        # author1_last_fm=article.author1_last_fm,
+        # author1_lastfm=article.author1_lastfm,
         # pages=article.pages,
         # first_page=article.first_page,
         # last_page=article.last_page,
@@ -134,8 +134,8 @@ def metadata_from_pmid():
         # book_contribution_date=article.book_contribution_date,
         # book_date_revised=article.book_date_revised,
         # journal=article.journal,
-        year=article.year,
-        history=article.history,
+        year=article.year
+        # history=article.history,
     )
     # buscar varios conceptos con el AND CANCER MAMA TRATADOS CON CISPLASTINO
     # Recibir un filtro de fecha
