@@ -289,19 +289,19 @@ def txt_patterns_file_insert():
             execute_mysql_query2(query, connection)
         except:
             error_count += 1
-        pattern = ''
-        for i in range(len(query_words)):
-            if(i == len(query_words)-1):
-                pattern += '%s[Title/Abstract]' % (query_words[i])
-            else:
-                pattern += '%s[Title/Abstract] AND ' % (query_words[i])
-        try:
-            query = 'INSERT INTO patterns (pattern, db, description) VALUES ("%s", "%s", "%s");' % (
-                pattern, 'PUBMED', 'Corpus 1')
-            execute_mysql_query2(query, connection)
-        except:
-            error_count += 1
-    if(i == 0):
+    #     pattern = ''
+    #     for i in range(len(query_words)):
+    #         if(i == len(query_words)-1):
+    #             pattern += '%s[Title/Abstract]' % (query_words[i])
+    #         else:
+    #             pattern += '%s[Title/Abstract] AND ' % (query_words[i])
+    #     try:
+    #         query = 'INSERT INTO patterns (pattern, db, description) VALUES ("%s", "%s", "%s");' % (
+    #             pattern, 'PUBMED', 'Corpus 1')
+    #         execute_mysql_query2(query, connection)
+    #     except:
+    #         error_count += 1
+    if(error_count == 0):
         result = execute_mysql_query('SELECT * FROM patterns', connection)
     else:
         result = "%i Patterns can't be inserted" % (error_count)
@@ -785,4 +785,5 @@ def pipeline3():
 # sudo docker exec -it 0cb bash -l
 # Conectar a container alpine
 # sudo docker exec -it 0cb sh
+# sudo docker cp 61f41a264988:./app .
 # https://pythonexamples.org/python-mongodb-create-collection/
