@@ -13,6 +13,7 @@ def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
 
 def query_api(search_url, query, scrollId=None):
+    time.sleep(10)
     result_flag = 0
     while result_flag < 3:
         try:
@@ -30,6 +31,8 @@ def query_api(search_url, query, scrollId=None):
             response = None
         if response is not None:
             print(str(response))
+            if(str(response)=="<Response [429]>"):
+                time.sleep(300)
             try:
                 result = response.json()
                 elapsed = response.elapsed.total_seconds()
@@ -70,12 +73,12 @@ def scroll2(search_url, query, ptid):
             try:
                 result, elapsed = query_api(search_url, query, scrollId)
                 time.sleep(2)
-                scrollId = result["scrollId"]
-                totalhits = result["totalHits"]
-                result_size = len(result["results"])
             except:
                 result=False
             if result:
+                scrollId = result["scrollId"]
+                totalhits = result["totalHits"]
+                result_size = len(result["results"])
                 if result_size == 0:
                     break
                 file_name = '{}.csv'.format(ptid)
@@ -84,40 +87,55 @@ def scroll2(search_url, query, ptid):
                     for item in result["results"]:
                         if item['title']==None:
                             item['title']=''
+                        try:
+                            esp_detect_title = detect(item['title'].lower())=='es'
+                            # print(f"detect title = {str(detect(item['title'].lower()))}")
+                        except:
+                            esp_detect_title  = False
                         if item['abstract']==None:
                             item['abstract']=''
+                        try:
+                            esp_detect_abstract = detect(item['abstract'].lower())=='es'
+                            # print(f"detect abstract = {str(detect(item['abstract'].lower()))}")
+                        except:
+                            esp_detect_abstract  = False
                         if item['fullText']==None:
                             item['fullText']=''
                         try:
-                            if detect(item['title'].lower())=='es' or detect(item['abstract'].lower())=='es' or detect(item['fullText'].lower())=='es':
-                                writer2.writerow([
-                                    ptid,
-                                    item['id'],
-                                    item['downloadUrl'],
-                                    item['title'].replace("\'", ""),
-                                    item['abstract'].replace("\'", ""),
-                                    item['fullText'].replace("\'", "")
-                                    # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['title'].capitalize()))),
-                                    # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['abstract'].capitalize()))),
-                                    # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['fullText'].capitalize())))
-                                    ])
-                                # insert=post_json_request(
-                                #     'http://mysqlws:5000/search2mysql',
-                                #     {
-                                #     "patternid" : ptid,
-                                #     "docid": item['id'],
-                                #     "title" : item['title'],
-                                #     "abstract" : item['abstract'],
-                                #     "fulltext" : item['fullText']
-                                #     })
-                                # # if insert['result']=='0':
-                                spanish_count+=1
+                            esp_detect_fullText = detect(item['fullText'].lower())=='es'
+                            # print(f"detect fullText = {str(detect(item['fullText'].lower()))}")
                         except:
-                            print('No inserted docid: ', item['id'])
-                            writer.writerow([
-                                datetime.now(),
-                                'No inserted docid: {}'.format(item['id'])
+                            esp_detect_fullText  = False
+                        # try:
+                        if esp_detect_title or esp_detect_abstract or esp_detect_fullText:
+                            writer2.writerow([
+                                ptid,
+                                item['id'],
+                                item['downloadUrl'],
+                                item['title'].replace("\'", ""),
+                                item['abstract'].replace("\'", ""),
+                                item['fullText'].replace("\'", "")
+                                # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['title'].capitalize()))),
+                                # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['abstract'].capitalize()))),
+                                # ' '.join(map(str,re.findall('[a-zA-Z]\w+[.,;:]*', item['fullText'].capitalize())))
                                 ])
+                            # insert=post_json_request(
+                            #     'http://mysqlws:5000/search2mysql',
+                            #     {
+                            #     "patternid" : ptid,
+                            #     "docid": item['id'],
+                            #     "title" : item['title'],
+                            #     "abstract" : item['abstract'],
+                            #     "fulltext" : item['fullText']
+                            #     })
+                            # # if insert['result']=='0':
+                            spanish_count+=1
+                        # except:
+                        #     print('No inserted docid: ', item['id'])
+                        #     writer.writerow([
+                        #         datetime.now(),
+                        #         'No inserted docid: {}'.format(item['id'])
+                        #         ])
                         print('PatternId:', ptid, 'SpanishCount:', spanish_count)
                     count += result_size
                     print(f"{count}/{totalhits} {elapsed}s")
@@ -224,3 +242,1025 @@ def query_core_scroll():
 # Eliminar volumenes en docker
 # sudo docker volume rm mysqlws_my-db
 # sudo docker volume ls
+
+
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = ca
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 67
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 68
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 68
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 69
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 70
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 70
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 70
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 71
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 72
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 72
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 73
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 74
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 74
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 74
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 74
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 74
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 75
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 76
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 76
+# corews_1  | detect title = es
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 77
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 78
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 79
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 80
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 81
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 82
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 83
+# corews_1  | detect title = it
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 84
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 84
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 85
+# corews_1  | detect title = it
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 85
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 86
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 87
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 88
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 89
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 90
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 91
+# corews_1  | detect title = it
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 91
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 91
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 92
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 93
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 94
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 94
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 95
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 95
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 96
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | PatternId: 1 SpanishCount: 97
+# corews_1  | detect title = it
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 98
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 99
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 100
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 100
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 101
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 102
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 103
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 103
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 104
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 105
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 106
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 107
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 108
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 109
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 110
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 111
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = ca
+# corews_1  | detect fullText = ca
+# corews_1  | PatternId: 1 SpanishCount: 111
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 112
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 113
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 114
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 115
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 116
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 116
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 117
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 117
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 118
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 118
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 119
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 119
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 120
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 120
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 120
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 120
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 121
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 121
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 122
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 122
+# corews_1  | 200/2293 1.740071s
+# corews_1  | <Response [200]>
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 122
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 123
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 123
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 123
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 123
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 124
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 125
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 126
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 126
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 126
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 127
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 128
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | PatternId: 1 SpanishCount: 128
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 129
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 130
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 130
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 130
+# corews_1  | detect title = es
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 131
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 131
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 132
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 132
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = ca
+# corews_1  | detect fullText = ca
+# corews_1  | PatternId: 1 SpanishCount: 132
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = ca
+# corews_1  | detect fullText = ca
+# corews_1  | PatternId: 1 SpanishCount: 132
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 133
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 133
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 133
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 134
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 135
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 136
+# corews_1  | detect title = ca
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = ca
+# corews_1  | PatternId: 1 SpanishCount: 137
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 138
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 138
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 139
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 140
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 141
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 141
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 141
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 141
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 141
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 142
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 142
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 143
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 144
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 145
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 146
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 147
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 147
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 148
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 148
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 148
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | PatternId: 1 SpanishCount: 149
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 149
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 150
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 150
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 150
+# corews_1  | detect title = es
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 150
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | PatternId: 1 SpanishCount: 150
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 151
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 152
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 152
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 153
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 153
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 153
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 154
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 154
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 154
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 154
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 154
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 155
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 155
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 155
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 155
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 155
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 156
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 157
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 158
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 159
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 159
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 159
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 159
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 159
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 160
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 160
+# corews_1  | detect title = en
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 160
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 161
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 162
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 163
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 163
+# corews_1  | detect title = es
+# corews_1  | detect abstract = ca
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | 300/2293 2.338881s
+# corews_1  | <Response [200]>
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 164
+# corews_1  | detect title = es
+# corews_1  | detect abstract = en
+# corews_1  | PatternId: 1 SpanishCount: 165
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 165
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 166
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 166
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 166
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 167
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 167
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 168
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 169
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 170
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 171
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 172
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 173
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 173
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 173
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 173
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 174
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 174
+# corews_1  | detect title = es
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 175
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 175
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 176
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 177
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 177
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 178
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 178
+# corews_1  | detect title = en
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 179
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 180
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 181
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 182
+# corews_1  | detect title = es
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 183
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 183
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 183
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 184
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 184
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 185
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 186
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 186
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 187
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 188
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 188
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 188
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 188
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 189
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 189
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 189
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 190
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 191
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 191
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 191
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 192
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 192
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 193
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 193
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 194
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = en
+# corews_1  | detect fullText = pt
+# corews_1  | PatternId: 1 SpanishCount: 194
+# corews_1  | detect title = en
+# corews_1  | detect abstract = pt
+# corews_1  | detect fullText = en
+# corews_1  | PatternId: 1 SpanishCount: 194
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 195
+# corews_1  | detect title = es
+# corews_1  | detect abstract = es
+# corews_1  | detect fullText = es
+# corews_1  | PatternId: 1 SpanishCount: 196
+# corews_1  | detect title = pt
+# corews_1  | detect abstract = pt
