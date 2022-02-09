@@ -13,18 +13,31 @@ def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
 
 def query_api(search_url, query, scrollId=None):
-    try:
-        headers = {"Authorization": "Bearer "+apikey}
-        if not scrollId:
-            response = requests.get(
-                f"{search_url}?q={query}&limit=100&scroll=true", headers=headers)
-        else:
-            response = requests.get(
-                f"{search_url}?q={query}&limit=100&scrollId={scrollId}", headers=headers)
-    except:
-        print('Post request fail, trying again ...')
-        query_api(search_url, query, scrollId)
-    return response.json(), response.elapsed.total_seconds()
+    result_flag = 0
+    while result_flag < 3:
+        try:
+            headers = {"Authorization": "Bearer "+apikey}
+            if not scrollId:
+                response = requests.get(
+                    f"{search_url}?q={query}&limit=100&scroll=true", headers=headers)
+            else:
+                response = requests.get(
+                    f"{search_url}?q={query}&limit=100&scrollId={scrollId}", headers=headers)
+        except:
+            print('Post request fail, trying again ...')
+            time.sleep(3)
+            result_flag +=1
+            response = None
+        if response is not None:
+            print(str(response))
+            try:
+                result = response.json()
+                elapsed = response.elapsed.total_seconds()
+            except:
+                return None, None
+            return result, elapsed
+    return None, None
+
 
 def scroll(search_url, query, extract_info_callback):
     allresults = []
@@ -56,6 +69,7 @@ def scroll2(search_url, query, ptid):
             result=True
             try:
                 result, elapsed = query_api(search_url, query, scrollId)
+                time.sleep(2)
                 scrollId = result["scrollId"]
                 totalhits = result["totalHits"]
                 result_size = len(result["results"])
@@ -75,8 +89,7 @@ def scroll2(search_url, query, ptid):
                         if item['fullText']==None:
                             item['fullText']=''
                         try:
-                            detect_es=detect(item['title'].lower())=='es' or detect(item['abstract'].lower())=='es' or detect(item['fullText'].lower())=='es'
-                            if detect_es:
+                            if detect(item['title'].lower())=='es' or detect(item['abstract'].lower())=='es' or detect(item['fullText'].lower())=='es':
                                 writer2.writerow([
                                     ptid,
                                     item['id'],
@@ -107,14 +120,14 @@ def scroll2(search_url, query, ptid):
                                 ])
                         print('PatternId:', ptid, 'SpanishCount:', spanish_count)
                     count += result_size
-                    if (spanish_count > 12000):
-                        break
                     print(f"{count}/{totalhits} {elapsed}s")
                     writer.writerow([
                         datetime.now(),
                         'PatternId: {}, spanishCount: {}, {}/{}'.format(ptid, spanish_count, count, totalhits)
                         ])
                     file2.close()
+                    if (spanish_count > 12000 or count == totalhits):
+                        break
             file.close()
         # if result:
         #     if result_size == 0:
