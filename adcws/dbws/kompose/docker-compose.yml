@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   app:
-    build: ./app
+    image: jandresh/mysqlws:latest
     links:
       - db
     ports:
