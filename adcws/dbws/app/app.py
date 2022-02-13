@@ -708,5 +708,5 @@ def pipeline2():
 # sudo docker exec -it 0cb bash -l
 # Conectar a container alpine
 # sudo docker exec -it 0cb sh
-# sudo docker cp 61f41a264988:./app .
+# sudo docker cp 61f41a264988:./app/* .
 # https://pythonexamples.org/python-mongodb-create-collection/

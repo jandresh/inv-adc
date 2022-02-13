@@ -243,6 +243,33 @@ def query_core_scroll():
 # sudo docker volume rm mysqlws_my-db
 # sudo docker volume ls
 
+# Nuevo error:
+
+# corews_1  | PatternId: 949 SpanishCount: 628
+# corews_1  | PatternId: 949 SpanishCount: 629
+# corews_1  | PatternId: 949 SpanishCount: 630
+# corews_1  | PatternId: 949 SpanishCount: 631
+# corews_1  | PatternId: 949 SpanishCount: 632
+# corews_1  | PatternId: 949 SpanishCount: 633
+# corews_1  | PatternId: 949 SpanishCount:[2022-02-12 04:39:35,386] ERROR in app: Exception on /core2 [POST]
+# corews_1  | Traceback (most recent call last):
+# corews_1  |   File "/usr/local/lib/python3.7/site-packages/flask/app.py", line 2073, in wsgi_app
+# corews_1  |     response = self.full_dispatch_request()
+# corews_1  |   File "/usr/local/lib/python3.7/site-packages/flask/app.py", line 1518, in full_dispatch_request
+# corews_1  |     rv = self.handle_user_exception(e)
+# corews_1  |   File "/usr/local/lib/python3.7/site-packages/flask/app.py", line 1516, in full_dispatch_request
+# corews_1  |     rv = self.dispatch_request()
+# corews_1  |   File "/usr/local/lib/python3.7/site-packages/flask/app.py", line 1502, in dispatch_request
+# corews_1  |     return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+# corews_1  |   File "/app/app.py", line 240, in query_core_scroll
+# corews_1  |     ptid)
+# corews_1  |   File "/app/app.py", line 79, in scroll2
+# corews_1  |     scrollId = result["scrollId"]
+# corews_1  | KeyError: 'scrollId'
+# corews_1  | 172.18.0.6 - - [12/Feb/2022 04:39:35] "POST /core2 HTTP/1.1" 500 -
+# corews_1  |  634
+# corews_1  | PatternId: 949 SpanishCount: 635
+# corews_1  | PatternId: 949 SpanishCount: 636
 
 # corews_1  | detect abstract = es
 # corews_1  | detect fullText = es
