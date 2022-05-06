@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: preprocessingws
+  name: preprocessingws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: preprocessingws
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/custompipeline: "true"
+        service: preprocessingws
+    spec:
+      containers:
+        - image: jandresh/preprocessingws:latest
+          name: preprocessingws
+          ports:
+            - containerPort: 5000
+          resources: {}
+      restartPolicy: Always
+status: {}

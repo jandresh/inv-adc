@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: orchestratorws
+  name: orchestratorws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: orchestratorws
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/custompipeline: "true"
+        service: orchestratorws
+    spec:
+      containers:
+        - image: jandresh/orchestratorws:latest
+          name: orchestratorws
+          ports:
+            - containerPort: 5000
+          resources: {}
+      restartPolicy: Always
+status: {}

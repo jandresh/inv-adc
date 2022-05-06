@@ -1,0 +1,7 @@
+Flask
+numpy
+textract
+nltk
+geograpy3
+pdftotext
+langdetect

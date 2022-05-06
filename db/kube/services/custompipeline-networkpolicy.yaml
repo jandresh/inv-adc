@@ -1,0 +1,13 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: custompipeline
+spec:
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              network/custompipeline: "true"
+  podSelector:
+    matchLabels:
+      network/custompipeline: "true"

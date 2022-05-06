@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: dbws
+  name: dbws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: dbws
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/custompipeline: "true"
+        service: dbws
+    spec:
+      containers:
+        - image: jandresh/dbws:latest
+          name: dbws
+          ports:
+            - containerPort: 5000
+          resources: {}
+      restartPolicy: Always
+status: {}

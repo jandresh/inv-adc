@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: metapubws
+  name: metapubws
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: metapubws
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        network/custompipeline: "true"
+        service: metapubws
+    spec:
+      containers:
+        - image: jandresh/metapubws:latest
+          name: metapubws
+          ports:
+            - containerPort: 5000
+          resources: {}
+      restartPolicy: Always
+status: {}

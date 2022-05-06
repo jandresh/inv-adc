@@ -1,0 +1,49 @@
+version: "3.7"
+services:
+  dbws:
+    image: jandresh/dbws:latest
+    links:
+      - mysql
+      - mongo
+    ports:
+      - "5001:5000"
+    networks:
+      - pipeline
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'adccali'
+      MYSQL_USER: 'adccali'
+      MYSQL_PASSWORD: 'adccali'
+      MYSQL_ROOT_PASSWORD: 'root'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - mysql-db:/var/lib/mysql
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_spanish_ci']
+    networks:
+      - pipeline
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'adccali'
+      MONGO_INITDB_ROOT_PASSWORD: 'adccali'
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+    volumes:
+      - mongo-db:/data/db
+    networks:
+      - pipeline
+networks:
+  pipeline:
+    external: true
+    name: custompipeline
+volumes:
+  mysql-db: null
+  mongo-db: null

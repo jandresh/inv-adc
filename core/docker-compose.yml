@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  corews:
+    build: ./app
+    ports:
+      - "5003:5000"
+    networks:
+      - pipeline
+    volumes:
+      - core-pv:/app
+networks:
+  pipeline:
+    external: true
+    name: custompipeline
+volumes:
+  core-pv: null
