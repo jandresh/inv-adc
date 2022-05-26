@@ -2,33 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    service: corews
-  name: corews
+    service: core
+  name: core
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: corews
+      service: core
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         network/custompipeline: "true"
-        service: corews
+        service: core
     spec:
       containers:
-        - image: jandresh/corews:latest
-          name: corews
+        - image: jandresh/core:latest
+          name: core
           ports:
             - containerPort: 5000
           resources: {}
-          volumeMounts:
-            - mountPath: /corews
-              name: core-pv
       restartPolicy: Always
-      volumes:
-        - name: core-pv
-          persistentVolumeClaim:
-            claimName: core-pv
 status: {}

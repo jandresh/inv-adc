@@ -1,7 +1,7 @@
 version: "3.7"
 services:
-  preprocessingws:
-    image: jandresh/preprocessingws:latest
+  preprocessing:
+    image: jandresh/preprocessing:latest
     ports:
       - "5002:5000"
     networks:

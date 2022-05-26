@@ -1,7 +1,7 @@
 version: "3.7"
 services:
-  orchestratorws:
-    image: jandresh/orchestratorws:latest
+  orchestrator:
+    image: jandresh/orchestrator:latest
     ports:
       - "5004:5000"
     networks:

@@ -1,7 +1,7 @@
 version: "3.7"
 services:
-  dbws:
-    image: jandresh/dbws:latest
+  db:
+    image: jandresh/db:latest
     links:
       - mysql
       - mongo

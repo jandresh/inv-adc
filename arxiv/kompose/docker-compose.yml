@@ -1,16 +1,12 @@
 version: "3.7"
 services:
-  corews:
-    image: jandresh/corews:latest
+  arxiv:
+    image: jandresh/arxiv:latest
     ports:
-      - "5003:5000"
+      - "5005:5000"
     networks:
       - pipeline
-    volumes:
-      - core-pv:/
 networks:
   pipeline:
     external: true
     name: custompipeline
-volumes:
-  core-pv: null

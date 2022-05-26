@@ -2,33 +2,26 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    service: corews
-  name: corews
+    service: arxiv
+  name: arxiv
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: corews
+      service: arxiv
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         network/custompipeline: "true"
-        service: corews
+        service: arxiv
     spec:
       containers:
-        - image: jandresh/corews:latest
-          name: corews
+        - image: jandresh/arxiv:latest
+          name: arxiv
           ports:
             - containerPort: 5000
           resources: {}
-          volumeMounts:
-            - mountPath: /corews
-              name: core-pv
       restartPolicy: Always
-      volumes:
-        - name: core-pv
-          persistentVolumeClaim:
-            claimName: core-pv
 status: {}

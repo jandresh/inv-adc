@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    service: dbws
-  name: dbws
+    service: db
+  name: db
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: dbws
+      service: db
   strategy: {}
   template:
     metadata:
       labels:
         network/custompipeline: "true"
-        service: dbws
+        service: db
     spec:
       containers:
-        - image: jandresh/dbws:latest
-          name: dbws
+        - image: jandresh/db:latest
+          name: db
           ports:
             - containerPort: 5000
           resources: {}

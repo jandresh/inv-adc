@@ -2,14 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: corews
-  name: corews
+    service: orchestrator
+  name: orchestrator
 spec:
   type: LoadBalancer
   ports:
-    - name: "5003"
+    - name: "5004"
       port: 5000
       targetPort: 5000
   selector:
-    service: corews
+    service: orchestrator
 status: {}

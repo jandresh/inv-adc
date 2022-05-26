@@ -31,7 +31,7 @@ def object_to_response(object):
 
 @app.route('/')
 def root():
-    return 'metapubws endpoints: /title, /abstract, /pmids'
+    return 'metapub endpoints: /title, /abstract, /pmids, /metadata, /pmid2pdf, /query'
 
 #
 # *****title_from_pmid()******
@@ -119,7 +119,7 @@ def metadata_from_pmid():
             article = fetch.article_by_pmid(pmid)
             unsuccess = False
         except:
-            time.sleep(10)
+            time.sleep(1)
             unsuccess = True
     return jsonify(
         pmid=article.pmid,
@@ -205,7 +205,7 @@ def query():
             pmids = fetch.pmids_for_query(query, retmax=maxdocs)
             unsuccess = False
         except:
-            time.sleep(10)
+            time.sleep(1)
             unsuccess = True
     for pmid in pmids:
         count = count + 1
@@ -217,7 +217,7 @@ def query():
                 article = fetch.article_by_pmid(pmid)
                 unsuccess = False
             except:
-                time.sleep(10)
+                time.sleep(1)
                 unsuccess = True
         abstract = article.abstract
         title = article.title
@@ -242,20 +242,19 @@ def query():
         except:
             lang_json['lang'] = ""
         if pmid is not None:
+            document = {
+                "pat_id": patternid if patternid is not None else "",
+                "dbid" : dbid if dbid is not None else "",
+                "doi" : doi if doi is not None else "",
+                "title" : title if title is not None else "",
+                "abstract" : abstract if abstract is not None else "",
+                "authors" : authors if authors is not None else "",
+                "org" : "",
+                "url" : url if url is not None else "",
+                "year" : year if year is not None else "",
+                "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+            }
             try:
-                document = {
-                        "pat_id": patternid if patternid is not None else "",
-                        "dbid" : dbid if dbid is not None else "",
-                        "doi" : doi if doi is not None else "",
-                        "title" : title if title is not None else "",
-                        "abstract" : abstract if abstract is not None else "",
-                        "authors" : authors if authors is not None else "",
-                        "org" : "",
-                        "url" : url if url is not None else "",
-                        "year" : year if year is not None else "",
-                        "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
-                    }
-                print(f"document: {document}")
                 success_pattern_insert = post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
@@ -264,6 +263,9 @@ def query():
                         "document" : document
                     }
                 )
+            except:
+                print(f"Exception on can't insert document for {dbid}")
+            try:
                 success_global_insert = post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
@@ -273,6 +275,6 @@ def query():
                     }
                 )
             except:
-                print(f"Exception on can't insert document for {dbid}")
+                print(f"Exception on can't insert global document for {dbid}")
             sys.stdout.flush()
     return object_to_response({"exit": 0})

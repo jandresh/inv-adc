@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    service: preprocessingws
-  name: preprocessingws
+    service: orchestrator
+  name: orchestrator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      service: preprocessingws
+      service: orchestrator
   strategy: {}
   template:
     metadata:
       labels:
         network/custompipeline: "true"
-        service: preprocessingws
+        service: orchestrator
     spec:
       containers:
-        - image: jandresh/preprocessingws:latest
-          name: preprocessingws
+        - image: jandresh/orchestrator:latest
+          name: orchestrator
           ports:
             - containerPort: 5000
           resources: {}

@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from flask import Flask, jsonify, request, Response
 from langdetect import detect
-import re
 import requests
 import time
 import sys
@@ -204,20 +203,19 @@ def iterator(search_url, query, patternid, maxdocs):
                 except:
                     lang_json['lang'] = ""
                 if result is not None:
+                    document = {
+                        "pat_id": patternid if patternid is not None else "",
+                        "dbid" : dbid if dbid is not None else "",
+                        "doi" : doi if doi is not None else "",
+                        "title" : title if title is not None else "",
+                        "abstract" : abstract if abstract is not None else "",
+                        "authors" : authors if authors is not None else "",
+                        "org" : "",
+                        "url" : url if url is not None else "",
+                        "year" : year if year is not None else "",
+                        "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+                    }
                     try:
-                        document = {
-                                "pat_id": patternid if patternid is not None else "",
-                                "dbid" : dbid if dbid is not None else "",
-                                "doi" : doi if doi is not None else "",
-                                "title" : title if title is not None else "",
-                                "abstract" : abstract if abstract is not None else "",
-                                "authors" : authors if authors is not None else "",
-                                "org" : "",
-                                "url" : url if url is not None else "",
-                                "year" : year if year is not None else "",
-                                "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
-                            }
-                        print(f"document: {document}")
                         success_doc_insert = post_json_request(
                             'http://db:5000/mongo-doc-insert',
                             {
@@ -226,7 +224,10 @@ def iterator(search_url, query, patternid, maxdocs):
                                 "document" : document
                             }
                         )
-                        success_doc_insert = post_json_request(
+                    except:
+                        print(f"Exception on can't insert document for {dbid}")
+                    try:
+                        success_global_insert = post_json_request(
                             'http://db:5000/mongo-doc-insert',
                             {
                                 "db-name" : "metadata",
@@ -235,7 +236,7 @@ def iterator(search_url, query, patternid, maxdocs):
                             }
                         )
                     except:
-                        print(f"Exception on can't insert document for {dbid}")
+                        print(f"Exception on can't insert global document for {dbid}")
                     sys.stdout.flush()
             count += result_size
             print(f"{count}/{totalhits} {elapsed}s")
@@ -246,6 +247,14 @@ def iterator(search_url, query, patternid, maxdocs):
         else:
             break
     return spanish_count
+
+#
+# Este metodo retorna informacion de microservicios disponibles
+#
+
+@app.route('/')
+def root():
+    return 'core endpoints: /core, /core2, /query'
 
 #
 # *****query_core******

@@ -10,5 +10,3 @@ networks:
   pipeline:
     external: true
     name: custompipeline
-volumes:
-  core-pv: null

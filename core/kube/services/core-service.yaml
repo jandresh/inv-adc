@@ -2,8 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    service: corews
-  name: corews
+    service: core
+  name: core
 spec:
   type: LoadBalancer
   ports:
@@ -11,5 +11,5 @@ spec:
       port: 5000
       targetPort: 5000
   selector:
-    service: corews
+    service: core
 status: {}

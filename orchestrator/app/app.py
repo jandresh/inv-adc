@@ -1,7 +1,6 @@
 import json
 from flask import Flask, jsonify, request, Response
 import requests
-import urllib.parse
 import sys
 
 app = Flask(__name__)

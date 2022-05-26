@@ -2,7 +2,7 @@
 FROM python:3.9.9-bullseye
 WORKDIR /app
 ENV DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update && \ 
+RUN apt-get update && \
     apt-get -y upgrade
 RUN apt-get -y install python3-sklearn python3-sklearn-lib
 RUN apt-get -y install python3-pandas

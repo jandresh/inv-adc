@@ -1,13 +1,8 @@
-import csv
 import json
-from datetime import datetime
 from unittest import skip
-from flask import Flask, jsonify, request, Response
+from flask import Flask, request, Response
 import arxiv
-from langdetect import detect
-import re
 import requests
-import time
 import sys
 
 app = Flask(__name__)
@@ -30,7 +25,7 @@ def object_to_response(object):
 
 @app.route('/')
 def root():
-    return 'metapubws endpoints: /title, /abstract, /pmids'
+    return 'arxiv endpoints: /arxiv, /query'
 
 #
 # *****query_arxiv******
@@ -119,20 +114,19 @@ def query():
         except:
             lang_json['lang'] = ""
         if result is not None:
+            document = {
+                "pat_id": patternid if patternid is not None else "",
+                "dbid" : dbid if dbid is not None else "",
+                "doi" : doi if doi is not None else "",
+                "title" : title if title is not None else "",
+                "abstract" : abstract if abstract is not None else "",
+                "authors" : authors if authors is not None else "",
+                "org" : "",
+                "url" : url if url is not None else "",
+                "year" : year if year is not None else "",
+                "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+            }
             try:
-                document = {
-                        "pat_id": patternid if patternid is not None else "",
-                        "dbid" : dbid if dbid is not None else "",
-                        "doi" : doi if doi is not None else "",
-                        "title" : title if title is not None else "",
-                        "abstract" : abstract if abstract is not None else "",
-                        "authors" : authors if authors is not None else "",
-                        "org" : "",
-                        "url" : url if url is not None else "",
-                        "year" : year if year is not None else "",
-                        "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
-                    }
-                print(f"document: {document}")
                 success_doc_insert = post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
@@ -141,7 +135,10 @@ def query():
                         "document" : document
                     }
                 )
-                success_doc_insert = post_json_request(
+            except:
+                print(f"Exception on can't insert document for {dbid}")
+            try:
+                success_global_insert = post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
                         "db-name" : "metadata",

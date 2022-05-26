@@ -63,7 +63,7 @@ def head_extract(path):
 
 @app.route('/')
 def helloworld():
-    return 'metapubws endpoints: /\n/url2text\n/url2htext\n/text2locations\n/text2places\n/text2ner\n/text2emails'
+    return 'preprocesing endpoints: /\n/url2text\n/url2htext\n/text2locations\n/text2places\n/text2ner\n/text2emails'
 
 # *****text_from_pdf_url()******
 # Este metodo es invocado de esta forma:

@@ -78,12 +78,29 @@ def str2eq(pattern, sentences_str):
 @app.route('/')
 def root():
 
-    return '''dbws endpoints:
-    /
-    /init               GET
-    /pattern2mysql      POST
-
-    '''
+    return '''db endpoints:
+/
+/init               GET
+/pattern2mysql      POST
+/search2mysql       POST
+/txt2patterns       GET
+/patterns           GET
+/searches           GET
+/mysql-query        POST
+/mongo-db-create    POST
+/mongo-db-list      GET
+/mongo-db-delete    POST
+/mongo-coll-create  POST
+/mongo-coll-list    POST
+/mongo-coll-delete  POST
+/mongo-doc-insert   POST
+/mongo-doc-list     POST
+/mongo-doc-delete   POST
+/mongo-doc-find     POST
+/mongo-doc-distinct POST
+/pipeline1          GET
+/pipeline2          GET
+'''
 
 # *****init()******
 # Este metodo es invocado de esta forma:
@@ -486,7 +503,7 @@ def pipeline1():
         if (pattern['db'] == 'PUBMED'):
             try:
                 pmids_json = post_json_request(
-                    'http://metapubws:5000/pmids', {"query": pattern['pattern']})
+                    'http://metapub:5000/pmids', {"query": pattern['pattern']})
             except:
                 get_metadata = False
             if get_metadata:
@@ -504,7 +521,7 @@ def pipeline1():
                         insert_mysql = True
                         try:
                             metadata_json = post_json_request(
-                                'http://metapubws:5000/metadata', {"id": doc_id})
+                                'http://metapub:5000/metadata', {"id": doc_id})
                         except:
                             insert_mysql = False
                         print("title:%s" % metadata_json['title'])
@@ -530,7 +547,7 @@ def pipeline1():
         elif (pattern['db'] == 'CORE'):
             try:
                 search_json = post_json_request(
-                    'http://corews:5000/core', {"query": pattern['pattern']})
+                    'http://core:5000/core', {"query": pattern['pattern']})
             except:
                 get_metadata = False
                 print('Not Success')
@@ -580,7 +597,7 @@ def pipeline2():
         if (pattern['db'] == 'PUBMED'):
             try:
                 pmids_json = post_json_request(
-                    'http://metapubws:5000/pmids', {"query": pattern['pattern']})
+                    'http://metapub:5000/pmids', {"query": pattern['pattern']})
             except:
                 get_metadata = False
             # if get_metadata:
@@ -598,7 +615,7 @@ def pipeline2():
             #             insert_mysql = True
             #             try:
             #                 metadata_json = post_json_request(
-            #                     'http://metapubws:5000/metadata', {"id": doc_id})
+            #                     'http://metapub:5000/metadata', {"id": doc_id})
             #             except:
             #                 insert_mysql = False
             #             print("title:%s" % metadata_json['title'])
@@ -627,7 +644,7 @@ def pipeline2():
         elif (pattern['db'] == 'CORE'):
             try:
                 search_json = post_json_request(
-                    'http://corews:5000/core2', {"query": pattern['pattern'], "idpattern": pattern['id']})
+                    'http://core:5000/core2', {"query": pattern['pattern'], "idpattern": pattern['id']})
             except:
                 get_metadata = False
                 print('Not Success')
