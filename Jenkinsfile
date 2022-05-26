@@ -65,7 +65,7 @@ pipeline {
             }
             agent {
                 kubernetes {
-                    label 'madesoft2-app'
+                    label 'adc-cali-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -109,7 +109,7 @@ pipeline {
             when { branch 'canary' }
             agent {
                 kubernetes {
-                    label 'madesoft2-app'
+                    label 'adc-cali-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -153,7 +153,7 @@ pipeline {
             when { branch 'master' }
             agent {
                 kubernetes {
-                    label 'madesoft2-app'
+                    label 'adc-cali-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
