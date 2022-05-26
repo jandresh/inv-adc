@@ -1,13 +1,13 @@
 version: "3.7"
 services:
-  core:
-    build: ./app
+  corews:
+    image: jandresh/corews:latest
     ports:
       - "5003:5000"
     networks:
       - pipeline
     volumes:
-      - core-pv:/app
+      - core-pv:/
 networks:
   pipeline:
     external: true

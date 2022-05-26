@@ -1,6 +1,6 @@
 version: "3.7"
 services:
-  preprocessingws:
+  preprocessing:
     build: ./app
     ports:
       - "5002:5000"

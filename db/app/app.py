@@ -17,11 +17,19 @@ config = {
 }
 
 def post_json_request(url, obj):
+
     return requests.post(url, json=obj).json()
 
+def object_to_response(object):
+    response = Response(
+        response=json.dumps(object),
+        mimetype="application/json"
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    return response
 
 def execute_mysql_query(query, connection):
-
     try:
         cursor = connection.cursor()
         cursor.execute(query)
@@ -35,9 +43,7 @@ def execute_mysql_query(query, connection):
 
     return results
 
-
 def execute_mysql_query2(query, connection):
-
     result = 0
     try:
         cursor = connection.cursor()
@@ -50,13 +56,12 @@ def execute_mysql_query2(query, connection):
 
     return result
 
-
 def txt2text(path):
     with open(path, mode="r", encoding="utf-8") as f:
         text_str = f.read()
         f.close()
-    return text_str
 
+    return text_str
 
 def str2eq(pattern, sentences_str):
     pattern = re.compile(pattern)
@@ -67,10 +72,12 @@ def str2eq(pattern, sentences_str):
         if(match != None):
             sentences.append(sentences_str[:match.start()].split())
             sentences_str = sentences_str[match.end():]
+
     return sentences
 
 @app.route('/')
 def root():
+
     return '''dbws endpoints:
     /
     /init               GET
@@ -88,6 +95,7 @@ def init():
     error = execute_mysql_query2(
             """CREATE TABLE patterns (
                     id INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                    patternid INT(10) NOT NULL,
                     pattern TEXT NOT NULL,
                     db TEXT NOT NULL,
                     description TEXT
@@ -104,7 +112,8 @@ def init():
     if error:
         print('Error on tables creation')
     connection.close()
-    return jsonify(error=error)
+
+    return object_to_response({"exit": error})
 
 # *****patten_insert()******
 # Este metodo es invocado de esta forma:
@@ -126,6 +135,7 @@ def pattern_insert():
     if not error:
         result = execute_mysql_query('SELECT * FROM patterns', connection)
     connection.close()
+
     return jsonify(result)
 
 # *****search_insert()******
@@ -144,8 +154,6 @@ def search_insert():
     abstract = request.json['abstract']
     fulltext = request.json['fulltext']
     file_name = '{}.csv'.format(patternid)
-
-
     try:
         with open(file_name, mode='a') as file:
             writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
@@ -161,6 +169,7 @@ def search_insert():
     except:
         result = 1
     connection.close()
+
     return jsonify(result=result)
 
 # *****txt_patterns_file_insert()******
@@ -173,15 +182,25 @@ def txt_patterns_file_insert():
     patterns_text = txt2text('patterns.txt')
     search_queries = str2eq(r'\n', patterns_text)
     error_count = 0
+    patternid = 1
     for query_words in search_queries:
+        pattern = ''
+        for i in range(len(query_words)):
+            if(i == len(query_words)-1):
+                pattern += 'abs:%s' % (query_words[i])
+            else:
+                pattern += 'abs:%s AND ' % (query_words[i])
+        query = 'INSERT INTO patterns (patternid, pattern, db, description) VALUES (%d, "%s", "%s", "%s");' % (
+            patternid, pattern, 'ARXIV', 'Corpus 1')
+        error_count += execute_mysql_query2(query, connection)
         pattern = 'abstract:('
         for i in range(len(query_words)):
             if(i == len(query_words)-1):
                 pattern += '%s)' % (query_words[i])
             else:
                 pattern += '%s AND ' % (query_words[i])
-        query = 'INSERT INTO patterns (pattern, db, description) VALUES ("%s", "%s", "%s");' % (
-            pattern, 'CORE', 'Corpus 1')
+        query = 'INSERT INTO patterns (patternid, pattern, db, description) VALUES (%d, "%s", "%s", "%s");' % (
+            patternid, pattern, 'CORE', 'Corpus 1')
         error_count += execute_mysql_query2(query, connection)
         pattern = ''
         for i in range(len(query_words)):
@@ -189,15 +208,17 @@ def txt_patterns_file_insert():
                 pattern += '%s[Title/Abstract]' % (query_words[i])
             else:
                 pattern += '%s[Title/Abstract] AND ' % (query_words[i])
-        query = 'INSERT INTO patterns (pattern, db, description) VALUES ("%s", "%s", "%s");' % (
-            pattern, 'PUBMED', 'Corpus 1')
+        query = 'INSERT INTO patterns (patternid, pattern, db, description) VALUES (%d, "%s", "%s", "%s");' % (
+            patternid, pattern, 'PUBMED', 'Corpus 1')
         error_count += execute_mysql_query2(query, connection)
+        patternid += 1
     if not error_count:
         result = execute_mysql_query('SELECT * FROM patterns', connection)
     else:
         result = [{"error" : "%i Patterns can't be inserted" % (error_count)}]
     connection.close()
-    return jsonify(result)
+
+    return object_to_response(result)
 
 # *****patterns()******
 # Este metodo es invocado de esta forma:
@@ -208,12 +229,8 @@ def patterns():
     connection = mysql.connector.connect(**config)
     results = execute_mysql_query('SELECT * FROM patterns', connection)
     connection.close()
-    resp = Response(
-        response=json.dumps(results),
-        mimetype="application/json"
-        )
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    return resp
+
+    return object_to_response(results)
 
 # *****searches()******
 # Este metodo es invocado de esta forma:
@@ -224,7 +241,8 @@ def searches():
     connection = mysql.connector.connect(**config)
     results = execute_mysql_query('SELECT * FROM searches', connection)
     connection.close()
-    return jsonify(results)
+
+    return object_to_response(results)
 
 # *****mysql-query()******
 # Este metodo es invocado de esta forma:
@@ -238,7 +256,8 @@ def mysql_query():
     connection = mysql.connector.connect(**config)
     results = execute_mysql_query(str(query), connection)
     connection.close()
-    return jsonify(results)
+
+    return object_to_response(results)
 
 # *****mongo_db_create()******
 # Este metodo es invocado de esta forma:
@@ -255,7 +274,8 @@ def mongo_db_create():
         client[db_name]
     except:
         success = 1
-    return str(success)
+
+    return object_to_response({"exit": success})
 
 # *****mongo_db_list()******
 # Este metodo es invocado de esta forma:
@@ -264,10 +284,8 @@ def mongo_db_create():
 @app.route('/mongo-db-list', methods=['GET'])
 def mongo_db_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
-    out =""
-    # for db in client.list_databases():
-    #     out+=str(db)
-    return jsonify(databases=client.list_database_names())
+
+    return object_to_response({"databases": client.list_database_names()})
 
 # *****mongo_db_delete()******
 # Este metodo es invocado de esta forma:
@@ -284,7 +302,8 @@ def mongo_db_delete():
         client.drop_database(db_name)
     except:
         success = 1
-    return str(success)
+
+    return object_to_response({"exit": success})
 
 # *****mongo_coll_create()******
 # Este metodo es invocado de esta forma:
@@ -303,7 +322,8 @@ def mongo_coll_create():
         collection = db[coll_name]
     except:
         success = 1
-    return str(success)
+
+    return object_to_response({"exit": success})
 
 # *****mongo_coll_list()******
 # Este metodo es invocado de esta forma:
@@ -339,7 +359,7 @@ def mongo_coll_delete():
         collection.drop()
     except:
         success = 1
-    return str(success)
+    return object_to_response({"exit": success})
 
 # *****mongo_doc_insert()******
 # Este metodo es invocado de esta forma:
@@ -361,7 +381,7 @@ def mongo_doc_insert():
         success = insert_id
     except:
         success = 1
-    return str(success)
+    return object_to_response({"exit": success})
 
 
 # *****mongo_doc_list()******
@@ -403,7 +423,7 @@ def mongo_doc_delete():
         collection.delete_one(query)
     except:
         success = 1
-    return str(success)
+    return object_to_response({"exit": success})
 
 
 # *****mongo_doc_find()******
@@ -451,7 +471,7 @@ def mongo_doc_distinct():
         out = collection.distinct(field, query, options)
     except:
         out = None
-    return jsonify(result=out)
+    return object_to_response({"result": out})
 
 # *****pipeline1()******
 # Este metodo es invocado de esta forma:

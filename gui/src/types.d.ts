@@ -8,7 +8,7 @@ export interface Sub {
 export interface Patterns {
     db:  string
     description: string
-    id: number
+    patternid: number
     pattern: string
     | {}
 }

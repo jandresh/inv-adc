@@ -1,4 +1,5 @@
 import {Patterns} from "../types"
+// import {useState} from "react"
 
 interface Props {
   patterns: Array<Patterns>
@@ -6,21 +7,32 @@ interface Props {
 
 const Table = ({patterns}: Props) => {
   const renderTable = (): JSX.Element[] => {
-    return patterns.map(pattern => {
+    return patterns.map(item => {
       return (
-        <li key={pattern.id}>
-          <h4>Database: {pattern.db}</h4>
-          <p>Description: {pattern.description}</p>
-          <p>Description: {pattern.description}</p>
-        </li>
+        <tr key={item.patternid}>
+          <td>{item.patternid}</td>
+          <td>{item.db}</td>
+          <td>{item.description}</td>
+          <td>{item.pattern.toString()}</td>
+        </tr>
       )
     })
   }
 
   return (
-    <ul>
-      {renderTable()}
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>Database</th>
+          <th>Description</th>
+          <th>Query</th>
+        </tr>
+      </thead>
+      <tbody>
+        {renderTable()}
+      </tbody>
+    </table>
   )
 }
 

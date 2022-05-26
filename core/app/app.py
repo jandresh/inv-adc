@@ -1,16 +1,27 @@
 import csv
+import json
 from datetime import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from langdetect import detect
 import re
 import requests
 import time
+import sys
 
 app = Flask(__name__)
 apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
+
+def object_to_response(object):
+    response = Response(
+        response=json.dumps(object),
+        mimetype="application/json"
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    return response
 
 def query_api(search_url, query, scrollId=None):
     result_flag = 0
@@ -151,6 +162,91 @@ def scroll2(search_url, query, ptid):
     print("Control Point 16")
     return spanish_count
 
+def iterator(search_url, query, patternid, maxdocs):
+    count = 0
+    spanish_count = 0
+    scrollId = None
+    while True:
+        try:
+            results, elapsed = query_api(search_url, query, scrollId)
+            time.sleep(2)
+            print(f'scrollId : {result["scrollId"]}')
+            if results is None:
+                print("Control Point 8")
+                break
+        except:
+            print("Control Point 9")
+            result=None
+        if results is not None:
+            scrollId = results["scrollId"]
+            totalhits = results["totalHits"]
+            result_size = len(results["results"])
+            if result_size == 0:
+                print("Control Point 10")
+                break
+            for result in results["results"]:
+                abstract = result['abstract']
+                title = result['title']
+                dbid = result['id']
+                doi = result['doi']
+                authors = result['authors']
+                url = result['downloadUrl']
+                year = result['publishedDate']
+                try:
+                    if abstract is not None:
+                        text = abstract
+                    elif title is not None:
+                        text = title
+                    else:
+                        text = ""
+                    lang_json = post_json_request(
+                        'http://preprocessing:5000/text2lang', {"text": text})
+                except:
+                    lang_json['lang'] = ""
+                if result is not None:
+                    try:
+                        document = {
+                                "pat_id": patternid if patternid is not None else "",
+                                "dbid" : dbid if dbid is not None else "",
+                                "doi" : doi if doi is not None else "",
+                                "title" : title if title is not None else "",
+                                "abstract" : abstract if abstract is not None else "",
+                                "authors" : authors if authors is not None else "",
+                                "org" : "",
+                                "url" : url if url is not None else "",
+                                "year" : year if year is not None else "",
+                                "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+                            }
+                        print(f"document: {document}")
+                        success_doc_insert = post_json_request(
+                            'http://db:5000/mongo-doc-insert',
+                            {
+                                "db-name" : "metadata",
+                                "coll-name" : f"metadata_{patternid}",
+                                "document" : document
+                            }
+                        )
+                        success_doc_insert = post_json_request(
+                            'http://db:5000/mongo-doc-insert',
+                            {
+                                "db-name" : "metadata",
+                                "coll-name" : f"metadata_global",
+                                "document" : document
+                            }
+                        )
+                    except:
+                        print(f"Exception on can't insert document for {dbid}")
+                    sys.stdout.flush()
+            count += result_size
+            print(f"{count}/{totalhits} {elapsed}s")
+            print("Control Point 12")
+            if (count > maxdocs or count == totalhits):
+                print("Control Point 13")
+                break
+        else:
+            break
+    return spanish_count
+
 #
 # *****query_core******
 # Este metodo es invocado de esta forma:
@@ -190,3 +286,25 @@ def query_core_scroll():
         query,
         ptid)
     return jsonify(result=result)
+
+#
+# *****query******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "carcinoma lobulillar de mama", "patternid": 1, "maxdocs": 2000 }' http://localhost:5003/core | jq '.' | less
+#
+
+
+@app.route("/query", methods=['POST'])
+def query():
+    if not request.json:
+        abort(400)
+    result = None
+    query = request.json['query']
+    ptid = request.json['patternid']
+    maxdocs = request.json['maxdocs']
+    result = iterator(
+        f"https://api.core.ac.uk/v3/search/works",
+        query,
+        ptid,
+        maxdocs)
+    return object_to_response({"exit": 0})

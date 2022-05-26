@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, request
+import json
+from flask import Flask, jsonify, request, Response
 import requests
 import urllib.parse
 import sys
@@ -13,8 +14,27 @@ def get_json_orcid_request(name):
     headers = {'Accept': 'application/json',}
     # params = (('q', f'{id_type}-self:{doc_id}'),)
     name = name.split()
-    params = (('q', f'family-name:{name[0]}+AND+given-names:{name[1]}&start=0&rows=1'),)
+    params = (('q', f'family-name:{name[0]}+AND+given-names:{name[1]}&start=0&ro=1'),)
     return requests.get(url, headers=headers, params=params).json()
+
+def object_to_response(object):
+    response = Response(
+        response=json.dumps(object),
+        mimetype="application/json"
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    return response
+
+def db_url(db):
+    if db == "PUBMED":
+        return "http://metapub:5000/query"
+    elif db == "ARXIV":
+        return "http://arxiv:5000/query"
+    elif db == "CORE":
+        return "http://core:5000/query"
+
+    return ""
 
 #
 # Este metodo retorna informacion de microservicios disponibles
@@ -22,37 +42,37 @@ def get_json_orcid_request(name):
 
 @app.route('/')
 def root():
-    return 'orchestratorws endpoints: /'
+    return 'orchestrator endpoints: /'
 
 @app.route('/pipeline3', methods=['GET'])
 def pipeline3():
     try:
         patterns_list = post_json_request(
-            'http://dbws:5000/mysql-query',
+            'http://db:5000/mysql-query',
             {"query" : "select * from patterns"}
         )
     except:
         patterns_list = None
     create_metadata_db = post_json_request(
-        'http://dbws:5000/mongo-db-create',
+        'http://db:5000/mongo-db-create',
         {"db-name" : "metadata"}
     )
     create_authors_db = post_json_request(
-        'http://dbws:5000/mongo-db-create',
+        'http://db:5000/mongo-db-create',
         {"db-name" : "authors"}
     )
     actual_pattern = 1
     if patterns_list is not None and create_metadata_db == 0 and create_authors_db == 0:
         for pattern in patterns_list:
             create_mongo_coll_metadata = post_json_request(
-                'http://dbws:5000/mongo-coll-create',
+                'http://db:5000/mongo-coll-create',
                 {
                     "db-name" : "metadata",
                     "coll-name" : f"metadata_{actual_pattern}"
                 }
             )
             create_mongo_coll_author_vs_doc_id = post_json_request(
-                'http://dbws:5000/mongo-coll-create',
+                'http://db:5000/mongo-coll-create',
                 {
                     "db-name" : "authors",
                     "coll-name" : "author_vs_doc_id_{}".format(actual_pattern)
@@ -61,7 +81,7 @@ def pipeline3():
             if (pattern['db'] == 'PUBMED'):
                 try:
                     pmids_json = post_json_request(
-                        'http://metapubws:5000/pmids', {"query": pattern['pattern']})
+                        'http://metapub:5000/pmids', {"query": pattern['pattern']})
                     pmids = pmids_json['pmids']
                 except:
                     pmids = None
@@ -70,7 +90,7 @@ def pipeline3():
                         if pmid is not None:
                             try:
                                 metadata_json = post_json_request(
-                                    'http://metapubws:5000/metadata', {"id": "{}".format(pmid)})
+                                    'http://metapub:5000/metadata', {"id": "{}".format(pmid)})
                             except:
                                 metadata_json = None
                             try:
@@ -81,14 +101,14 @@ def pipeline3():
                                 else:
                                     text = ""
                                 lang_json = post_json_request(
-                                    'http://preprocessingws:5000/text2lang', {"text": text})
+                                    'http://preprocessing:5000/text2lang', {"text": text})
                             except:
                                 lang_json['lang'] = ""
                             if metadata_json is not None:
                                 success_doc_insert = 1
                                 try:
                                     success_doc_insert = post_json_request(
-                                        'http://dbws:5000/mongo-doc-insert',
+                                        'http://db:5000/mongo-doc-insert',
                                         {
                                             "db-name" : "metadata",
                                             "coll-name" : f"metadata_{actual_pattern}",
@@ -122,7 +142,7 @@ def pipeline3():
                                     success_author_insert = 1
                                     try:
                                         success_author_insert = post_json_request(
-                                            'http://dbws:5000/mongo-doc-insert',
+                                            'http://db:5000/mongo-doc-insert',
                                             {
                                                 "db-name" : "authors",
                                                 "coll-name" : f"author_vs_doc_id_{actual_pattern}",
@@ -143,29 +163,29 @@ def pipeline3():
 def pipeline4():
     db_name = 'network'
     create_network_db = post_json_request(
-        'http://dbws:5000/mongo-db-create',
+        'http://db:5000/mongo-db-create',
         {"db-name" : db_name}
     )
     coll_list = post_json_request(
-        'http://dbws:5000/mongo-coll-list',
+        'http://db:5000/mongo-coll-list',
         {"db-name" : "authors"}
     )
     for collection in coll_list['collections']:
         coll_name = f"works{collection.replace('author_vs_doc_id', '')}"
         create_mongo_coll_metadata = post_json_request(
-            'http://dbws:5000/mongo-coll-create',
+            'http://db:5000/mongo-coll-create',
             {
                 "db-name" : db_name,
                 "coll-name" : coll_name,
             }
         )
         author_list = post_json_request(
-            'http://dbws:5000/mongo-doc-distinct',
+            'http://db:5000/mongo-doc-distinct',
             {"db-name" : "authors", "coll-name" : collection, "field" : "author", "query" : {}, "options" : {}}
         )
         for author in author_list['result']:
             works_obj = post_json_request(
-                'http://dbws:5000/mongo-doc-find',
+                'http://db:5000/mongo-doc-find',
                 {"db-name" : "authors", "coll-name" : collection, "query" : {"author" : author}, "projection" : {"doc_id": 1}}
             )
             works = []
@@ -173,7 +193,7 @@ def pipeline4():
                 works.append(str(work['doc_id']))
             try:
                 success_works_insert = post_json_request(
-                    'http://dbws:5000/mongo-doc-insert',
+                    'http://db:5000/mongo-doc-insert',
                     {
                         "db-name" : db_name,
                         "coll-name" : coll_name,
@@ -192,42 +212,42 @@ def pipeline4():
 def pipeline5():
     db_name = 'network'
     create_network_db = post_json_request(
-        'http://dbws:5000/mongo-db-create',
+        'http://db:5000/mongo-db-create',
         {"db-name" : db_name}
     )
     coll_list = post_json_request(
-        'http://dbws:5000/mongo-coll-list',
+        'http://db:5000/mongo-coll-list',
         {"db-name" : "authors"}
     )
     for collection in coll_list['collections']:
         coll_name = f"related{collection.replace('author_vs_doc_id', '')}"
         works_coll = f"works{collection.replace('author_vs_doc_id', '')}"
         create_mongo_coll_metadata = post_json_request(
-            'http://dbws:5000/mongo-coll-create',
+            'http://db:5000/mongo-coll-create',
             {
                 "db-name" : db_name,
                 "coll-name" : coll_name,
             }
         )
         author_list = post_json_request(
-            'http://dbws:5000/mongo-doc-distinct',
+            'http://db:5000/mongo-doc-distinct',
             {"db-name" : "authors", "coll-name" : collection, "field" : "author", "query" : {}, "options" : {}}
         )
         for author in author_list['result']:
             author_works = post_json_request(
-                'http://dbws:5000/mongo-doc-find',
+                'http://db:5000/mongo-doc-find',
                 {"db-name" : db_name, "coll-name" : works_coll, "query" : {"author" : author}, "projection" : {"works": 1}}
             )
             if(author_works!=[]):
                 for work in author_works[0]['works']:
                     authors_related = post_json_request(
-                        'http://dbws:5000/mongo-doc-find',
+                        'http://db:5000/mongo-doc-find',
                         {"db-name" : db_name, "coll-name" : works_coll, "query" : {"works" : work}, "projection" : {"author": 1}}
                     )
                     for author_related in authors_related:
                         try:
                             success_related_insert = post_json_request(
-                                'http://dbws:5000/mongo-doc-insert',
+                                'http://db:5000/mongo-doc-insert',
                                 {
                                     "db-name" : db_name,
                                     "coll-name" : coll_name,
@@ -249,29 +269,29 @@ def pipeline5():
 def pipeline6():
     db_name = 'arrays'
     create_array_db = post_json_request(
-        'http://dbws:5000/mongo-db-create',
+        'http://db:5000/mongo-db-create',
         {"db-name" : db_name}
     )
     coll_list = post_json_request(
-        'http://dbws:5000/mongo-coll-list',
+        'http://db:5000/mongo-coll-list',
         {"db-name" : "network"}
     )
     related_coll_list = list(filter(lambda x: x[0]=='r',coll_list['collections']))
     for collection in related_coll_list:
         coll_name = f"authors{collection.replace('related', '')}"
         create_mongo_coll = post_json_request(
-            'http://dbws:5000/mongo-coll-create',
+            'http://db:5000/mongo-coll-create',
             {
                 "db-name" : db_name,
                 "coll-name" : coll_name,
             }
         )
         data = post_json_request(
-            'http://dbws:5000/mongo-doc-list',
+            'http://db:5000/mongo-doc-list',
             {"db-name" : "network", "coll-name" : collection}
         )
         author_list_json = post_json_request(
-            'http://dbws:5000/mongo-doc-distinct',
+            'http://db:5000/mongo-doc-distinct',
             {"db-name" : "authors", "coll-name" : f"author_vs_doc_id{collection.replace('related', '')}", "field" : "author", "query" : {}, "options" : {}}
         )
         author_list = author_list_json['result']
@@ -289,7 +309,7 @@ def pipeline6():
                             sys.stdout.flush()
         try:
             success_array_insert = post_json_request(
-                'http://dbws:5000/mongo-doc-insert',
+                'http://db:5000/mongo-doc-insert',
                 {
                     "db-name" : db_name,
                     "coll-name" : coll_name,
@@ -303,3 +323,46 @@ def pipeline6():
             print("error on array insert")
         print(f"Processed coll_name={coll_name}")
     return jsonify(author_list)
+
+@app.route('/pipeline7', methods=['GET'])
+def pipeline7():
+    maxdocs = 500
+    try:
+        patterns_list = post_json_request(
+            'http://db:5000/mysql-query',
+            {"query" : "select * from patterns"}
+        )
+    except:
+        patterns_list = None
+    create_metadata_db = post_json_request(
+        'http://db:5000/mongo-db-create',
+        {"db-name" : "metadata"}
+    )
+    create_mongo_coll_metadata_global = post_json_request(
+        'http://db:5000/mongo-coll-create',
+        {
+            "db-name" : "metadata",
+            "coll-name" : f"metadata_global"
+        }
+    )
+    errors = 0
+    if patterns_list is not None and create_metadata_db['exit'] == 0 and create_mongo_coll_metadata_global['exit'] == 0:
+        for pattern in patterns_list:
+            if pattern['db'] == "PUBMED":
+                create_mongo_coll_metadata = post_json_request(
+                    'http://db:5000/mongo-coll-create',
+                    {
+                        "db-name" : "metadata",
+                        "coll-name" : f"metadata_{pattern['patternid']}"
+                    }
+                )
+                print(f"metadata_{pattern['patternid']}")
+                sys.stdout.flush()
+                try:
+                    result = post_json_request(
+                        db_url(pattern['db']), {"query": pattern['pattern'], "patternid": pattern['patternid'], "maxdocs": maxdocs})['exit']
+                except:
+                    result = 1
+                errors += result
+
+    return object_to_response({"errors" : errors})

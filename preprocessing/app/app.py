@@ -147,4 +147,9 @@ def emails_from_text():
 def language_from_text():
     if not request.json:
         abort(400)
-    return jsonify(lang=detect(request.json['text'].lower()))
+    try:
+        lang = detect(request.json['text'].lower())
+    except:
+        lang = ""
+
+    return jsonify(lang=lang)

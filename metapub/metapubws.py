@@ -3,12 +3,27 @@
 # Author: Jaime Hurtado - jaime.hurtado@correounivalle.edu.co
 # Fecha: 2022-03-02
 #
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
+import json
 from metapub import PubMedFetcher
 from metapub import FindIt
+import requests
 import time
+import sys
 
 app = Flask(__name__)
+
+def post_json_request(url, obj):
+    return requests.post(url, json=obj).json()
+
+def object_to_response(object):
+    response = Response(
+        response=json.dumps(object),
+        mimetype="application/json"
+    )
+    response.headers['Access-Control-Allow-Origin'] = '*'
+
+    return response
 
 #
 # Este metodo retorna informacion de microservicios disponibles
@@ -168,3 +183,96 @@ def pdf_from_pmid():
     except:
         return jsonify(pdf_url="")
     return jsonify(pdf_url=src.url)
+
+#
+# *****query******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "terms: AND abstract=BREAST; AND abstract=CANCER", "patternid": 1, "maxdocs": 2000 }' http://localhost:5000/query | jq '.' | less
+#
+
+@app.route("/query", methods=['POST'])
+def query():
+    fetch = PubMedFetcher()
+    if not request.json:
+        abort(400)
+    query = request.json['query']
+    patternid = request.json['patternid']
+    maxdocs = request.json['maxdocs']
+    count = 0
+    unsuccess = True
+    while (unsuccess):
+        try:
+            pmids = fetch.pmids_for_query(query, retmax=maxdocs)
+            unsuccess = False
+        except:
+            time.sleep(10)
+            unsuccess = True
+    for pmid in pmids:
+        count = count + 1
+        if count > maxdocs :
+            break
+        unsuccess = True
+        while (unsuccess):
+            try:
+                article = fetch.article_by_pmid(pmid)
+                unsuccess = False
+            except:
+                time.sleep(10)
+                unsuccess = True
+        abstract = article.abstract
+        title = article.title
+        dbid = article.pmid
+        doi = article.doi
+        authors = article.authors
+        url = ""
+        try:
+            url = FindIt(pmid).url
+        except:
+            url = ""
+        year = article.year
+        try:
+            if abstract is not None:
+                text = abstract
+            elif title is not None:
+                text = title
+            else:
+                text = ""
+            lang_json = post_json_request(
+                'http://preprocessing:5000/text2lang', {"text": text})
+        except:
+            lang_json['lang'] = ""
+        if pmid is not None:
+            try:
+                document = {
+                        "pat_id": patternid if patternid is not None else "",
+                        "dbid" : dbid if dbid is not None else "",
+                        "doi" : doi if doi is not None else "",
+                        "title" : title if title is not None else "",
+                        "abstract" : abstract if abstract is not None else "",
+                        "authors" : authors if authors is not None else "",
+                        "org" : "",
+                        "url" : url if url is not None else "",
+                        "year" : year if year is not None else "",
+                        "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+                    }
+                print(f"document: {document}")
+                success_pattern_insert = post_json_request(
+                    'http://db:5000/mongo-doc-insert',
+                    {
+                        "db-name" : "metadata",
+                        "coll-name" : f"metadata_{patternid}",
+                        "document" : document
+                    }
+                )
+                success_global_insert = post_json_request(
+                    'http://db:5000/mongo-doc-insert',
+                    {
+                        "db-name" : "metadata",
+                        "coll-name" : f"metadata_global",
+                        "document" : document
+                    }
+                )
+            except:
+                print(f"Exception on can't insert document for {dbid}")
+            sys.stdout.flush()
+    return object_to_response({"exit": 0})
