@@ -5,7 +5,9 @@ cd inv-adc/
 for branch in `git branch -r | grep -v HEAD`;do echo -e `git show --format="%ci" $branch | head -n 1` \\t$branch; done | sort -r | head -n 1 | grep -o -P '(?<=origin/).*(?=)' > branch.txt
 export LAST_BRANCH=$(cat branch.txt)
 git checkout $LAST_BRANCH
-cd orchestrator/kompose
+cd gui/kompose
+sudo docker-compose down --remove-orphans
+cd ../../orchestrator/kompose
 sudo docker-compose down --remove-orphans
 cd ../../db/kompose
 sudo docker-compose down --remove-orphans
@@ -33,5 +35,8 @@ cd ../db
 sudo docker-compose build
 sudo docker-compose up -d
 cd ../orchestrator
+sudo docker-compose build
+sudo docker-compose up -d
+cd ../gui
 sudo docker-compose build
 sudo docker-compose up -d

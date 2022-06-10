@@ -68,7 +68,7 @@ function App() {
   useEffect(()=>{
     setSubs(INITIAL_STATE)
     const fetchPatterns = async (): Promise<Array<Patterns>> => {
-      return await fetch("http://192.168.1.61:5001/patterns", {
+      return await fetch("http://34.74.92.5:5000/patterns", {
         method: 'GET'
     }).then(response => response.json())
     }

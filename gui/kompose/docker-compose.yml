@@ -2,7 +2,7 @@ version: "3.7"
 services:
   gui:
     container_name: gui
-    build: .
+    build: jandresh/gui:latest
     volumes:
       - './:/app'
       - '/app/node_modules'

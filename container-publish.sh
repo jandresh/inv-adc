@@ -36,3 +36,8 @@ sudo docker build -t jandresh/orchestrator:$GIT_COMMIT .
 sudo docker push jandresh/orchestrator:$GIT_COMMIT
 sudo docker build -t jandresh/orchestrator:latest .
 sudo docker push jandresh/orchestrator:latest
+cd ../../gui/
+sudo docker build -t jandresh/gui:$GIT_COMMIT .
+sudo docker push jandresh/gui:$GIT_COMMIT
+sudo docker build -t jandresh/gui:latest .
+sudo docker push jandresh/gui:latest
