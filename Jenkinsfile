@@ -79,6 +79,7 @@ pipeline {
                     sh("sed -i.bak 's#jandresh/preprocessing:latest#jandresh/preprocessing:${IMAGE_TAG}#' ./preprocessing/kube/dev/*.yaml")
                     sh("sed -i.bak 's#jandresh/db:latest#jandresh/db:${IMAGE_TAG}#' ./db/kube/dev/*.yaml")
                     sh("sed -i.bak 's#jandresh/orchestrator:latest#jandresh/orchestrator:${IMAGE_TAG}#' ./orchestrator/kube/dev/*.yaml")
+                    sh("sed -i.bak 's#jandresh/gui:latest#jandresh/gui:${IMAGE_TAG}#' ./gui/kube/dev/*.yaml")
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'arxiv/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
@@ -91,6 +92,8 @@ pipeline {
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'db/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "${env.BRANCH_NAME}", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/dev', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment metapub --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment arxiv --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment core --replicas=1")
@@ -99,8 +102,10 @@ pipeline {
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment orchestrator --replicas=1")
+                    sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment gui --replicas=1")
                     sh("echo http://`kubectl --namespace=${env.BRANCH_NAME} get service/orchestrator -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5004 > url")
                     sh("echo http://`kubectl --namespace=${env.BRANCH_NAME} get service/db -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5001 > url")
+                    sh("echo http://`kubectl --namespace=${env.BRANCH_NAME} get service/gui -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:3000 > url")
                 }
             }
         }
@@ -123,6 +128,7 @@ pipeline {
                     sh("sed -i.bak 's#jandresh/preprocessing:latest#jandresh/preprocessing:${IMAGE_TAG}#' ./preprocessing/kube/canary/*.yaml")
                     sh("sed -i.bak 's#jandresh/db:latest#jandresh/db:${IMAGE_TAG}#' ./db/kube/canary/*.yaml")
                     sh("sed -i.bak 's#jandresh/orchestrator:latest#jandresh/orchestrator:${IMAGE_TAG}#' ./orchestrator/kube/canary/*.yaml")
+                    sh("sed -i.bak 's#jandresh/gui:latest#jandresh/gui:${IMAGE_TAG}#' ./gui/kube/canary/*.yaml")
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/canary', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'arxiv/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
@@ -135,6 +141,8 @@ pipeline {
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'db/kube/canary', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/canary', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/canary', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     sh("kubectl --namespace=production scale deployment metapub --replicas=1")
                     sh("kubectl --namespace=production scale deployment arxiv --replicas=1")
                     sh("kubectl --namespace=production scale deployment core --replicas=1")
@@ -143,8 +151,10 @@ pipeline {
                     sh("kubectl --namespace=production scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=production scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=production scale deployment orchestrator --replicas=1")
+                    sh("kubectl --namespace=production scale deployment gui --replicas=1")
                     sh("echo http://`kubectl --namespace=production get service/orchestrator -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5004 > url")
                     sh("echo http://`kubectl --namespace=production get service/db -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5001 > url")
+                    sh("echo http://`kubectl --namespace=production get service/gui -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:3000 > url")
                 }
             }
         }
@@ -167,6 +177,7 @@ pipeline {
                     sh("sed -i.bak 's#jandresh/preprocessing:latest#jandresh/preprocessing:${IMAGE_TAG}#' ./preprocessing/kube/production/*.yaml")
                     sh("sed -i.bak 's#jandresh/db:latest#jandresh/db:${IMAGE_TAG}#' ./db/kube/production/*.yaml")
                     sh("sed -i.bak 's#jandresh/orchestrator:latest#jandresh/orchestrator:${IMAGE_TAG}#' ./orchestrator/kube/production/*.yaml")
+                    sh("sed -i.bak 's#jandresh/gui:latest#jandresh/gui:${IMAGE_TAG}#' ./gui/kube/production/*.yaml")
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'metapub/kube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'arxiv/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
@@ -179,6 +190,8 @@ pipeline {
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'db/kube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
                     step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'orchestrator/kube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/services', credentialsId: env.JENKINS_CRED, verifyDeployments: false])
+                    step([$class: 'KubernetesEngineBuilder', namespace: "production", projectId: env.PROJECT, clusterName: env.CLUSTER, zone: env.CLUSTER_ZONE, manifestPattern: 'gui/kube/production', credentialsId: env.JENKINS_CRED, verifyDeployments: true])
                     sh("kubectl --namespace=production scale deployment metapub --replicas=3")
                     sh("kubectl --namespace=production scale deployment arxiv --replicas=3")
                     sh("kubectl --namespace=production scale deployment core --replicas=3")
@@ -187,8 +200,10 @@ pipeline {
                     sh("kubectl --namespace=production scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=production scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=production scale deployment orchestrator --replicas=3")
+                    sh("kubectl --namespace=production scale deployment gui --replicas=3")
                     sh("echo http://`kubectl --namespace=production get service/orchestrator -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5004 > url")
                     sh("echo http://`kubectl --namespace=production get service/db -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:5001 > url")
+                    sh("echo http://`kubectl --namespace=production get service/gui -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`:3000 > url")
                 }
             }
         }

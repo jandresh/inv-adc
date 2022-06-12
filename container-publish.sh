@@ -16,7 +16,7 @@ sudo docker build -t jandresh/arxiv:$GIT_COMMIT .
 sudo docker push jandresh/arxiv:$GIT_COMMIT
 sudo docker build -t jandresh/arxiv:latest .
 sudo docker push jandresh/arxiv:latest
-cd ../core/app
+cd ../../core/app
 sudo docker build -t jandresh/core:$GIT_COMMIT .
 sudo docker push jandresh/core:$GIT_COMMIT
 sudo docker build -t jandresh/core:latest .

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    service: gui
+  name: gui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: gui
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        network/custompipeline: "true"
+        service: gui
+    spec:
+      containers:
+        - image: jandresh/gui:latest
+          name: gui
+          ports:
+            - containerPort: 3000
+          resources: {}
+      restartPolicy: Always
+status: {}
