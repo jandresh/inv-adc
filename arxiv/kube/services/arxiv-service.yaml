@@ -5,7 +5,7 @@ metadata:
     service: arxiv
   name: arxiv
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     - name: "5005"
       port: 5000
