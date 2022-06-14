@@ -7,6 +7,9 @@
         "plugin:react-hooks/recommended",
         "prettier"
     ],
+    "globals": {
+        "JSX": true
+    },
     "rules": {
         "no-console": ["error", { "allow": ["warn", "error"] }],
         "no-unsafe-finally": ["off"],

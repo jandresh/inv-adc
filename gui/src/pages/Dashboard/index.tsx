@@ -2,8 +2,8 @@ import { Typography } from '@mui/material';
 import React, { useContext } from 'react';
 import { Helmet } from 'react-helmet';
 
-import { AppContext } from '../contexts';
-import { APP_TITLE, PAGE_TITLE_HOME } from '../utils/constants';
+import { AppContext } from '../../contexts';
+import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
 
 import { ForceGraph3D } from 'react-force-graph';
 

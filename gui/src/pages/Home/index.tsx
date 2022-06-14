@@ -2,10 +2,10 @@ import { styled, Typography } from '@mui/material';
 import React, { useContext } from 'react';
 import { Helmet } from 'react-helmet';
 
-import logo from '../logo.svg';
+import logo from '../../resources/logo.svg';
 
-import { AppContext } from '../contexts';
-import { APP_TITLE, PAGE_TITLE_HOME } from '../utils/constants';
+import { AppContext } from '../../contexts';
+import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
 
 export const Home = () => {
   const context = useContext(AppContext);

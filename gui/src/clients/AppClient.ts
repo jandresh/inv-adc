@@ -1,6 +1,6 @@
 import { IAppContext } from '../contexts/AppContext';
 
-import { User } from '../types/User';
+import { User } from '../types';
 
 class AppClient implements IAppContext {
   user: User;

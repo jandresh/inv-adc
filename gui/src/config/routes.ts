@@ -10,11 +10,15 @@ import {
   CreditCard as BillingIcon
 } from '@mui/icons-material';
 
+import { Arxiv } from '../pages/Arxiv';
+
+import { Database } from '../pages/Database';
+
 import { Home } from '../pages/Home';
 
 import { Dashboard } from '../pages/Dashboard';
 
-import { Route } from '../types/Route';
+import { Route } from '../types';
 
 const routes: Array<Route> = [
   {
@@ -37,18 +41,60 @@ const routes: Array<Route> = [
     icon: DashboardIcon
   },
   {
-    key: 'router-search',
-    title: 'Search',
-    description: 'Search',
+    key: 'router-microservices',
+    title: 'microservices',
+    description: 'Micorservices interfaces',
     isEnabled: true,
     icon: HealthIcon,
     subRoutes: [
       {
-        key: 'router-search-auth',
-        title: 'Authors',
-        description: 'Authors',
-        path: '/search/authors',
-        isEnabled: false,
+        key: 'router-microservices-arxiv',
+        title: 'Arxiv',
+        description: 'Arxiv interface',
+        component: Arxiv,
+        path: '/microservices/arxiv',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-microservices-core',
+        title: 'Core',
+        description: 'Core interface',
+        path: '/microservices/core',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-microservices-metapub',
+        title: 'Metapub',
+        description: 'Pubmed interface',
+        path: '/microservices/metapub',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-microservices-preprocessing',
+        title: 'Preprocessing',
+        description: 'Preprocessing microservices',
+        path: '/microservices/preprocessing',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-microservices-database',
+        title: 'Database',
+        description: 'Database microservices',
+        component: Database,
+        path: '/microservices/database',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-microservices-orchestrator',
+        title: 'Orchestrator',
+        description: 'Orchestrator microservices',
+        path: '/microservices/orchestrator',
+        isEnabled: true,
         icon: PublicIcon
       },
       {
