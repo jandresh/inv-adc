@@ -278,7 +278,7 @@ def mysql_query():
 
 # *****mongo_db_create()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-db-create
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali"}' http://localhost:5001/mongo-db-create
 
 @app.route('/mongo-db-create', methods=['POST'])
 def mongo_db_create():
@@ -286,7 +286,7 @@ def mongo_db_create():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
+        db_name = request.json['db_name']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         client[db_name]
     except:
@@ -306,7 +306,7 @@ def mongo_db_list():
 
 # *****mongo_db_delete()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-db-delete
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali"}' http://localhost:5001/mongo-db-delete
 
 @app.route('/mongo-db-delete', methods=['POST'])
 def mongo_db_delete():
@@ -314,7 +314,7 @@ def mongo_db_delete():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
+        db_name = request.json['db_name']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         client.drop_database(db_name)
     except:
@@ -324,7 +324,7 @@ def mongo_db_delete():
 
 # *****mongo_coll_create()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-coll-create
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast"}' http://localhost:5001/mongo-coll-create
 
 @app.route('/mongo-coll-create', methods=['POST'])
 def mongo_coll_create():
@@ -332,8 +332,8 @@ def mongo_coll_create():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
         collection = db[coll_name]
@@ -344,14 +344,14 @@ def mongo_coll_create():
 
 # *****mongo_coll_list()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali"}' http://localhost:5001/mongo-coll-list
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali"}' http://localhost:5001/mongo-coll-list
 
 @app.route('/mongo-coll-list', methods=['POST'])
 def mongo_coll_list():
     if not request.json:
         abort(400)
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
-    db_name = request.json['db-name']
+    db_name = request.json['db_name']
     db = client[db_name]
     out =""
     # for coll in db.list_collection_names():
@@ -360,7 +360,7 @@ def mongo_coll_list():
 
 # *****mongo_coll_delete()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-coll-delete
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast"}' http://localhost:5001/mongo-coll-delete
 
 @app.route('/mongo-coll-delete', methods=['POST'])
 def mongo_coll_delete():
@@ -368,8 +368,8 @@ def mongo_coll_delete():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
         collection = db[coll_name]
@@ -380,7 +380,7 @@ def mongo_coll_delete():
 
 # *****mongo_doc_insert()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "document" : {"doc-id" : "123456", "doc-name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
 
 @app.route('/mongo-doc-insert', methods=['POST'])
 def mongo_doc_insert():
@@ -388,14 +388,13 @@ def mongo_doc_insert():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         document = request.json['document']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
         collection = db[coll_name]
         insert_id = collection.insert_one(document)
-        success = insert_id
     except:
         success = 1
     return object_to_response({"exit": success})
@@ -403,15 +402,15 @@ def mongo_doc_insert():
 
 # *****mongo_doc_list()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast"}' http://localhost:5001/mongo-doc-list
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast"}' http://localhost:5001/mongo-doc-list
 
 @app.route('/mongo-doc-list', methods=['POST'])
 def mongo_doc_list():
     if not request.json:
         abort(400)
 
-    db_name = request.json['db-name']
-    coll_name = request.json['coll-name']
+    db_name = request.json['db_name']
+    coll_name = request.json['coll_name']
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
     db = client[db_name]
     collection = db[coll_name]
@@ -423,7 +422,7 @@ def mongo_doc_list():
 
 # *****mongo_doc_delete()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "query" : {"doc-name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-delete
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "query" : {"doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-delete
 
 @app.route('/mongo-doc-delete', methods=['POST'])
 def mongo_doc_delete():
@@ -431,8 +430,8 @@ def mongo_doc_delete():
         abort(400)
     success = 0
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         query = request.json['query']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
@@ -445,15 +444,15 @@ def mongo_doc_delete():
 
 # *****mongo_doc_find()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "Breast", "query" : {"doc-name" : "Breast cancer history"}, "projection" : {}}' http://localhost:5001/mongo-doc-find
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "query" : {"doc_name" : "Breast cancer history"}, "projection" : {}}' http://localhost:5001/mongo-doc-find
 
 @app.route('/mongo-doc-find', methods=['POST'])
 def mongo_doc_find():
     if not request.json:
         abort(400)
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         query = request.json['query']
         projection = request.json['projection']
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
@@ -470,15 +469,15 @@ def mongo_doc_find():
 
 # *****mongo_doc_distinct()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"db-name" : "adccali", "coll-name" : "author_vs_doc_id2", "field" : "author", "query" : {}, "options" : {}}' http://localhost:5001/mongo-doc-distinct | jq
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "author_vs_doc_id2", "field" : "author", "query" : {}, "options" : {}}' http://localhost:5001/mongo-doc-distinct | jq
 
 @app.route('/mongo-doc-distinct', methods=['POST'])
 def mongo_doc_distinct():
     if not request.json:
         abort(400)
     try:
-        db_name = request.json['db-name']
-        coll_name = request.json['coll-name']
+        db_name = request.json['db_name']
+        coll_name = request.json['coll_name']
         field = request.json['field']
         query = request.json['query']
         options = request.json['options']

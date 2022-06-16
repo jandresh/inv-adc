@@ -127,26 +127,57 @@ def query():
                 "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
             }
             try:
-                success_doc_insert = post_json_request(
+                post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
-                        "db-name" : "metadata",
-                        "coll-name" : f"metadata_{patternid}",
+                        "db_name" : "metadata",
+                        "coll_name" : f"metadata_{patternid}",
                         "document" : document
                     }
                 )
             except:
                 print(f"Exception on can't insert document for {dbid}")
             try:
-                success_global_insert = post_json_request(
+                post_json_request(
                     'http://db:5000/mongo-doc-insert',
                     {
-                        "db-name" : "metadata",
-                        "coll-name" : f"metadata_global",
+                        "db_name" : "metadata",
+                        "coll_name" : f"metadata_global",
                         "document" : document
                     }
                 )
             except:
                 print(f"Exception on can't insert document for {dbid}")
+            for author in authors:
+                try:
+                    post_json_request(
+                        'http://db:5000/mongo-doc-insert',
+                        {
+                            "db_name" : "authors",
+                            "coll_name" : f"author_vs_doc_id_{patternid}",
+                            "document" : {
+                                "author" : author,
+                                "doc_id" : dbid if dbid is not None else "",
+                                "doi" : doi if doi is not None else "",
+                            }
+                        }
+                    )
+                except:
+                    print(f"Exception on can't insert document for author {author}")
+                try:
+                    post_json_request(
+                        'http://db:5000/mongo-doc-insert',
+                        {
+                            "db_name" : "authors",
+                            "coll_name" : f"author_vs_doc_id_global",
+                            "document" : {
+                                "author" : author,
+                                "doc_id" : dbid if dbid is not None else "",
+                                "doi" : doi if doi is not None else "",
+                            }
+                        }
+                    )
+                except:
+                    print(f"Exception on can't insert document for author {author}")
             sys.stdout.flush()
     return object_to_response({"exit": 0})

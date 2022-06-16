@@ -1,6 +1,7 @@
 import { ComponentType, FC } from 'react';
 
 interface Patterns {
+  id: number;
   db: string;
   description: string;
   patternid: number;
