@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { List, Divider, Collapse } from '@mui/material';
+
+import { AppContext } from 'contexts';
 
 import { RouteItem } from './RouteItem';
 import { SignOutRoute } from './SignOutRoute';
@@ -8,6 +10,7 @@ import { routes } from '../../../config';
 import { Route } from '../../../types';
 
 export const Routes = () => {
+  const context = useContext(AppContext);
   const [routesState, setRoutesStage] = useState<Route[]>(routes);
 
   const handleMenuClick = (route: Route) => {
@@ -23,32 +26,38 @@ export const Routes = () => {
   return (
     <>
       <List component="nav" sx={{ height: '100%' }}>
-        {routesState.map((route: Route) => (
-          <div key={route.key}>
-            {route.subRoutes ? (
-              <>
-                <RouteItem
-                  key={`${route.key}`}
-                  route={route}
-                  hasChildren
-                  handleMenuClick={handleMenuClick}
-                />
-                <Collapse in={route.expanded} timeout="auto" unmountOnExit>
-                  <List component="div" disablePadding>
-                    {route.subRoutes.map((sRoute: Route) => (
-                      <RouteItem key={`${sRoute.key}`} route={sRoute} nested />
-                    ))}
-                  </List>
-                </Collapse>
-              </>
-            ) : (
-              <RouteItem key={route.key} route={route} nested={false} />
-            )}
-            {route.appendDivider && <Divider />}
-          </div>
-        ))}
+        {routesState
+          .filter((route: Route) =>
+            route.key === 'router-home' &&
+            context.user.name === 'guest'
+          )
+          .map((route: Route) => (
+            <div key={route.key}>
+              {route.subRoutes ? (
+                <>
+                  <RouteItem
+                    key={`${route.key}`}
+                    route={route}
+                    hasChildren
+                    handleMenuClick={handleMenuClick}
+                  />
+                  <Collapse in={route.expanded} timeout="auto" unmountOnExit>
+                    <List component="div" disablePadding>
+                      {route.subRoutes.map((sRoute: Route) => (
+                        <RouteItem key={`${sRoute.key}`} route={sRoute} nested />
+                      ))}
+                    </List>
+                  </Collapse>
+                </>
+              ) : (
+                <RouteItem key={route.key} route={route} nested={false} />
+              )}
+              {route.appendDivider && <Divider />}
+            </div>
+          ))
+        }
       </List>
-      <SignOutRoute />
+      {context.user.name !== 'guest' && <SignOutRoute />}
     </>
   );
 };

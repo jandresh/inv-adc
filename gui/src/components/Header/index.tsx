@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, Fragment } from 'react';
 import { AppBar, Box, Toolbar } from '@mui/material';
-
+import { AppContext } from '../../contexts';
 import { Hamburger } from './Hamburger';
 import { Search } from './Search';
 import { AppTitle } from './AppTitle';
@@ -13,6 +13,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ toggleNavigation }: HeaderProps) => {
+  const context = useContext(AppContext);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] =
     useState<null | HTMLElement>(null);
@@ -39,15 +40,19 @@ export const Header = ({ toggleNavigation }: HeaderProps) => {
         <Toolbar disableGutters variant="dense">
           <Hamburger toggleNavigation={toggleNavigation} />
           <AppTitle />
-          <Search />
+          {context.user.name !== 'guest' && <Search />}
           <Box sx={{ flexGrow: 1 }} />
           <Box
             sx={{ display: { xs: 'none', md: 'flex', alignItems: 'center' } }}
           >
             <ThemeSwitcher />
-            <Messages total={15} />
-            <Notifications total={20} />
-            <UserAccount onClick={handleProfileMenuOpen} />
+            {context.user.name !== 'guest' && (
+              <Fragment>
+                <Messages total={15} />
+                <Notifications total={20} />
+                <UserAccount onClick={handleProfileMenuOpen} />
+              </Fragment>
+            )}
           </Box>
           <Box sx={{ display: { xs: 'flex', md: 'none' } }}>
             <More onClick={handleMobileMenuOpen} />

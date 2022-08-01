@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
@@ -40,6 +40,10 @@ function App() {
     />
   );
 
+  useEffect(() => {
+
+  }, []);
+
   return (
     <AppContext.Provider value={appClient}>
       <ThemeModeContext.Provider value={themeMode}>
@@ -48,10 +52,9 @@ function App() {
           <Router>
             <Switch>
               <Layout>
-                {routes.map((route: AppRoute) =>
-                  route.subRoutes
-                    ? route.subRoutes.map((item: AppRoute) => addRoute(item))
-                    : addRoute(route)
+                {routes.map((route: AppRoute) => route.subRoutes
+                  ? route.subRoutes.map((item: AppRoute) => addRoute(item))
+                  : addRoute(route)
                 )}
               </Layout>
             </Switch>

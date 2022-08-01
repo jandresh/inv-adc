@@ -13,25 +13,29 @@ import sys
 
 app = Flask(__name__)
 
+
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
 
+
 def object_to_response(object):
     response = Response(
-        response=json.dumps(object),
-        mimetype="application/json"
+        response=json.dumps(object), mimetype="application/json"
     )
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers["Access-Control-Allow-Origin"] = "*"
 
     return response
+
 
 #
 # Este metodo retorna informacion de microservicios disponibles
 #
 
-@app.route('/')
+
+@app.route("/")
 def root():
-    return 'metapub endpoints: /title, /abstract, /pmids, /metadata, /pmid2pdf, /query'
+    return "metapub endpoints: /title, /abstract, /pmids, /metadata, /pmid2pdf, /query"
+
 
 #
 # *****title_from_pmid()******
@@ -40,14 +44,14 @@ def root():
 #
 
 
-@app.route("/title", methods=['POST'])
+@app.route("/title", methods=["POST"])
 def title_from_pmid():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    pmid = request.json['id']
+    pmid = request.json["id"]
     unsuccess = True
-    while (unsuccess):
+    while unsuccess:
         try:
             article = fetch.article_by_pmid(pmid)
             unsuccess = False
@@ -55,6 +59,8 @@ def title_from_pmid():
             time.sleep(1)
             unsuccess = True
     return jsonify(title=article.title)
+
+
 #
 # *****abstract_from_pmid()******
 # Este metodo es invocado de esta forma:
@@ -62,14 +68,14 @@ def title_from_pmid():
 #
 
 
-@app.route("/abstract", methods=['POST'])
+@app.route("/abstract", methods=["POST"])
 def abstract_from_pmid():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    pmid = request.json['id']
+    pmid = request.json["id"]
     unsuccess = True
-    while (unsuccess):
+    while unsuccess:
         try:
             article = fetch.article_by_pmid(pmid)
             unsuccess = False
@@ -77,6 +83,8 @@ def abstract_from_pmid():
             time.sleep(1)
             unsuccess = True
     return jsonify(abstract=article.abstract)
+
+
 #
 # *****pmid_from_query()******
 # Este metodo es invocado de esta forma:
@@ -84,14 +92,14 @@ def abstract_from_pmid():
 #
 
 
-@app.route("/pmids", methods=['POST'])
+@app.route("/pmids", methods=["POST"])
 def pmid_from_query():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    query = request.json['query']
+    query = request.json["query"]
     unsuccess = True
-    while (unsuccess):
+    while unsuccess:
         try:
             pmids = fetch.pmids_for_query(query, retmax=100)
             unsuccess = False
@@ -100,6 +108,7 @@ def pmid_from_query():
             unsuccess = True
     return jsonify(pmids=pmids)
 
+
 #
 # *****metadata_from_pmid()******
 # Este metodo es invocado de esta forma:
@@ -107,14 +116,14 @@ def pmid_from_query():
 #
 
 
-@app.route("/metadata", methods=['POST'])
+@app.route("/metadata", methods=["POST"])
 def metadata_from_pmid():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    pmid = request.json['id']
+    pmid = request.json["id"]
     unsuccess = True
-    while (unsuccess):
+    while unsuccess:
         try:
             article = fetch.article_by_pmid(pmid)
             unsuccess = False
@@ -166,23 +175,25 @@ def metadata_from_pmid():
         # history=article.history,
     )
 
+
 #
 # *****pdf_from_pmid()******
 # Este metodo es invocado de esta forma:
 # curl -X POST -H "Content-type: application/json" -d '{ "id": "32599772"}' http://localhost:5000/pmid2pdf
 
 
-@app.route("/pmid2pdf", methods=['POST'])
+@app.route("/pmid2pdf", methods=["POST"])
 def pdf_from_pmid():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    pmid = request.json['id']
+    pmid = request.json["id"]
     try:
         src = FindIt(pmid)
     except:
         return jsonify(pdf_url="")
     return jsonify(pdf_url=src.url)
+
 
 #
 # *****query******
@@ -190,19 +201,20 @@ def pdf_from_pmid():
 # curl -X POST -H "Content-type: application/json" -d '{ "query": "terms: AND abstract=BREAST; AND abstract=CANCER", "patternid": 1, "maxdocs": 2000 }' http://localhost:5000/query | jq '.' | less
 #
 
-@app.route("/query", methods=['POST'])
+
+@app.route("/query", methods=["POST"])
 def query():
     fetch = PubMedFetcher()
     if not request.json:
         abort(400)
-    query = request.json['query']
-    patternid = request.json['patternid']
-    maxdocs = request.json['maxdocs']
+    query = request.json["query"]
+    patternid = request.json["patternid"]
+    maxdocs = request.json["maxdocs"]
     count = 0
     success = False
     attempts = 0
-    pmids=[]
-    while (not success):
+    pmids = []
+    while not success:
         attempts += 1
         try:
             pmids = fetch.pmids_for_query(query, retmax=maxdocs)
@@ -210,15 +222,15 @@ def query():
         except:
             time.sleep(5)
             success = False if attempts > 2 else True
-    if success :
+    if success:
         for pmid in pmids:
             count = count + 1
-            if count > maxdocs :
+            if count > maxdocs:
                 break
             success = False
             attempts = 0
             article = {}
-            while (not success):
+            while not success:
                 attempts += 1
                 try:
                     article = fetch.article_by_pmid(pmid)
@@ -246,74 +258,87 @@ def query():
                     else:
                         text = ""
                     lang_json = post_json_request(
-                        'http://preprocessing:5000/text2lang', {"text": text})
+                        "http://preprocessing:5000/text2lang", {"text": text}
+                    )
                 except:
-                    lang_json['lang'] = ""
+                    lang_json["lang"] = ""
                 if pmid is not None:
                     document = {
                         "pat_id": patternid if patternid is not None else "",
-                        "dbid" : dbid if dbid is not None else "",
-                        "doi" : doi if doi is not None else "",
-                        "title" : title if title is not None else "",
-                        "abstract" : abstract if abstract is not None else "",
-                        "authors" : authors if authors is not None else "",
-                        "org" : "",
-                        "url" : url if url is not None else "",
-                        "year" : year if year is not None else "",
-                        "lang" : lang_json['lang'] if lang_json['lang'] is not None else ""
+                        "dbid": dbid if dbid is not None else "",
+                        "doi": doi if doi is not None else "",
+                        "title": title if title is not None else "",
+                        "abstract": abstract if abstract is not None else "",
+                        "authors": authors if authors is not None else "",
+                        "org": "",
+                        "url": url if url is not None else "",
+                        "year": year if year is not None else "",
+                        "lang": lang_json["lang"]
+                        if lang_json["lang"] is not None
+                        else "",
                     }
                     try:
                         post_json_request(
-                            'http://db:5000/mongo-doc-insert',
+                            "http://db:5000/mongo-doc-insert",
                             {
-                                "db_name" : "metadata",
-                                "coll_name" : f"metadata_{patternid}",
-                                "document" : document
-                            }
+                                "db_name": "metadata",
+                                "coll_name": f"metadata_{patternid}",
+                                "document": document,
+                            },
                         )
                     except:
                         print(f"Exception on can't insert document for {dbid}")
                     try:
                         post_json_request(
-                            'http://db:5000/mongo-doc-insert',
+                            "http://db:5000/mongo-doc-insert",
                             {
-                                "db_name" : "metadata",
-                                "coll_name" : f"metadata_global",
-                                "document" : document
-                            }
+                                "db_name": "metadata",
+                                "coll_name": f"metadata_global",
+                                "document": document,
+                            },
                         )
                     except:
-                        print(f"Exception on can't insert global document for {dbid}")
+                        print(
+                            f"Exception on can't insert global document for {dbid}"
+                        )
                     for author in authors:
                         try:
                             post_json_request(
-                                'http://db:5000/mongo-doc-insert',
+                                "http://db:5000/mongo-doc-insert",
                                 {
-                                    "db_name" : "authors",
-                                    "coll_name" : f"author_vs_doc_id_{patternid}",
-                                    "document" : {
-                                        "author" : author,
-                                        "doc_id" : dbid if dbid is not None else "",
-                                        "doi" : doi if doi is not None else "",
-                                    }
-                                }
+                                    "db_name": "authors",
+                                    "coll_name": f"author_vs_doc_id_{patternid}",
+                                    "document": {
+                                        "author": author,
+                                        "doc_id": dbid
+                                        if dbid is not None
+                                        else "",
+                                        "doi": doi if doi is not None else "",
+                                    },
+                                },
                             )
                         except:
-                            print(f"Exception on can't insert document for author {author}")
+                            print(
+                                f"Exception on can't insert document for author {author}"
+                            )
                         try:
                             post_json_request(
-                                'http://db:5000/mongo-doc-insert',
+                                "http://db:5000/mongo-doc-insert",
                                 {
-                                    "db_name" : "authors",
-                                    "coll_name" : f"author_vs_doc_id_global",
-                                    "document" : {
-                                        "author" : author,
-                                        "doc_id" : dbid if dbid is not None else "",
-                                        "doi" : doi if doi is not None else "",
-                                    }
-                                }
+                                    "db_name": "authors",
+                                    "coll_name": f"author_vs_doc_id_global",
+                                    "document": {
+                                        "author": author,
+                                        "doc_id": dbid
+                                        if dbid is not None
+                                        else "",
+                                        "doi": doi if doi is not None else "",
+                                    },
+                                },
                             )
                         except:
-                            print(f"Exception on can't insert document for author {author}")
+                            print(
+                                f"Exception on can't insert document for author {author}"
+                            )
                     sys.stdout.flush()
     return object_to_response({"exit": 0})

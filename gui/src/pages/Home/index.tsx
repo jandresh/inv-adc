@@ -1,8 +1,6 @@
-import { styled, Typography } from '@mui/material';
+import { Button, Stack, Typography } from '@mui/material';
 import React, { useContext } from 'react';
 import { Helmet } from 'react-helmet';
-
-import logo from '../../resources/logo.svg';
 
 import { AppContext } from '../../contexts';
 import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
@@ -14,34 +12,14 @@ export const Home = () => {
     <>
       <Helmet>
         <title>
-          {PAGE_TITLE_HOME} | {APP_TITLE}
+          {PAGE_TITLE_HOME} | {APP_TITLE}z
         </title>
       </Helmet>
-      <Typography variant="h4">{`Hello, ${context.user.name}`}</Typography>
-      <LogoWrapper>
-        <StyledLogo src={logo} alt="logo" />
-      </LogoWrapper>
+      <Stack spacing={2}>
+        <Typography variant="h4">{`Hello, ${context.user.name}`}</Typography>
+        <Button variant="contained">Login</Button>
+        <Button variant="outlined">Register</Button>
+      </Stack>
     </>
   );
 };
-
-const LogoWrapper = styled('div')`
-  text-align: center;
-  margin-top: 6rem;
-`;
-
-const StyledLogo = styled('img')`
-  height: 40vmin;
-  pointer-events: none;
-  @media (prefers-reduced-motion: no-preference) {
-    animation: App-logo-spin infinite 15s linear;
-  }
-  @keyframes App-logo-spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;

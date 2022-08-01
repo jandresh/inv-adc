@@ -1,6 +1,6 @@
-import React, { useContext } from 'react';
+import React, { Fragment, useContext } from 'react';
+import { AppContext } from '../../../contexts';
 import { Box, Menu, MenuItem } from '@mui/material';
-
 import { Messages, Notifications, SignOut, Settings } from '../../Actions';
 import { ThemeSwitcher } from '../ThemeSwitcher';
 import { ThemeModeContext } from '../../../contexts';
@@ -21,6 +21,7 @@ export const MobileMenu = ({
   anchorEl
 }: MobileMenuProps) => {
   const { toggleThemeMode } = useContext(ThemeModeContext);
+  const context = useContext(AppContext);
 
   return (
     <Menu
@@ -43,22 +44,25 @@ export const MobileMenu = ({
           <ThemeSwitcher disableTooltip />
           Toggle Theme
         </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <Messages total={0} disableTooltip />
-          Messages
-        </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <Notifications total={0} disableTooltip />
-          Notifications
-        </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <Settings disableTooltip />
-          Settings
-        </MenuItem>
-        <MenuItem onClick={handleMenuClose}>
-          <SignOut disableTooltip onClick={() => alert('Signing out...')} />
-          Sign Out
-        </MenuItem>
+        {context.user.name !== 'guest' && (
+          <Fragment>
+            <MenuItem onClick={handleMenuClose}>
+              <Messages total={0} disableTooltip />
+              Messages
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose}>
+              <Notifications total={0} disableTooltip />
+              Notifications
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose}>
+              <Settings disableTooltip />
+              Settings
+            </MenuItem>
+            <MenuItem onClick={handleMenuClose}>
+              <SignOut disableTooltip onClick={() => alert('Signing out...')} />
+              Sign Out
+            </MenuItem>
+          </Fragment>)}
       </Box>
     </Menu>
   );

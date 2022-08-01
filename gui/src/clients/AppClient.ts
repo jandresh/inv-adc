@@ -11,14 +11,14 @@ class AppClient implements IAppContext {
    */
   constructor() {
     this.user = {
-      id: '5e8d8hg8h8h8q8faf8g8f8f',
-      name: 'Jaime Hurtado',
-      email: 'jaime.hurtado@correounivalle.edu.co',
+      id: '0',
+      name: 'guest',
+      email: 'user@user.com',
       createdAt: new Date(),
       updatedAt: new Date(),
-      isAdmin: true,
-      isActive: true,
-      isVerified: true
+      isAdmin: false,
+      isActive: false,
+      isVerified: false
     };
   }
 }
