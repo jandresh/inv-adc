@@ -28,8 +28,8 @@ export const Routes = () => {
       <List component="nav" sx={{ height: '100%' }}>
         {routesState
           .filter((route: Route) =>
-            route.key === 'router-home' &&
-            context.user.name === 'guest'
+            context.user.name !== 'guest' ||
+            (route.key === 'router-home' && context.user.name === 'guest')
           )
           .map((route: Route) => (
             <div key={route.key}>
