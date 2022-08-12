@@ -3,8 +3,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { AppContext } from '../../contexts';
 import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
-import type { Patterns } from '../../types';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { query } from 'utils/queries';
 
 export const Database = () => {
   const context = useContext(AppContext);
@@ -22,17 +22,10 @@ export const Database = () => {
     { field: 'pattern', headerName: 'Query', flex: 100, resizable: true }
   ];
 
-  const [patterns, setPatterns] = useState<Array<Patterns>>([]);
+  const [patterns, setPatterns] = useState<Record<string, string>[]>([]);
 
   useEffect(() => {
-    const fetchPatterns = async(): Promise<Array<Patterns>> => {
-      return await fetch('http://34.74.92.5:5000/patterns', {
-        method: 'GET'
-      }).then((response) => response.json());
-    };
-    fetchPatterns().then((response) => {
-      setPatterns(response);
-    });
+    query('getPatterns', setPatterns);
   }, []);
 
   return (
