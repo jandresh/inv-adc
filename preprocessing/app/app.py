@@ -5,6 +5,7 @@ import pdftotext
 from nltk import Tree
 from nltk import word_tokenize, pos_tag, ne_chunk
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import time
 import textract
 import re
@@ -18,7 +19,7 @@ from langdetect import detect
 import urllib.parse
 
 app = Flask(__name__)
-
+CORS(app)
 
 def get_continuous_chunks(text, label):
     chunked = ne_chunk(pos_tag(word_tokenize(text)))

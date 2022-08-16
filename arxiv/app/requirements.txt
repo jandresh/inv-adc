@@ -1,3 +1,4 @@
 arxiv
 Flask
+flask-cors
 requests

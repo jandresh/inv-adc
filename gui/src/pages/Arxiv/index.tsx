@@ -17,7 +17,7 @@ export const Arxiv = () => {
           {PAGE_TITLE_HOME} | {APP_TITLE}
         </title>
       </Helmet>
-      <Typography variant="h4">{`Hello, ${context.user.name}`}</Typography>
+      <Typography variant="h4">{`Hello, ${context.user.firstName}`}</Typography>
       <LogoWrapper>
         <StyledLogo src={logo} alt="logo" />
       </LogoWrapper>

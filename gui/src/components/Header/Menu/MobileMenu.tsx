@@ -44,7 +44,7 @@ export const MobileMenu = ({
           <ThemeSwitcher disableTooltip />
           Toggle Theme
         </MenuItem>
-        {context.user.name !== 'guest' && (
+        {context.user.firstName !== 'guest' && (
           <Fragment>
             <MenuItem onClick={handleMenuClose}>
               <Messages total={0} disableTooltip />

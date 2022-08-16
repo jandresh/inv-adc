@@ -4,6 +4,7 @@
 # Fecha: 2022-03-02
 #
 from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 import json
 from metapub import PubMedFetcher
 from metapub import FindIt
@@ -12,7 +13,7 @@ import time
 import sys
 
 app = Flask(__name__)
-
+CORS(app)
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()

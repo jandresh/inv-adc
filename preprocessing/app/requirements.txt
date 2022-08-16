@@ -1,7 +1,8 @@
 Flask
-numpy
-textract
-nltk
+flask-cors
 geograpy3
-pdftotext
 langdetect
+nltk
+numpy
+pdftotext
+textract

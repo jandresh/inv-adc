@@ -1,32 +1,12 @@
 import { Typography } from '@mui/material';
-import React, { useContext, useEffect, useState } from 'react';
+import React from 'react';
 import { Helmet } from 'react-helmet';
-import { AppContext } from '../../contexts';
 import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { query } from 'utils/queries';
+import { Patterns } from './Patterns';
+import { DbList } from './DbList';
 
 export const Database = () => {
-  const context = useContext(AppContext);
 
-  const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', flex: 10 },
-    { field: 'patternid', headerName: 'Pattern Id', flex: 10 },
-    { field: 'db', headerName: 'Database', flex: 10 },
-    {
-      field: 'description',
-      headerName: 'Description',
-      flex: 10,
-      resizable: true
-    },
-    { field: 'pattern', headerName: 'Query', flex: 100, resizable: true }
-  ];
-
-  const [patterns, setPatterns] = useState<Record<string, string>[]>([]);
-
-  useEffect(() => {
-    query('getPatterns', setPatterns);
-  }, []);
 
   return (
     <>
@@ -35,8 +15,10 @@ export const Database = () => {
           {PAGE_TITLE_HOME} | {APP_TITLE}
         </title>
       </Helmet>
-      <Typography variant="h4">{`Hello, ${context.user.name}`}</Typography>
-      <DataGrid rows={patterns} columns={columns} autoHeight={true} />
+      <Typography variant="h4">Patterns</Typography>
+      <Patterns />
+      <Typography variant="h4">Databases</Typography>
+      <DbList />
     </>
   );
 };

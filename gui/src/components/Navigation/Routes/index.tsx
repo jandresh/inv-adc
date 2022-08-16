@@ -4,7 +4,6 @@ import { List, Divider, Collapse } from '@mui/material';
 import { AppContext } from 'contexts';
 
 import { RouteItem } from './RouteItem';
-import { SignOutRoute } from './SignOutRoute';
 
 import { routes } from '../../../config';
 import { Route } from '../../../types';
@@ -28,8 +27,8 @@ export const Routes = () => {
       <List component="nav" sx={{ height: '100%' }}>
         {routesState
           .filter((route: Route) =>
-            context.user.name !== 'guest' ||
-            (route.key === 'router-home' && context.user.name === 'guest')
+            context.user.firstName !== 'guest' ||
+            (route.key === 'router-home' && context.user.firstName === 'guest')
           )
           .map((route: Route) => (
             <div key={route.key}>
@@ -57,7 +56,6 @@ export const Routes = () => {
           ))
         }
       </List>
-      {context.user.name !== 'guest' && <SignOutRoute />}
     </>
   );
 };

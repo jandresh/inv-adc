@@ -2,14 +2,16 @@ import csv
 import json
 from datetime import datetime
 from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 from langdetect import detect
 import requests
 import time
 import sys
 
 app = Flask(__name__)
-apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
+CORS(app)
 
+apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()

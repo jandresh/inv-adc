@@ -1,12 +1,13 @@
 import json
 import time
 from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 import requests
 import sys
 from datetime import datetime
 
 app = Flask(__name__)
-
+CORS(app)
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()

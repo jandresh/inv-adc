@@ -6,7 +6,6 @@ import { Layout } from './components/Layout';
 import { PageDefault } from './components/PageDefault';
 
 import { AppContext, ThemeModeContext } from './contexts';
-import { AppClient } from './clients';
 import { routes } from './config';
 import { Route as AppRoute } from './types';
 import { getAppTheme } from './styles/theme';
@@ -16,8 +15,6 @@ function App() {
   const [mode, setMode] = useState<
     typeof LIGHT_MODE_THEME | typeof DARK_MODE_THEME
   >(LIGHT_MODE_THEME);
-  const appClient = new AppClient();
-
   const themeMode = useMemo(
     () => ({
       toggleThemeMode: () => {
@@ -30,6 +27,19 @@ function App() {
   );
 
   const theme = useMemo(() => getAppTheme(mode), [mode]);
+
+  const [user, setUser] = useState({
+    id: '',
+    firstName: 'guest',
+    lastName: '',
+    email: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isActive: false,
+    isAdmin: false,
+    isVerified: false
+  });
+  const appClient = { user, setUser };
 
   const addRoute = (route: AppRoute) => (
     <Route

@@ -7589,7 +7589,7 @@ export const Dashboard = () => {
           {PAGE_TITLE_HOME} | {APP_TITLE}
         </title>
       </Helmet>
-      <Typography variant="h4">{`Hello, ${context.user.name}`}</Typography>
+      <Typography variant="h4">{`Hello, ${context.user.firstName}`}</Typography>
       <h1>Authors Network Graph</h1>
       <ForceGraph3D
         graphData={data}

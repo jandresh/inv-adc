@@ -9,24 +9,38 @@ type TSelector =
   | 'createDatabase'
   | 'createCollection'
   | 'createDocument'
+  | 'findDocument'
   | 'getPatterns'
   | 'getCountries'
+  | 'listCollections'
+  | 'listDatabases'
+
+const host = {
+  localDb: 'http://localhost:5001',
+  remoteDb: 'http://34.74.92.5:5000'
+
+};
 
 const queries: Record<TSelector, IQuery> = {
   createDatabase: {
     errorMsg: '',
     method: 'POST',
-    url: 'http://localhost:5001/mongo-db-create'
+    url: `${host.remoteDb}/mongo-db-create`
   },
   createCollection: {
     errorMsg: '',
     method: 'POST',
-    url: 'http://localhost:5001/mongo-db-create'
+    url: `${host.remoteDb}/mongo-db-create`
   },
   createDocument: {
     errorMsg: '',
     method: 'POST',
-    url: 'http://localhost:5001/mongo-db-create'
+    url: `${host.remoteDb}/mongo-doc-insert`
+  },
+  findDocument: {
+    errorMsg: '',
+    method: 'POST',
+    url: `${host.remoteDb}/mongo-doc-find`
   },
   getCountries: {
     errorMsg: '',
@@ -38,19 +52,29 @@ const queries: Record<TSelector, IQuery> = {
   getPatterns: {
     errorMsg: '',
     method: 'GET',
-    url: 'http://34.74.92.5:5000/patterns'
+    url: `${host.remoteDb}/patterns`
+  },
+  listCollections: {
+    errorMsg: '',
+    method: 'POST',
+    url: `${host.remoteDb}/mongo-coll-list`
+  },
+  listDatabases: {
+    errorMsg: '',
+    method: 'GET',
+    url: `${host.remoteDb}/mongo-db-list`
   }
 };
 
 const query = async(
   queryName: TSelector,
-  setResponse: React.Dispatch<React.SetStateAction<Array<Record<string, string>>>>,
-  jsonObject?: Record<string, string>
-): Promise<void> => {
+  setResponse: React.Dispatch<React.SetStateAction<Array<Record<string, any>>>>,
+  jsonObject?: Record<string, any>
+): Promise<{ success: boolean, responseObj: any }> => {
   const requestOptions = queries[queryName].method === 'GET' ? {
-    method: 'GET'
+    'method': 'GET'
   } : {
-    method: 'POST',
+    'method': 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(jsonObject)
   };
@@ -61,11 +85,12 @@ const query = async(
     if (response.status === 200) {
       const responseObj: Record<string, string>[] = await response.json();
       setResponse(responseObj);
+      return { success: true, responseObj: responseObj };
     } else {
-      setResponse([]);
+      return { success: false, responseObj: [] };
     }
   } catch (error) {
-    setResponse([]);
+    return { success: false, responseObj: [] };
   }
 };
 

@@ -1,12 +1,14 @@
 import csv
 import json
 from flask import Flask, jsonify, request, Response
+from flask_cors import CORS
 import pymongo
 import mysql.connector
 import requests
 import re
 
 app = Flask(__name__)
+CORS(app)
 
 config = {
     "user": "adccali",
@@ -144,7 +146,7 @@ def init():
         print("Error on tables creation")
     connection.close()
 
-    return object_to_response({"exit": error})
+    return object_to_response([{"exit": error}])
 
 
 # *****patten_insert()******
@@ -351,7 +353,7 @@ def mongo_db_create():
     except:
         success = 1
 
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_db_list()******
@@ -363,7 +365,7 @@ def mongo_db_create():
 def mongo_db_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
 
-    return object_to_response({"databases": client.list_database_names()})
+    return object_to_response([{"databases": list(client.list_database_names())}])
 
 
 # *****mongo_db_delete()******
@@ -383,7 +385,7 @@ def mongo_db_delete():
     except:
         success = 1
 
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_coll_create()******
@@ -405,7 +407,7 @@ def mongo_coll_create():
     except:
         success = 1
 
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_coll_list()******
@@ -420,10 +422,7 @@ def mongo_coll_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
     db_name = request.json["db_name"]
     db = client[db_name]
-    out = ""
-    # for coll in db.list_collection_names():
-    #     out+=str(coll)
-    return jsonify(collections=db.list_collection_names())
+    return object_to_response([{"collections": db.list_collection_names()}])
 
 
 # *****mongo_coll_delete()******
@@ -445,13 +444,13 @@ def mongo_coll_delete():
         collection.drop()
     except:
         success = 1
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_doc_insert()******
 # Este metodo es invocado de esta forma:
 # curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
-
+# {"db_name": "users", "coll_name": "adc_cali", "document": {"name": "Jaime Hurtado", "email": "jandresh@gmail.com", "password": "Univalle#2004822"}}
 
 @app.route("/mongo-doc-insert", methods=["POST"])
 def mongo_doc_insert():
@@ -468,7 +467,7 @@ def mongo_doc_insert():
         insert_id = collection.insert_one(document)
     except:
         success = 1
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_doc_list()******
@@ -513,7 +512,7 @@ def mongo_doc_delete():
         collection.delete_one(query)
     except:
         success = 1
-    return object_to_response({"exit": success})
+    return object_to_response([{"exit": success}])
 
 
 # *****mongo_doc_find()******
@@ -540,7 +539,7 @@ def mongo_doc_find():
     for doc in out:
         doc["_id"] = str(doc["_id"])
         data.append(doc)
-    return jsonify(data)
+    return object_to_response(data)
 
 
 # *****mongo_doc_distinct()******
@@ -564,7 +563,7 @@ def mongo_doc_distinct():
         out = collection.distinct(field, query, options)
     except:
         out = None
-    return object_to_response({"result": out})
+    return object_to_response([{"result": out}])
 
 
 # *****pipeline1()******
