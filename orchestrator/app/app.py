@@ -268,18 +268,17 @@ def pipeline4():
         {
             "db_name": "authors",
             "coll_name": "author_vs_doc_id_global",
-            "field": "author",
-            "query": {},
-            "options": {},
+            "field": "author.name",
+            "query": {}
         },
     )
-    for author in author_list["result"]:
+    for author in author_list[0]["result"]:
         works_obj = post_json_request(
             "http://db:5000/mongo-doc-find",
             {
                 "db_name": "authors",
                 "coll_name": "author_vs_doc_id_global",
-                "query": {"author": author},
+                "query": {"author.name": author},
                 "projection": {"doc_id": 1},
             },
         )
@@ -364,9 +363,8 @@ def pipeline5():
             {
                 "db_name": "authors",
                 "coll_name": collection,
-                "field": "author",
+                "field": "author.name",
                 "query": {},
-                "options": {},
             },
         )
         for author in author_list["result"]:
@@ -375,7 +373,7 @@ def pipeline5():
                 {
                     "db_name": db_name,
                     "coll_name": works_coll,
-                    "query": {"author": author},
+                    "query": {"author.name": author},
                     "projection": {"works": 1},
                 },
             )
@@ -387,7 +385,7 @@ def pipeline5():
                             "db_name": db_name,
                             "coll_name": works_coll,
                             "query": {"works": work},
-                            "projection": {"author": 1},
+                            "projection": {"author.name": 1},
                         },
                     )
                     for author_related in authors_related:
@@ -400,7 +398,7 @@ def pipeline5():
                                     "document": {
                                         "author": author,
                                         "related": {
-                                            "author": author_related["author"],
+                                            "author": author_related["author.name"],
                                             "doc_id": work,
                                         },
                                     },

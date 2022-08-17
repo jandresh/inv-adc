@@ -1,11 +1,12 @@
 import csv
 import json
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
-import pymongo
-import mysql.connector
-import requests
 import re
+
+import mysql.connector
+import pymongo
+import requests
+from flask import Flask, Response, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
@@ -551,18 +552,14 @@ def mongo_doc_find():
 def mongo_doc_distinct():
     if not request.json:
         abort(400)
-    try:
-        db_name = request.json["db_name"]
-        coll_name = request.json["coll_name"]
-        field = request.json["field"]
-        query = request.json["query"]
-        options = request.json["options"]
-        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
-        db = client[db_name]
-        collection = db[coll_name]
-        out = collection.distinct(field, query, options)
-    except:
-        out = None
+    db_name = request.json["db_name"]
+    coll_name = request.json["coll_name"]
+    field = request.json["field"]
+    query = request.json["query"]
+    client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+    db = client[db_name]
+    collection = db[coll_name]
+    out = collection.distinct(field, query)
     return object_to_response([{"result": out}])
 
 
