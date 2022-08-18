@@ -348,9 +348,10 @@ def pipeline5():
     coll_list = post_json_request(
         "http://db:5000/mongo-coll-list", {"db_name": "authors"}
     )
-    for collection in coll_list["collections"]:
+    for collection in list(filter(lambda coll: coll.endswith("global"), list(coll_list[0]["collections"]))):
         coll_name = f"related{collection.replace('author_vs_doc_id', '')}"
         works_coll = f"works{collection.replace('author_vs_doc_id', '')}"
+        print(f"coll name: {coll_name}, coll list: {works_coll}")
         create_mongo_coll_metadata = post_json_request(
             "http://db:5000/mongo-coll-create",
             {
@@ -361,31 +362,31 @@ def pipeline5():
         author_list = post_json_request(
             "http://db:5000/mongo-doc-distinct",
             {
-                "db_name": "authors",
-                "coll_name": collection,
-                "field": "author.name",
+                "db_name": "network",
+                "coll_name": works_coll,
+                "field": "author",
                 "query": {},
             },
         )
-        for author in author_list["result"]:
+        for author in author_list[0]["result"]:
             author_works = post_json_request(
                 "http://db:5000/mongo-doc-find",
                 {
                     "db_name": db_name,
                     "coll_name": works_coll,
-                    "query": {"author.name": author},
+                    "query": {"author": author},
                     "projection": {"works": 1},
                 },
             )
             if author_works != []:
-                for work in author_works[0]["works"]:
+                for work in list(set(author_works[0]["works"])):
                     authors_related = post_json_request(
                         "http://db:5000/mongo-doc-find",
                         {
                             "db_name": db_name,
                             "coll_name": works_coll,
                             "query": {"works": work},
-                            "projection": {"author.name": 1},
+                            "projection": {"author": 1},
                         },
                     )
                     for author_related in authors_related:
@@ -398,7 +399,7 @@ def pipeline5():
                                     "document": {
                                         "author": author,
                                         "related": {
-                                            "author": author_related["author.name"],
+                                            "author": author_related["author"],
                                             "doc_id": work,
                                         },
                                     },
