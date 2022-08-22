@@ -13,10 +13,10 @@ export interface IAccess {
 export const Home = () => {
   const context = useContext(AppContext);
   const [access, setAccess] = useState<IAccess['access']>('GUEST');
-  const loginClick = ()=>{
+  const loginClick = () => {
     setAccess('LOGIN');
   };
-  const registerClick = ()=>{
+  const registerClick = () => {
     setAccess('REGISTER');
   };
 
@@ -31,19 +31,24 @@ export const Home = () => {
         {access === 'GUEST' && (
           <React.Fragment>
             <Typography variant="h4">Welcome</Typography>
-            <Button variant="contained" onClick={loginClick} >Login</Button>
-            <Button variant="outlined" onClick={registerClick}>Register</Button>
-          </React.Fragment>)}
+            <Button variant="contained" onClick={loginClick}>
+              Login
+            </Button>
+            <Button variant="outlined" onClick={registerClick}>
+              Register
+            </Button>
+          </React.Fragment>
+        )}
         {access === 'REGISTER' && (
           <React.Fragment>
             <Typography variant="h4">Registration</Typography>
-            <Register setAccess={setAccess}/>
+            <Register setAccess={setAccess} />
           </React.Fragment>
         )}
         {access === 'LOGIN' && (
           <React.Fragment>
             <Typography variant="h4">Login</Typography>
-            <Login setAccess={setAccess}/>
+            <Login setAccess={setAccess} />
           </React.Fragment>
         )}
         {access === 'LOGGED' && (

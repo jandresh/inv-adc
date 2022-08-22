@@ -26,9 +26,11 @@ export const Routes = () => {
     <>
       <List component="nav" sx={{ height: '100%' }}>
         {routesState
-          .filter((route: Route) =>
-            context.user.firstName !== 'guest' ||
-            (route.key === 'router-home' && context.user.firstName === 'guest')
+          .filter(
+            (route: Route) =>
+              context.user.firstName !== 'guest' ||
+              (route.key === 'router-home' &&
+                context.user.firstName === 'guest')
           )
           .map((route: Route) => (
             <div key={route.key}>
@@ -43,7 +45,11 @@ export const Routes = () => {
                   <Collapse in={route.expanded} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
                       {route.subRoutes.map((sRoute: Route) => (
-                        <RouteItem key={`${sRoute.key}`} route={sRoute} nested />
+                        <RouteItem
+                          key={`${sRoute.key}`}
+                          route={sRoute}
+                          nested
+                        />
                       ))}
                     </List>
                   </Collapse>
@@ -53,8 +59,7 @@ export const Routes = () => {
               )}
               {route.appendDivider && <Divider />}
             </div>
-          ))
-        }
+          ))}
       </List>
     </>
   );

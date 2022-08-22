@@ -5,7 +5,6 @@ import { CollList } from '../CollList';
 import { Typography } from '@mui/material';
 
 export const DbList: React.FC = () => {
-
   const columns: GridColDef[] = [
     { field: 'database', headerName: 'Database', flex: 100, resizable: true }
   ];
@@ -17,15 +16,13 @@ export const DbList: React.FC = () => {
   }, []);
 
   if (!databases) {
-    return (
-      <div></div>
-    );
+    return <div></div>;
   }
 
   const rows = databases[0]
     ? databases[0]['databases'].map((db: string): Record<string, string> => {
-      return { 'database': db };
-    })
+        return { database: db };
+      })
     : [];
 
   return (
@@ -35,7 +32,7 @@ export const DbList: React.FC = () => {
         columns={columns}
         autoHeight={true}
         getRowId={(row) => row.database}
-        initialState={ { pagination: { pageSize: 10 } } }
+        initialState={{ pagination: { pageSize: 10 } }}
         rowsPerPageOptions={[10, 50, 100]}
         onSelectionModelChange={(ids) => {
           setDatabase('');
@@ -43,7 +40,7 @@ export const DbList: React.FC = () => {
         }}
       />
       <Typography variant="h4">Collections</Typography>
-      {database === '' ? undefined : <CollList database={ database } />}
+      {database === '' ? undefined : <CollList database={database} />}
     </>
   );
 };

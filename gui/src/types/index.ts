@@ -31,7 +31,7 @@ type Route = {
 type User = {
   id: string;
   firstName: string;
-  lastName: string
+  lastName: string;
   email: string;
   createdAt: Date;
   updatedAt: Date;

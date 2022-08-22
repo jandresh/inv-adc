@@ -6,8 +6,6 @@ import { Patterns } from './Patterns';
 import { DbList } from './DbList';
 
 export const Database = () => {
-
-
   return (
     <>
       <Helmet>

@@ -14,6 +14,7 @@ type TSelector =
   | 'getCountries'
   | 'listCollections'
   | 'listDatabases'
+  | 'listDocument';
 
 const host = {
   localDb: 'http://localhost:5001',
@@ -62,21 +63,29 @@ const queries: Record<TSelector, IQuery> = {
     errorMsg: '',
     method: 'GET',
     url: `${host.remoteDb}/mongo-db-list`
+  },
+  listDocument: {
+    errorMsg: '',
+    method: 'POST',
+    url: `${host.remoteDb}/mongo-doc-list`
   }
 };
 
-const query = async(
+const query = async (
   queryName: TSelector,
   setResponse: React.Dispatch<React.SetStateAction<Array<Record<string, any>>>>,
   jsonObject?: Record<string, any>
-): Promise<{ success: boolean, responseObj: any }> => {
-  const requestOptions = queries[queryName].method === 'GET' ? {
-    'method': 'GET'
-  } : {
-    'method': 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(jsonObject)
-  };
+): Promise<{ success: boolean; responseObj: any }> => {
+  const requestOptions =
+    queries[queryName].method === 'GET'
+      ? {
+          method: 'GET'
+        }
+      : {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(jsonObject)
+        };
 
   try {
     const response = await fetch(queries[queryName].url, requestOptions);

@@ -490,7 +490,7 @@ def mongo_doc_list():
     for doc in collection.find():
         doc["_id"] = str(doc["_id"])
         data.append(doc)
-    return jsonify(data)
+    return object_to_response(data)
 
 
 # *****mongo_doc_delete()******

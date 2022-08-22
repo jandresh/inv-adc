@@ -30,37 +30,43 @@ export const Register: React.FC<{
   };
 
   const [findResponse, setFindResponse] = useState<Record<string, any>[]>([]);
-  const [response, setResponse] = useState<Record<string, any>[]>([{ exit: 1 }]);
+  const [response, setResponse] = useState<Record<string, any>[]>([
+    { exit: 1 }
+  ]);
   const [open, setOpen] = useState(false);
 
   const handleSubmit = useCallback(
-    async(values: IRegister): Promise<void> => {
+    async (values: IRegister): Promise<void> => {
       const findDocument = {
-        'db_name' : 'users',
-        'coll_name' : 'adc_cali',
-        'query' : {
-          'email': values.email
+        db_name: 'users',
+        coll_name: 'adc_cali',
+        query: {
+          email: values.email
         },
         projection: {
-          'email': 1
+          email: 1
         }
       };
       const registerDocument = {
-        'db_name' : 'users',
-        'coll_name' : 'adc_cali',
-        'document' : {
-          'first_name': values.firstName,
-          'last_name': values.lastName,
-          'email': values.email,
-          'password': btoa(values.password),
-          'created' : new Date(),
-          'updated' : new Date(),
-          'is_admin' : true,
-          'is_active' : values.email === 'admin@adccali.com' ? true : false,
-          'is_verified' : false
+        db_name: 'users',
+        coll_name: 'adc_cali',
+        document: {
+          first_name: values.firstName,
+          last_name: values.lastName,
+          email: values.email,
+          password: btoa(values.password),
+          created: new Date(),
+          updated: new Date(),
+          is_admin: true,
+          is_active: values.email === 'admin@adccali.com' ? true : false,
+          is_verified: false
         }
       };
-      const findResult = await query('findDocument', setFindResponse, findDocument);
+      const findResult = await query(
+        'findDocument',
+        setFindResponse,
+        findDocument
+      );
       const { success: successFind, responseObj: responseFind } = findResult;
       if (
         successFind &&
@@ -68,7 +74,11 @@ export const Register: React.FC<{
         findResponse &&
         values.email !== 'admin@adccali.com'
       ) {
-        const registerResult = await query('createDocument', setResponse, registerDocument);
+        const registerResult = await query(
+          'createDocument',
+          setResponse,
+          registerDocument
+        );
         const { success: successRegister } = registerResult;
         if (!successRegister) {
           setResponse([{ exit: 1 }]);
@@ -87,7 +97,10 @@ export const Register: React.FC<{
     setAccess('GUEST');
   };
 
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -108,11 +121,14 @@ export const Register: React.FC<{
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required('First Name is required').max(100).min(2),
     lastName: Yup.string().required('Last Name is required').max(100).min(2),
-    institution: Yup.string().required('Institution is required').max(100).min(2),
+    institution: Yup.string()
+      .required('Institution is required')
+      .max(100)
+      .min(2),
     email: Yup.string().required('email is required').email(),
     password: Yup.string().required('Password is required').min(4).max(20),
     confirmPassword: Yup.string()
-      .required(('Password confirmation is required'))
+      .required('Password confirmation is required')
       .min(2)
       .max(20)
       .oneOf([Yup.ref('password'), null], 'Passwords not match')
@@ -178,11 +194,7 @@ export const Register: React.FC<{
             >
               Submit
             </Button>
-            <Button
-              variant="text"
-              disabled={open}
-              onClick={onCancel}
-            >
+            <Button variant="text" disabled={open} onClick={onCancel}>
               Cancel
             </Button>
             <Snackbar
@@ -192,25 +204,33 @@ export const Register: React.FC<{
               onClose={handleClose}
             >
               {response[0]['exit'] === 0 ? (
-                <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                  Your registration was successful.
-                  To access the system you must wait for an administrator
-                  to authorize and activate your account!
+                <Alert
+                  onClose={handleClose}
+                  severity="success"
+                  sx={{ width: '100%' }}
+                >
+                  Your registration was successful. To access the system you
+                  must wait for an administrator to authorize and activate your
+                  account!
                 </Alert>
-              ) : response[0]['exit'] === 2
-                ? (
-                  <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                    Your registration was unsuccess.
-                    your email is already registered!
-                  </Alert>
-                )
-                : (
-                  <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                    Your registration was unsuccess.
-                    Please try again latter!
-                  </Alert>
-                )
-              }
+              ) : response[0]['exit'] === 2 ? (
+                <Alert
+                  onClose={handleClose}
+                  severity="error"
+                  sx={{ width: '100%' }}
+                >
+                  Your registration was unsuccess. your email is already
+                  registered!
+                </Alert>
+              ) : (
+                <Alert
+                  onClose={handleClose}
+                  severity="error"
+                  sx={{ width: '100%' }}
+                >
+                  Your registration was unsuccess. Please try again latter!
+                </Alert>
+              )}
             </Snackbar>
           </Stack>
         </Form>

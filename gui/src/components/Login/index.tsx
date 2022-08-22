@@ -27,27 +27,36 @@ export const Login: React.FC<{
   const context = useContext(AppContext);
 
   const handleSubmit = useCallback(
-    async(values: ILogin): Promise<void> => {
+    async (values: ILogin): Promise<void> => {
       const document = {
-        'db_name' : 'users',
-        'coll_name' : 'adc_cali',
-        'query' : {
-          'email': values.email,
-          'password': btoa(values.password)
+        db_name: 'users',
+        coll_name: 'adc_cali',
+        query: {
+          email: values.email,
+          password: btoa(values.password)
         },
         projection: {
-          'first_name': 1,
-          'last_name': 1,
-          'email': 1,
-          'created' : 1,
-          'updated' : 1,
-          'is_admin' : 1,
-          'is_active' : 1,
-          'is_verified' : 1
+          first_name: 1,
+          last_name: 1,
+          email: 1,
+          created: 1,
+          updated: 1,
+          is_admin: 1,
+          is_active: 1,
+          is_verified: 1
         }
       };
-      const { success, responseObj } = await query('findDocument', setResponse, document);
-      if (success && responseObj.length > 0 && response && responseObj[0]['is_active']) {
+      const { success, responseObj } = await query(
+        'findDocument',
+        setResponse,
+        document
+      );
+      if (
+        success &&
+        responseObj.length > 0 &&
+        response &&
+        responseObj[0]['is_active']
+      ) {
         context.setUser({
           id: responseObj[0]['_id'],
           firstName: responseObj[0]['first_name'],
@@ -60,7 +69,11 @@ export const Login: React.FC<{
           isVerified: responseObj[0]['is_verified']
         });
         setAccess('LOGGED');
-      } else if (success && values.email === 'admin@adccali.com' && values.password === 'admin') {
+      } else if (
+        success &&
+        values.email === 'admin@adccali.com' &&
+        values.password === 'admin'
+      ) {
         context.setUser({
           id: '',
           firstName: 'Admin',
@@ -84,7 +97,10 @@ export const Login: React.FC<{
     setAccess('GUEST');
   };
 
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -136,22 +152,29 @@ export const Login: React.FC<{
             >
               Submit
             </Button>
-            <Button
-              variant="text"
-              disabled={open[0]}
-              onClick={onCancel}
-            >
+            <Button variant="text" disabled={open[0]} onClick={onCancel}>
               Cancel
             </Button>
             <Snackbar
               anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-              open={open[0]} autoHideDuration={20000} onClose={handleClose}>
+              open={open[0]}
+              autoHideDuration={20000}
+              onClose={handleClose}
+            >
               {open[1] ? (
-                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                <Alert
+                  onClose={handleClose}
+                  severity="error"
+                  sx={{ width: '100%' }}
+                >
                   User is inactive or provided email/password are invalid!
                 </Alert>
               ) : (
-                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
+                <Alert
+                  onClose={handleClose}
+                  severity="error"
+                  sx={{ width: '100%' }}
+                >
                   Server error, please try again latter!
                 </Alert>
               )}

@@ -62,7 +62,8 @@ export const MobileMenu = ({
               <SignOut disableTooltip onClick={() => alert('Signing out...')} />
               Sign Out
             </MenuItem>
-          </Fragment>)}
+          </Fragment>
+        )}
       </Box>
     </Menu>
   );

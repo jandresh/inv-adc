@@ -50,9 +50,7 @@ function App() {
     />
   );
 
-  useEffect(() => {
-
-  }, []);
+  useEffect(() => {}, []);
 
   return (
     <AppContext.Provider value={appClient}>
@@ -62,9 +60,10 @@ function App() {
           <Router>
             <Switch>
               <Layout>
-                {routes.map((route: AppRoute) => route.subRoutes
-                  ? route.subRoutes.map((item: AppRoute) => addRoute(item))
-                  : addRoute(route)
+                {routes.map((route: AppRoute) =>
+                  route.subRoutes
+                    ? route.subRoutes.map((item: AppRoute) => addRoute(item))
+                    : addRoute(route)
                 )}
               </Layout>
             </Switch>
