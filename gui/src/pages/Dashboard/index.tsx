@@ -42,8 +42,8 @@ export const Dashboard = () => {
 
   useEffect(() => {
     query('listDocument', setData, {
-      db_name: 'arrays',
-      coll_name: 'authors_global'
+      'db_name': 'arrays',
+      'coll_name': 'authors_global'
     });
   }, [setData]);
 

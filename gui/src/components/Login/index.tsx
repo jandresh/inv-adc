@@ -29,21 +29,21 @@ export const Login: React.FC<{
   const handleSubmit = useCallback(
     async (values: ILogin): Promise<void> => {
       const document = {
-        db_name: 'users',
-        coll_name: 'adc_cali',
+        'db_name': 'users',
+        'coll_name': 'adc_cali',
         query: {
           email: values.email,
           password: btoa(values.password)
         },
         projection: {
-          first_name: 1,
-          last_name: 1,
+          'first_name': 1,
+          'last_name': 1,
           email: 1,
           created: 1,
           updated: 1,
-          is_admin: 1,
-          is_active: 1,
-          is_verified: 1
+          'is_admin': 1,
+          'is_active': 1,
+          'is_verified': 1
         }
       };
       const { success, responseObj } = await query(
@@ -90,7 +90,7 @@ export const Login: React.FC<{
         setOpen([true, success]);
       }
     },
-    [context, query, setOpen]
+    [context, query, response, setAccess, setOpen]
   );
 
   const onCancel = () => {
@@ -108,7 +108,7 @@ export const Login: React.FC<{
     setOpen([false, false]);
   };
 
-  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert (
     props,
     ref
   ) {

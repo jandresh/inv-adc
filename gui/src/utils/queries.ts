@@ -79,13 +79,13 @@ const query = async (
   const requestOptions =
     queries[queryName].method === 'GET'
       ? {
-          method: 'GET'
-        }
+        method: 'GET'
+      }
       : {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(jsonObject)
-        };
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(jsonObject)
+      };
 
   try {
     const response = await fetch(queries[queryName].url, requestOptions);

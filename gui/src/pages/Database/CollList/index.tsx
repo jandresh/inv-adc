@@ -17,8 +17,8 @@ export const CollList: React.FC<{ database: string }> = ({ database }) => {
   );
 
   useEffect(() => {
-    query('listCollections', setCollections, { db_name: database });
-  }, []);
+    query('listCollections', setCollections, { 'db_name': database });
+  }, [database]);
 
   if (!collections) {
     return <div></div>;
@@ -29,10 +29,10 @@ export const CollList: React.FC<{ database: string }> = ({ database }) => {
       rows={
         collections[0]
           ? collections[0]['collections'].map(
-              (coll: string): Record<string, string> => {
-                return { collection: coll };
-              }
-            )
+            (coll: string): Record<string, string> => {
+              return { collection: coll };
+            }
+          )
           : []
       }
       columns={columns}

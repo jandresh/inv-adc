@@ -11,7 +11,7 @@ import { Route as AppRoute } from './types';
 import { getAppTheme } from './styles/theme';
 import { DARK_MODE_THEME, LIGHT_MODE_THEME } from './utils/constants';
 
-function App() {
+function App () {
   const [mode, setMode] = useState<
     typeof LIGHT_MODE_THEME | typeof DARK_MODE_THEME
   >(LIGHT_MODE_THEME);

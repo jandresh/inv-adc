@@ -21,8 +21,8 @@ export const DbList: React.FC = () => {
 
   const rows = databases[0]
     ? databases[0]['databases'].map((db: string): Record<string, string> => {
-        return { database: db };
-      })
+      return { database: db };
+    })
     : [];
 
   return (

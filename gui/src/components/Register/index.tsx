@@ -38,8 +38,8 @@ export const Register: React.FC<{
   const handleSubmit = useCallback(
     async (values: IRegister): Promise<void> => {
       const findDocument = {
-        db_name: 'users',
-        coll_name: 'adc_cali',
+        'db_name': 'users',
+        'coll_name': 'adc_cali',
         query: {
           email: values.email
         },
@@ -48,18 +48,18 @@ export const Register: React.FC<{
         }
       };
       const registerDocument = {
-        db_name: 'users',
-        coll_name: 'adc_cali',
+        'db_name': 'users',
+        'coll_name': 'adc_cali',
         document: {
-          first_name: values.firstName,
-          last_name: values.lastName,
+          'first_name': values.firstName,
+          'last_name': values.lastName,
           email: values.email,
           password: btoa(values.password),
           created: new Date(),
           updated: new Date(),
-          is_admin: true,
-          is_active: values.email === 'admin@adccali.com' ? true : false,
-          is_verified: false
+          'is_admin': true,
+          'is_active': values.email === 'admin@adccali.com' ? true : false,
+          'is_verified': false
         }
       };
       const findResult = await query(
@@ -90,7 +90,7 @@ export const Register: React.FC<{
       }
       setOpen(true);
     },
-    [query, setOpen, setResponse]
+    [findResponse, query, setOpen, setResponse]
   );
 
   const onCancel = () => {
@@ -111,7 +111,7 @@ export const Register: React.FC<{
     }
   };
 
-  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert (
     props,
     ref
   ) {
