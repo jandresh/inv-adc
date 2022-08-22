@@ -41,7 +41,10 @@ export const Dashboard = () => {
   const [data, setData] = useState<Record<string, any>[]>([]);
 
   useEffect(() => {
-    query('listDocument', setData);
+    query('listDocument', setData, {
+      db_name: 'arrays',
+      coll_name: 'authors_global'
+    });
   }, [setData]);
 
   return (
@@ -53,42 +56,55 @@ export const Dashboard = () => {
       </Helmet>
       <Typography variant="h4">{`Hello, ${context.user.firstName}`}</Typography>
       <h1>Authors Network Graph</h1>
-      <ForceGraph3D
-        ref={fgRef}
-        graphData={data[0]['graph_data']}
-        linkAutoColorBy="related"
-        linkLabel="related"
-        linkWidth={(link) =>
-          data[0]['graph_data'].links.filter(
-            (item: any) =>
-              item.source === link.source && item.target === link.target
-          )[0].related **
-            3 /
-          1000
-        }
-        nodeAutoColorBy="works"
-        nodeLabel={(node) =>
-          `${
-            data[0]['graph_data'].nodes[parseInt(node.id as string, 10)].name
-          } ${
-            data[0]['graph_data'].nodes[parseInt(node.id as string, 10)].works
-          } works`
-        }
-        nodeRelSize={0.05}
-        nodeVal={(node) =>
-          data[0]['graph_data'].nodes[parseInt(node.id as string, 10)].works **
-          4
-        }
-        onNodeClick={handleClick}
-        onLinkClick={(link) => {
-          alert(`linkClick ${link.source?.toString}`);
-        }}
-        onNodeDragEnd={(node) => {
-          node.fx = node.x;
-          node.fy = node.y;
-          node.fz = node.z;
-        }}
-      />
+      {data[0] && (
+        <ForceGraph3D
+          ref={fgRef}
+          graphData={data[0]['graph_data']}
+          linkAutoColorBy="related"
+          linkLabel={(link) =>
+            data[0]['graph_data'].links
+              .filter(
+                (item: any) =>
+                  item.source === link.source && item.target === link.target
+              )
+              .map(
+                (item: any) =>
+                  `${item.source} <=> ${item.target} / ${item.related} works`
+              )[0]
+              .toString()
+          }
+          linkWidth={(link) =>
+            data[0]['graph_data'].links.filter(
+              (item: any) =>
+                item.source === link.source && item.target === link.target
+            )[0].related **
+              3 /
+            800
+          }
+          nodeAutoColorBy="works"
+          nodeLabel={(node) =>
+            `${
+              data[0]['graph_data'].nodes[parseInt(node.id as string, 10)].name
+            } ${
+              data[0]['graph_data'].nodes[parseInt(node.id as string, 10)].works
+            } works`
+          }
+          nodeRelSize={0.05}
+          nodeVal={(node) =>
+            data[0]['graph_data'].nodes[parseInt(node.id as string, 10)]
+              .works ** 4
+          }
+          onNodeClick={handleClick}
+          onLinkClick={(link) => {
+            alert(`linkClick ${link.source?.toString}`);
+          }}
+          onNodeDragEnd={(node) => {
+            node.fx = node.x;
+            node.fy = node.y;
+            node.fz = node.z;
+          }}
+        />
+      )}
     </>
   );
 };
