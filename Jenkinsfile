@@ -1,9 +1,9 @@
-agentName = "ubuntu-2110"
+agentName = "ubuntu-2004"
 agentLabel = "${-> println 'Right Now the Agent Name is ' + agentName; return agentName}"
 pipeline {
     environment {
-        PROJECT = "adc-cali"
-        APP_NAME = "adc-cali-app"
+        PROJECT = "adc-univalle"
+        APP_NAME = "adc-univalle-app"
         CLUSTER = "jenkins-cd"
         CLUSTER_ZONE = "us-east1-d"
         JENKINS_CRED = "${PROJECT}"
@@ -65,7 +65,7 @@ pipeline {
             }
             agent {
                 kubernetes {
-                    label 'adc-cali-app'
+                    label 'adc-univalle-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -114,7 +114,7 @@ pipeline {
             when { branch 'canary' }
             agent {
                 kubernetes {
-                    label 'adc-cali-app'
+                    label 'adc-univalle-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -163,7 +163,7 @@ pipeline {
             when { branch 'master' }
             agent {
                 kubernetes {
-                    label 'adc-cali-app'
+                    label 'adc-univalle-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
