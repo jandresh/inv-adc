@@ -18,7 +18,7 @@ type TSelector =
 
 const host = {
   localDb: 'http://localhost:5001',
-  remoteDb: 'http://34.74.92.5:5000'
+  remoteDb: 'http://34.139.195.121:5000'
 };
 
 const queries: Record<TSelector, IQuery> = {
