@@ -10,15 +10,14 @@ import {
   CreditCard as BillingIcon
 } from '@mui/icons-material';
 
-import { Arxiv } from '../pages/Arxiv';
-
-import { Database } from '../pages/Database';
-
-import { Home } from '../pages/Home';
-
-import { Dashboard } from '../pages/Dashboard';
+import { Arxiv } from 'pages/Arxiv';
+import { Database } from 'pages/Database';
+import { Home } from 'pages/Home';
+import { Dashboard } from 'pages/Dashboard';
+import { Users } from 'pages/Users';
 
 import { Route } from '../types';
+
 
 const routes: Array<Route> = [
   {
@@ -104,6 +103,106 @@ const routes: Array<Route> = [
         path: '/search/institutions',
         isEnabled: false,
         icon: PrivateIcon
+      }
+    ]
+  },
+  {
+    key: 'router-user',
+    title: 'User',
+    description: 'User interface',
+    isEnabled: true,
+    icon: HealthIcon,
+    subRoutes: [
+      {
+        key: 'router-user-query',
+        title: 'Query',
+        description: 'Query interface',
+        path: '/user/query',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-user-report',
+        title: 'Report',
+        description: 'Report interface',
+        path: '/user/report',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-user-historic',
+        title: 'Historic',
+        description: 'Historic interface',
+        path: '/user/historic',
+        isEnabled: true,
+        icon: PublicIcon
+      }
+    ]
+  },
+  {
+    key: 'router-researcher',
+    title: 'Researcher',
+    description: 'Researcher interfaces',
+    isEnabled: true,
+    icon: HealthIcon,
+    subRoutes: [
+      {
+        key: 'router-researcher-patterns',
+        title: 'Patterns',
+        description: 'Patterns interface',
+        path: '/researcher/patterns',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-researcher-pipelines',
+        title: 'Pipelines',
+        description: 'Pipelines interface',
+        path: '/researcher/pipelines',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-researcher-validate',
+        title: 'Validate',
+        description: 'Validate interface',
+        path: '/researcher/validate',
+        isEnabled: true,
+        icon: PublicIcon
+      }
+    ]
+  },
+  {
+    key: 'router-admin',
+    title: 'Admin',
+    description: 'Admin interfaces',
+    isEnabled: true,
+    icon: HealthIcon,
+    subRoutes: [
+      {
+        key: 'router-admin-users',
+        title: 'Users',
+        description: 'Users management',
+        component: Users,
+        path: '/admin/users',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-admin-setup',
+        title: 'Setup',
+        description: 'System setup',
+        path: '/admin/setup',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
+        key: 'router-admin-usage',
+        title: 'Usage',
+        description: 'Usage reports',
+        path: '/admin/usage',
+        isEnabled: true,
+        icon: PublicIcon
       }
     ],
     appendDivider: true

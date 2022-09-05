@@ -11,7 +11,7 @@ import * as Yup from 'yup';
 interface IRegister {
   firstName: string;
   lastName: string;
-  institution: string;
+  org: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -23,7 +23,7 @@ export const Register: React.FC<{
   const initialValues: IRegister = {
     firstName: '',
     lastName: '',
-    institution: '',
+    org: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -38,8 +38,8 @@ export const Register: React.FC<{
   const handleSubmit = useCallback(
     async (values: IRegister): Promise<void> => {
       const findDocument = {
-        'db_name': 'users',
-        'coll_name': 'adc_cali',
+        'db_name': 'global',
+        'coll_name': 'users',
         query: {
           email: values.email
         },
@@ -48,11 +48,12 @@ export const Register: React.FC<{
         }
       };
       const registerDocument = {
-        'db_name': 'users',
-        'coll_name': 'adc_cali',
+        'db_name': 'global',
+        'coll_name': 'users',
         document: {
           'first_name': values.firstName,
           'last_name': values.lastName,
+          org: values.org,
           email: values.email,
           password: btoa(values.password),
           created: new Date(),
@@ -121,7 +122,7 @@ export const Register: React.FC<{
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required('First Name is required').max(100).min(2),
     lastName: Yup.string().required('Last Name is required').max(100).min(2),
-    institution: Yup.string()
+    org: Yup.string()
       .required('Institution is required')
       .max(100)
       .min(2),
@@ -159,9 +160,9 @@ export const Register: React.FC<{
             />
             <Field
               component={TextField}
-              name="institution"
+              name="org"
               type="name"
-              label="Institution"
+              label="Organization"
               disabled={open}
             />
             <Field

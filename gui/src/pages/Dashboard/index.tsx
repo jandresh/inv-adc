@@ -41,7 +41,7 @@ export const Dashboard = () => {
   const [data, setData] = useState<Record<string, any>[]>([]);
 
   useEffect(() => {
-    query('listDocument', setData, {
+    query('listDocuments', setData, {
       'db_name': 'arrays',
       'coll_name': 'authors_global'
     });

@@ -91,25 +91,26 @@ def root():
 
     return """db endpoints:
 /
-/init               GET
-/pattern2mysql      POST
-/search2mysql       POST
-/txt2patterns       GET
-/patterns           GET
-/searches           GET
-/mysql-query        POST
-/mongo-db-create    POST
-/mongo-db-list      GET
-/mongo-db-delete    POST
-/mongo-coll-create  POST
-/mongo-coll-list    POST
-/mongo-coll-delete  POST
-/mongo-doc-insert   POST
-/mongo-doc-list     POST
-/mongo-doc-delete   POST
-/mongo-doc-find     POST
-/mongo-doc-distinct POST
-/pipeline1          GET
+/init               GET\n
+/pattern2mysql      POST\n
+/search2mysql       POST\n
+/txt2patterns       GET\n
+/patterns           GET\n
+/searches           GET\n
+/mysql-query        POST\n
+/mongo-db-create    POST\n
+/mongo-db-list      GET\n
+/mongo-db-delete    POST\n
+/mongo-coll-create  POST\n
+/mongo-coll-list    POST\n
+/mongo-coll-delete  POST\n
+/mongo-doc-insert   POST\n
+/mongo-doc-list     POST\n
+/mongo-doc-delete   POST\n
+/mongo-doc-find     POST\n
+/mongo-doc-distinct POST\n
+/mongo-doc-update   POST\n
+/pipeline1          GET\n
 /pipeline2          GET
 """
 
@@ -466,6 +467,29 @@ def mongo_doc_insert():
         db = client[db_name]
         collection = db[coll_name]
         insert_id = collection.insert_one(document)
+    except:
+        success = 1
+    return object_to_response([{"exit": success}])
+
+# *****mongo_doc_update()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
+# {"db_name": "users", "coll_name": "adc_cali", "document": {"name": "Jaime Hurtado", "email": "jandresh@gmail.com", "password": "Univalle#2004822"}}
+
+@app.route("/mongo-doc-update", methods=["POST"])
+def mongo_doc_update():
+    if not request.json:
+        abort(400)
+    success = 0
+    try:
+        db_name = request.json["db_name"]
+        coll_name = request.json["coll_name"]
+        filter = request.json["filter"]
+        document = request.json["document"]
+        client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
+        db = client[db_name]
+        collection = db[coll_name]
+        insert_id = collection.update_one(filter, {"$set": document}, True)
     except:
         success = 1
     return object_to_response([{"exit": success}])
