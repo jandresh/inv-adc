@@ -10,7 +10,7 @@ import { Helmet } from 'react-helmet';
 import { AppContext } from '../../contexts';
 import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
 import { ForceGraph3D } from 'react-force-graph';
-import { query } from 'utils/queries';
+// import { query } from 'utils/queries';
 
 export const Dashboard = () => {
   const context = useContext(AppContext);
@@ -38,13 +38,22 @@ export const Dashboard = () => {
     [fgRef]
   );
 
+  function relatedVerify (related: number, min: number): number {
+    if (related >= min) {
+      return related;
+    }
+
+    return 0.001;
+  }
   const [data, setData] = useState<Record<string, any>[]>([]);
 
   useEffect(() => {
-    query('listDocuments', setData, {
-      'db_name': 'arrays',
-      'coll_name': 'authors_global'
-    });
+    // query('listDocuments', setData, {
+    //   'db_name': 'arrays',
+    //   'coll_name': 'authors_global'
+    // });
+    var jsonData = require('./authors_global.json');
+    setData(jsonData);
   }, [setData]);
 
   return (
@@ -74,10 +83,10 @@ export const Dashboard = () => {
               .toString()
           }
           linkWidth={(link) =>
-            data[0]['graph_data'].links.filter(
+            relatedVerify(data[0]['graph_data'].links.filter(
               (item: any) =>
                 item.source === link.source && item.target === link.target
-            )[0].related **
+            )[0].related, 200) **
               3 /
             800
           }
@@ -90,9 +99,13 @@ export const Dashboard = () => {
             } works`
           }
           nodeRelSize={0.05}
+          // nodeVal={(node) =>
+          //   data[0]['graph_data'].nodes[parseInt(node.id as string, 10)]
+          //     .works ** 4
+          // }
           nodeVal={(node) =>
             data[0]['graph_data'].nodes[parseInt(node.id as string, 10)]
-              .works ** 4
+              .works === 34 ? 50000 : 100
           }
           onNodeClick={handleClick}
           onLinkClick={(link) => {

@@ -89,7 +89,7 @@ def abstract_from_pmid():
 #
 # *****pmid_from_query()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast neoplasm" }' http://localhost:5000/pmids
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast cancer" }' http://localhost:5000/pmids
 #
 
 
@@ -210,6 +210,8 @@ def query():
         abort(400)
     query = request.json["query"]
     patternid = request.json["patternid"]
+    database = request.json["database"]
+    project = request.json["project"]
     maxdocs = request.json["maxdocs"]
     count = 0
     success = False
@@ -263,12 +265,11 @@ def query():
                     )
                 except:
                     lang_json["lang"] = ""
-                if pmid is not None:
+                if title is not None:
                     document = {
                         "pat_id": patternid if patternid is not None else "",
                         "dbid": dbid if dbid is not None else "",
                         "doi": doi if doi is not None else "",
-                        "title": title if title is not None else "",
                         "abstract": abstract if abstract is not None else "",
                         "authors": authors if authors is not None else "",
                         "org": "",
@@ -280,37 +281,39 @@ def query():
                     }
                     try:
                         post_json_request(
-                            "http://db:5000/mongo-doc-insert",
+                            "http://db:5000/mongo-doc-update",
                             {
-                                "db_name": "metadata",
-                                "coll_name": f"metadata_{patternid}",
+                                "db_name": database,
+                                "coll_name": f"{project}_metadata_{patternid}",
+                                "filter": { 'title': title },
                                 "document": document,
                             },
                         )
                     except:
-                        print(f"Exception on can't insert document for {dbid}")
+                        print(f"Exception can't insert document for {dbid}")
                     try:
                         post_json_request(
-                            "http://db:5000/mongo-doc-insert",
+                            "http://db:5000/mongo-doc-update",
                             {
-                                "db_name": "metadata",
-                                "coll_name": f"metadata_global",
+                                "db_name": database,
+                                "coll_name": f"{project}_metadata_global",
+                                "filter": { 'title': title },
                                 "document": document,
                             },
                         )
                     except:
                         print(
-                            f"Exception on can't insert global document for {dbid}"
+                            f"Exception can't insert global document for {dbid}"
                         )
                     for author in authors:
                         try:
                             post_json_request(
-                                "http://db:5000/mongo-doc-insert",
+                                "http://db:5000/mongo-doc-update",
                                 {
-                                    "db_name": "authors",
-                                    "coll_name": f"author_vs_doc_id_{patternid}",
+                                    "db_name": database,
+                                    "coll_name": f"{project}_author_vs_doc_id_{patternid}",
+                                    "filter": { 'author': author },
                                     "document": {
-                                        "author": author,
                                         "doc_id": dbid
                                         if dbid is not None
                                         else "",
@@ -320,16 +323,16 @@ def query():
                             )
                         except:
                             print(
-                                f"Exception on can't insert document for author {author}"
+                                f"Exception can't insert document for author {author} and {dbid}"
                             )
                         try:
                             post_json_request(
-                                "http://db:5000/mongo-doc-insert",
+                                "http://db:5000/mongo-doc-update",
                                 {
-                                    "db_name": "authors",
-                                    "coll_name": f"author_vs_doc_id_global",
+                                    "db_name": database,
+                                    "coll_name": f"{project}_author_vs_doc_id_global",
+                                    "filter": { 'author': author },
                                     "document": {
-                                        "author": author,
                                         "doc_id": dbid
                                         if dbid is not None
                                         else "",
@@ -339,7 +342,7 @@ def query():
                             )
                         except:
                             print(
-                                f"Exception on can't insert document for author {author}"
+                                f"Exception can't insert document for author {author} and {dbid}"
                             )
                     sys.stdout.flush()
-    return object_to_response({"exit": 0})
+    return object_to_response([{"exit": 0}])

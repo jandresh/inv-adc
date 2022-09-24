@@ -118,7 +118,7 @@ def places_from_text():
     if not request.json:
         abort(400)
     text = request.json["text"]
-    return jsonify(places=geograpy.get_place_context(text=text))
+    return jsonify(places=geograpy.get_place_context(text=text).countries)
 
 
 # *****ner_from_text()******
