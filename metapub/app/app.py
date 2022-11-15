@@ -3,17 +3,27 @@
 # Author: Jaime Hurtado - jaime.hurtado@correounivalle.edu.co
 # Fecha: 2022-03-02
 #
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    Response,
+)
+from flask_cors import (
+    CORS,
+)
 import json
-from metapub import PubMedFetcher
-from metapub import FindIt
+from metapub import (
+    FindIt,
+    PubMedFetcher,
+)
 import requests
-import time
 import sys
+import time
 
 app = Flask(__name__)
 CORS(app)
+
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
@@ -199,7 +209,7 @@ def pdf_from_pmid():
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "terms: AND abstract=BREAST; AND abstract=CANCER", "patternid": 1, "maxdocs": 2000 }' http://localhost:5000/query | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "BREAST CANCER", "patternid": 1, "maxdocs": 200, "database": "test", "project": "adc-cali" }' http://localhost:5000/query
 #
 
 
@@ -236,27 +246,27 @@ def query():
             while not success:
                 attempts += 1
                 try:
-                    article = fetch.article_by_pmid(pmid)
+                    article = (fetch.article_by_pmid(pmid)).__dict__
                     success = True
                 except:
                     time.sleep(5)
                     success = False if attempts > 2 else True
             if success:
-                abstract = article.abstract
-                title = article.title
-                dbid = article.pmid
-                doi = article.doi
-                authors = article.authors
+                abstract = article.get("abstract", "")
+                title = article.get("title", "")
+                dbid = article.get("pmid", "")
+                doi = article.get("doi", "")
+                authors = article.get("authors", "")
                 url = ""
                 try:
                     url = FindIt(pmid).url
                 except:
                     url = ""
-                year = article.year
+                year = article.get("year", "")
                 try:
-                    if abstract is not None:
+                    if abstract is not "":
                         text = abstract
-                    elif title is not None:
+                    elif title is not "":
                         text = title
                     else:
                         text = ""
@@ -267,17 +277,16 @@ def query():
                     lang_json["lang"] = ""
                 if title is not None:
                     document = {
-                        "pat_id": patternid if patternid is not None else "",
-                        "dbid": dbid if dbid is not None else "",
-                        "doi": doi if doi is not None else "",
-                        "abstract": abstract if abstract is not None else "",
-                        "authors": authors if authors is not None else "",
+                        "pat_id": patternid,
+                        "dbid": dbid,
+                        "doi": doi,
+                        "title": title,
+                        "abstract": abstract,
+                        "authors": authors,
                         "org": "",
-                        "url": url if url is not None else "",
-                        "year": year if year is not None else "",
-                        "lang": lang_json["lang"]
-                        if lang_json["lang"] is not None
-                        else "",
+                        "url": url,
+                        "year": year,
+                        "lang": lang_json["lang"],
                     }
                     try:
                         post_json_request(
@@ -285,7 +294,7 @@ def query():
                             {
                                 "db_name": database,
                                 "coll_name": f"{project}_metadata_{patternid}",
-                                "filter": { 'title': title },
+                                "filter": {"title": title},
                                 "document": document,
                             },
                         )
@@ -297,7 +306,7 @@ def query():
                             {
                                 "db_name": database,
                                 "coll_name": f"{project}_metadata_global",
-                                "filter": { 'title': title },
+                                "filter": {"title": title},
                                 "document": document,
                             },
                         )
@@ -312,12 +321,10 @@ def query():
                                 {
                                     "db_name": database,
                                     "coll_name": f"{project}_author_vs_doc_id_{patternid}",
-                                    "filter": { 'author': author },
+                                    "filter": {"author": author},
                                     "document": {
-                                        "doc_id": dbid
-                                        if dbid is not None
-                                        else "",
-                                        "doi": doi if doi is not None else "",
+                                        "doc_id": dbid,
+                                        "doi": doi,
                                     },
                                 },
                             )
@@ -331,12 +338,10 @@ def query():
                                 {
                                     "db_name": database,
                                     "coll_name": f"{project}_author_vs_doc_id_global",
-                                    "filter": { 'author': author },
+                                    "filter": {"author": author},
                                     "document": {
-                                        "doc_id": dbid
-                                        if dbid is not None
-                                        else "",
-                                        "doi": doi if doi is not None else "",
+                                        "doc_id": dbid,
+                                        "doi": doi,
                                     },
                                 },
                             )

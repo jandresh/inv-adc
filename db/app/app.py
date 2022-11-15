@@ -1,12 +1,18 @@
 import csv
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    Response,
+)
+from flask_cors import (
+    CORS,
+)
 import json
-import re
-
 import mysql.connector
 import pymongo
+import re
 import requests
-from flask import Flask, Response, jsonify, request
-from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
@@ -367,7 +373,9 @@ def mongo_db_create():
 def mongo_db_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
 
-    return object_to_response([{"databases": list(client.list_database_names())}])
+    return object_to_response(
+        [{"databases": list(client.list_database_names())}]
+    )
 
 
 # *****mongo_db_delete()******
@@ -454,6 +462,7 @@ def mongo_coll_delete():
 # curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
 # {"db_name": "users", "coll_name": "adc_cali", "document": {"name": "Jaime Hurtado", "email": "jandresh@gmail.com", "password": "Univalle#2004822"}}
 
+
 @app.route("/mongo-doc-insert", methods=["POST"])
 def mongo_doc_insert():
     if not request.json:
@@ -471,10 +480,12 @@ def mongo_doc_insert():
         success = 1
     return object_to_response([{"exit": success}])
 
+
 # *****mongo_doc_update()******
 # Este metodo es invocado de esta forma:
 # curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
 # {"db_name": "users", "coll_name": "adc_cali", "document": {"name": "Jaime Hurtado", "email": "jandresh@gmail.com", "password": "Univalle#2004822"}}
+
 
 @app.route("/mongo-doc-update", methods=["POST"])
 def mongo_doc_update():

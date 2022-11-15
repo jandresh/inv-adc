@@ -1,25 +1,40 @@
-from urllib.request import Request, urlopen
-import pdftotext
+from flask import (
+    Flask,
+    jsonify,
+    request,
+)
+from flask_cors import (
+    CORS,
+)
 import geograpy
-import pdftotext
-from nltk import Tree
-from nltk import word_tokenize, pos_tag, ne_chunk
-from flask import Flask, jsonify, request
-from flask_cors import CORS
-import time
-import textract
-import re
 import nltk
+from nltk import (
+    ne_chunk,
+    pos_tag,
+    Tree,
+    word_tokenize,
+)
+import pdftotext
+import re
+import textract
+import time
+from urllib.request import (
+    Request,
+    urlopen,
+)
 
 nltk.download("punkt")
 nltk.download("averaged_perceptron_tagger")
 nltk.download("maxent_ne_chunker")
 nltk.download("words")
-from langdetect import detect
+from langdetect import (
+    detect,
+)
 import urllib.parse
 
 app = Flask(__name__)
 CORS(app)
+
 
 def get_continuous_chunks(text, label):
     chunked = ne_chunk(pos_tag(word_tokenize(text)))

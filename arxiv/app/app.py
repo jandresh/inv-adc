@@ -4,7 +4,9 @@ from flask import (
     request,
     Response,
 )
-from flask_cors import CORS
+from flask_cors import (
+    CORS,
+)
 import json
 import requests
 import sys
@@ -14,6 +16,7 @@ from unittest import (
 
 app = Flask(__name__)
 CORS(app)
+
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()

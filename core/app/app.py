@@ -1,17 +1,29 @@
 import csv
+from datetime import (
+    datetime,
+)
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    Response,
+)
+from flask_cors import (
+    CORS,
+)
 import json
-from datetime import datetime
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
-from langdetect import detect
+from langdetect import (
+    detect,
+)
 import requests
-import time
 import sys
+import time
 
 app = Flask(__name__)
 CORS(app)
 
 apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
+
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
@@ -204,7 +216,72 @@ def scroll2(search_url, query, ptid):
     return spanish_count
 
 
-def iterator(search_url, query, patternid, maxdocs):
+def format_pubmed_author(author: str):
+    formatted_author = author.split(",")
+    if len(formatted_author) > 2:
+        authors = []
+        for nested_author in formatted_author:
+            author_name = nested_author.split(" ")
+            if len(author_name) > 1:
+                authors.append(
+                    author_name[-1]
+                    + f"""{''.join(list(map(
+                        lambda name: name[0] if len(name) > 0 else '',
+                        author_name[0:-2])))}"""
+                )
+        return authors
+    if len(formatted_author) == 2:
+        return (
+            f"{formatted_author[0]} "
+            + f"""{''.join(list(map(
+                lambda name: name[0] if len(name) > 0 else '',
+                formatted_author[1].split(' '))))}"""
+        )
+    if len(formatted_author) == 1:
+        spaced_author = list(
+            filter(lambda item: len(item) > 0, formatted_author[0].split(" "))
+        )
+        if len(spaced_author) > 1:
+            return (
+                spaced_author[-1]
+                + f""" {''.join(list(map(
+                lambda name: name[0] if len(name) > 0 else '',
+                spaced_author[0:-2])))}"""
+            )
+
+    return ""
+
+
+def standardize_authors(authors):
+    standardized_authors = list(
+        filter(
+            lambda item: item != "",
+            map(
+                lambda author: format_pubmed_author(author.get("name", "")),
+                authors,
+            ),
+        )
+    )
+    if (
+        len(standardized_authors) == 1
+        and type(standardized_authors[0]) == "list"
+    ):
+        return list(
+            filter(
+                lambda item: item != "",
+                map(
+                    lambda author: format_pubmed_author(
+                        author.get("name", "")
+                    ),
+                    standardized_authors[0],
+                ),
+            )
+        )
+
+    return standardized_authors
+
+
+def iterator(search_url, query, patternid, database, project, maxdocs):
     count = 0
     spanish_count = 0
     scrollId = None
@@ -227,17 +304,17 @@ def iterator(search_url, query, patternid, maxdocs):
                 print("Control Point 10")
                 break
             for result in results["results"]:
-                abstract = result["abstract"]
-                title = result["title"]
-                dbid = result["id"]
-                doi = result["doi"]
-                authors = result["authors"]
-                url = result["downloadUrl"]
-                year = result["publishedDate"]
+                abstract = result.get("abstract", "")
+                title = result.get("title", "")
+                dbid = result.get("id", "")
+                doi = result.get("doi", "")
+                authors = standardize_authors(result.get("authors", ""))
+                url = result.get("downloadUrl", "")
+                year = result.get("publishedDate", "")
                 try:
-                    if abstract is not None:
+                    if abstract is not "":
                         text = abstract
-                    elif title is not None:
+                    elif title is not "":
                         text = title
                     else:
                         text = ""
@@ -246,83 +323,79 @@ def iterator(search_url, query, patternid, maxdocs):
                     )
                 except:
                     lang_json["lang"] = ""
-                if result is not None:
+                if title is not None:
                     document = {
-                        "pat_id": patternid if patternid is not None else "",
-                        "dbid": dbid if dbid is not None else "",
-                        "doi": doi if doi is not None else "",
-                        "title": title if title is not None else "",
-                        "abstract": abstract if abstract is not None else "",
-                        "authors": authors if authors is not None else "",
+                        "pat_id": patternid,
+                        "dbid": dbid,
+                        "doi": doi,
+                        "title": title,
+                        "abstract": abstract,
+                        "authors": authors,
                         "org": "",
-                        "url": url if url is not None else "",
-                        "year": year if year is not None else "",
-                        "lang": lang_json["lang"]
-                        if lang_json["lang"] is not None
-                        else "",
+                        "url": url,
+                        "year": year,
+                        "lang": lang_json["lang"],
                     }
                     try:
                         post_json_request(
-                            "http://db:5000/mongo-doc-insert",
+                            "http://db:5000/mongo-doc-update",
                             {
-                                "db_name": "metadata",
-                                "coll_name": f"metadata_{patternid}",
+                                "db_name": database,
+                                "coll_name": f"{project}_metadata_{patternid}",
+                                "filter": {"title": title},
                                 "document": document,
                             },
                         )
                     except:
-                        print(f"Exception on can't insert document for {dbid}")
+                        print(f"Exception can't insert document for {dbid}")
                     try:
                         post_json_request(
-                            "http://db:5000/mongo-doc-insert",
+                            "http://db:5000/mongo-doc-update",
                             {
-                                "db_name": "metadata",
-                                "coll_name": f"metadata_global",
+                                "db_name": database,
+                                "coll_name": f"{project}_metadata_global",
+                                "filter": {"title": title},
                                 "document": document,
                             },
                         )
                     except:
                         print(
-                            f"Exception on can't insert global document for {dbid}"
+                            f"Exception can't insert global document for {dbid}"
                         )
                     for author in authors:
                         try:
                             post_json_request(
-                                "http://db:5000/mongo-doc-insert",
+                                "http://db:5000/mongo-doc-update",
                                 {
-                                    "db_name": "authors",
-                                    "coll_name": f"author_vs_doc_id_{patternid}",
+                                    "db_name": database,
+                                    "coll_name": f"{project}_author_vs_doc_id_{patternid}",
+                                    "filter": {"author": author},
                                     "document": {
-                                        "author": author,
-                                        "doc_id": dbid
-                                        if dbid is not None
-                                        else "",
-                                        "doi": doi if doi is not None else "",
+                                        "doc_id": dbid,
+                                        "doi": doi,
                                     },
                                 },
                             )
                         except:
                             print(
-                                f"Exception on can't insert document for author {author}"
+                                f"Exception can't insert document for author {author} and {dbid}"
                             )
                         try:
                             post_json_request(
-                                "http://db:5000/mongo-doc-insert",
+                                "http://db:5000/mongo-doc-update",
                                 {
-                                    "db_name": "authors",
-                                    "coll_name": f"author_vs_doc_id_global",
+                                    "db_name": database,
+                                    "coll_name": f"{project}_author_vs_doc_id_global",
+                                    "filter": {"author": author},
                                     "document": {
-                                        "author": author,
-                                        "doc_id": dbid
-                                        if dbid is not None
-                                        else "",
-                                        "doi": doi if doi is not None else "",
+                                        "doc_id": dbid,
+                                        "doi": doi,
                                     },
                                 },
                             )
                         except:
                             print(
-                                f"Exception on can't insert document for author {author}"
+                                f"Exception can't insert document for author {author} and {dbid}"
                             )
                     sys.stdout.flush()
             count += result_size
@@ -390,7 +463,7 @@ def query_core_scroll():
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "carcinoma lobulillar de mama", "patternid": 1, "maxdocs": 2000 }' http://localhost:5003/core | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "abstract:(breast AND carcinoma)", "patternid": 1, "maxdocs": 200, "database": "test4", "project": "adc-cali" }' http://localhost:5003/query
 #
 
 
@@ -401,8 +474,15 @@ def query():
     result = None
     query = request.json["query"]
     ptid = request.json["patternid"]
+    database = request.json["database"]
+    project = request.json["project"]
     maxdocs = request.json["maxdocs"]
     result = iterator(
-        f"https://api.core.ac.uk/v3/search/works", query, ptid, maxdocs
+        f"https://api.core.ac.uk/v3/search/works",
+        query,
+        ptid,
+        database,
+        project,
+        maxdocs,
     )
     return object_to_response({"exit": 0})

@@ -1,13 +1,23 @@
+from datetime import (
+    datetime,
+)
+from flask import (
+    Flask,
+    jsonify,
+    request,
+    Response,
+)
+from flask_cors import (
+    CORS,
+)
 import json
-import time
-from flask import Flask, jsonify, request, Response
-from flask_cors import CORS
 import requests
 import sys
-from datetime import datetime
+import time
 
 app = Flask(__name__)
 CORS(app)
+
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
@@ -269,7 +279,7 @@ def pipeline4():
             "db_name": "authors",
             "coll_name": "author_vs_doc_id_global",
             "field": "author.name",
-            "query": {}
+            "query": {},
         },
     )
     for author in author_list[0]["result"]:
@@ -348,7 +358,12 @@ def pipeline5():
     coll_list = post_json_request(
         "http://db:5000/mongo-coll-list", {"db_name": "authors"}
     )
-    for collection in list(filter(lambda coll: coll.endswith("global"), list(coll_list[0]["collections"]))):
+    for collection in list(
+        filter(
+            lambda coll: coll.endswith("global"),
+            list(coll_list[0]["collections"]),
+        )
+    ):
         coll_name = f"related{collection.replace('author_vs_doc_id', '')}"
         works_coll = f"works{collection.replace('author_vs_doc_id', '')}"
         print(f"coll name: {coll_name}, coll list: {works_coll}")
