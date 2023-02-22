@@ -65,7 +65,7 @@ pipeline {
             }
             agent {
                 kubernetes {
-                    label 'adc-univalle-app'
+                    label 'inv-adc-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -114,7 +114,7 @@ pipeline {
             when { branch 'canary' }
             agent {
                 kubernetes {
-                    label 'adc-univalle-app'
+                    label 'inv-adc-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
@@ -163,7 +163,7 @@ pipeline {
             when { branch 'master' }
             agent {
                 kubernetes {
-                    label 'adc-univalle-app'
+                    label 'inv-adc-app'
                     defaultContainer 'jnlp'
                     yamlFile 'pod-template.yaml'
                 }
