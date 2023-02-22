@@ -6,7 +6,7 @@ for branch in `git branch -r | grep -v HEAD`;do echo -e `git show --format="%ci"
 export LAST_BRANCH=$(cat branch.txt)
 git checkout $LAST_BRANCH
 sudo docker login -u="jandresh" -p="cb64422a-f28c-4ee7-b717-f605e309a1b2"
-cd metapub
+cd metapub/app
 sudo docker build -t jandresh/metapub:$GIT_COMMIT .
 sudo docker push jandresh/metapub:$GIT_COMMIT
 sudo docker build -t jandresh/metapub:latest .
