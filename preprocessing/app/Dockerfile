@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get -y upgrade
 RUN apt-get -y install python3-sklearn python3-sklearn-lib
 RUN apt-get -y install python3-pandas
-RUN apt-get -y install build-essential libpoppler-cpp-dev pkg-config python-dev
+RUN apt-get -y install build-essential libpoppler-cpp-dev pkg-config python3-dev
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 # RUN apk add --no-cache gcc musl-dev linux-headers libxslt-dev

@@ -7,6 +7,7 @@ from flask_cors import (
     CORS,
 )
 import geograpy
+import io
 import nltk
 from nltk import (
     ne_chunk,
@@ -16,8 +17,6 @@ from nltk import (
 )
 import pdftotext
 import re
-import textract
-import time
 from urllib.request import (
     Request,
     urlopen,
@@ -58,25 +57,10 @@ def get_continuous_chunks(text, label):
     return continuous_chunk
 
 
-def file_download(url):
+def get_pdf_text_by_page(url):
     req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    datatowrite = urlopen(req).read()
-    with open("article.pdf", "wb") as f:
-        f.write(datatowrite)
-        f.close()
-    return r"article.pdf"
-
-
-def text_from_pdf_file(path):
-    with open(path, "rb") as f:
-        pdf = pdftotext.PDF(f)
-        f.close()
-    return "\n\n".join(pdf)
-
-
-def head_extract(path):
-    text = text_from_pdf_file(path)
-    return text[: re.search(r"[aA]bstract", text).start(0)]
+    pdf_pages = pdftotext.PDF(io.BytesIO(urlopen(req).read()))
+    return pdf_pages
 
 
 @app.route("/")
@@ -94,7 +78,7 @@ def text_from_pdf_url():
     if not request.json:
         abort(400)
     url = request.json["url"]
-    return jsonify(pdf2text=text_from_pdf_file(file_download(url)))
+    return jsonify(pdf2text="\n\n".join(get_pdf_text_by_page(url)))
 
 
 # *****htext_from_url()******
@@ -107,7 +91,8 @@ def htext_from_url():
     if not request.json:
         abort(400)
     url = request.json["url"]
-    return jsonify(htext=head_extract(file_download(url)))
+    full_text = get_pdf_text_by_page(url)
+    return jsonify(htext=full_text[0] if full_text else "")
 
 
 # *****locations_from_text()******
