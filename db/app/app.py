@@ -33,7 +33,7 @@ def post_json_request(url, obj):
 
 def object_to_response(object):
     response = Response(
-        response=json.dumps(object), mimetype="application/json"
+        response=json.dumps(object, default=str), mimetype="application/json"
     )
     response.headers["Access-Control-Allow-Origin"] = "*"
 

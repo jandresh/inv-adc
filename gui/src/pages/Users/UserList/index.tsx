@@ -8,6 +8,11 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { query } from 'utils/queries';
 
+const document = {
+  'db_name': 'global',
+  'coll_name': 'users'
+};
+
 export const UserList: React.FC = () => {
   const columns: GridColDef[] = [
     { field: 'org', headerName: 'Organization', flex: 100 },
@@ -17,38 +22,37 @@ export const UserList: React.FC = () => {
     { field: 'isAdmin', headerName: 'R&D', flex: 100 }
   ];
   const [users, setUsers] = useState<Record<string, string[]>[]>([]);
-
-  const document = {
-    'db_name': 'global',
-    'coll_name': 'users'
-  };
+  const [user, setUser] = useState<Record<string, string[]>>({});
 
   function dialogContentOptions (user: string, org: string): any {
     return {
       activate: {
         accept: 'Activate',
-        content: `If your agree, the user ${user} will be activated an the` +
-          `organization ${org}, will be created in database.`,
+        content: `If you press on activate, the user ${user} will be` +
+          ` activated and the organization ${org}, will be created.`,
         reject: 'Cancel',
         title: `Do you want to active user ${user}?:`
       },
       deactivate: {
         accept: 'Deactivate',
-        content: '',
+        content: `If you press on deactivate, the user ${user} will be` +
+          ` unable to access and the organization ${org} remains in standby.`,
         reject: 'Cancel',
-        title: ''
+        title: `Do you want to disable user ${user}?:`
       },
       researcher: {
         accept: 'Proceed',
-        content: 'Proceed',
+        content: 'If you proceed, the researcher role will be assigned to' +
+          ' the user.',
         reject: 'Cancel',
-        title: ''
+        title: `Do you want to assign researcher role to ${user}?:`
       },
       user: {
         accept: 'Proceed',
-        content: 'Proceed',
+        content: 'If you proceed, the user role will be assigned to the ' +
+          'user.',
         reject: 'Cancel',
-        title: ''
+        title: `Do you want to assign user role to ${user}?:`
       }
     };
   }
@@ -60,39 +64,64 @@ export const UserList: React.FC = () => {
     title: ''
   });
 
-  const [open, setOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [isActiveModalOpen, setIsActiveModalOpen] = useState(false);
   const [email, setEmail] = useState('');
 
-  const handleClose = () => {
+  const handleActiveAccept = () => {
     const activateDocument = {
       'db_name': 'global',
       'coll_name': 'users',
       'filter': { 'email': email },
-      'document': { 'is_active': true } };
+      'document': { 'is_active': !user['is_active'] } };
     query('updateDocument', undefined, activateDocument);
-    setOpen(false);
+    setIsActiveModalOpen(false);
+    query('listDocuments', setUsers, document);
+  };
+  const handleAdminAccept = () => {
+    const activateDocument = {
+      'db_name': 'global',
+      'coll_name': 'users',
+      'filter': { 'email': email },
+      'document': { 'is_admin': !user['is_admin'] } };
+    query('updateDocument', undefined, activateDocument);
+    setIsAdminModalOpen(false);
+    query('listDocuments', setUsers, document);
+  };
+  const handleClose = () => {
+    setIsActiveModalOpen(false);
+    setIsAdminModalOpen(false);
   };
 
   const handleOnCellClick = (params: any) => {
     setEmail(params.row.user);
+    setUser(users.filter((user): boolean => {
+      return user['email'] === params.row.user;
+    })[0]);
     if (params.colDef.field === 'isActive') {
       setDialogContent(
-        dialogContentOptions(params.row.user, params.row.org)['activate']
+        dialogContentOptions(params.row.user, params.row.org)[
+          params.row.isActive ? 'deactivate' : 'activate'
+        ]
       );
-      setOpen(true);
-      // eslint-disable-next-line
-      console.log(params);
+      setIsActiveModalOpen(true);
     }
     if (params.colDef.field === 'isAdmin') {
-      setOpen(true);
-      // eslint-disable-next-line
-      console.log(params);
+      setDialogContent(
+        dialogContentOptions(params.row.user, params.row.org)[
+          params.row.isActive ? 'user' : 'researcher']
+      );
+      setIsAdminModalOpen(true);
     }
   };
 
-  useEffect(() => {
-    query('listDocuments', setUsers, document);
+  useEffect((): void => {
+    const getUsers: () => Promise<void> = async () => {
+      await query('listDocuments', setUsers, document);
+    };
+    getUsers();
   }, []);
+
 
   if (!users) {
     return <div></div>;
@@ -122,7 +151,7 @@ export const UserList: React.FC = () => {
         rowsPerPageOptions={[10, 50, 100]}
       />
       <Dialog
-        open={open}
+        open={isActiveModalOpen}
         onClose={handleClose}
         aria-labelledby='alert-dialog-title'
         aria-describedby='alert-dialog-description'
@@ -137,7 +166,26 @@ export const UserList: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>{dialogContent.reject}</Button>
-          <Button onClick={handleClose}>{dialogContent.accept}</Button>
+          <Button onClick={handleActiveAccept}>{dialogContent.accept}</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={isAdminModalOpen}
+        onClose={handleClose}
+        aria-labelledby='alert-dialog-title'
+        aria-describedby='alert-dialog-description'
+      >
+        <DialogTitle id='alert-dialog-title'>
+          {dialogContent.title}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id='alert-dialog-description'>
+            {dialogContent.content}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>{dialogContent.reject}</Button>
+          <Button onClick={handleAdminAccept}>{dialogContent.accept}</Button>
         </DialogActions>
       </Dialog>
     </>

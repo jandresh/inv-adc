@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { query } from 'utils/queries';
-import { CollList } from '../CollList';
+import { Collections } from '../Collections';
 import { Typography } from '@mui/material';
 
-export const DbList: React.FC = () => {
+export const Databases: React.FC = () => {
   const columns: GridColDef[] = [
     { field: 'database', headerName: 'Database', flex: 100, resizable: true }
   ];
@@ -35,12 +35,11 @@ export const DbList: React.FC = () => {
         initialState={{ pagination: { pageSize: 10 } }}
         rowsPerPageOptions={[10, 50, 100]}
         onSelectionModelChange={(ids) => {
-          setDatabase('');
-          setDatabase(ids[0].toString());
+          setDatabase(ids.length > 0 ? ids[0].toString() : '');
         }}
       />
       <Typography variant="h4">Collections</Typography>
-      {database === '' ? undefined : <CollList database={database} />}
+      {database === '' ? undefined : <Collections database={database} />}
     </>
   );
 };
