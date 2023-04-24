@@ -10,10 +10,9 @@ export const Patterns = () => {
     {
       field: 'description',
       headerName: 'Description',
-      flex: 10,
-      resizable: true
+      flex: 10
     },
-    { field: 'pattern', headerName: 'Query', flex: 100, resizable: true }
+    { field: 'pattern', headerName: 'Query', flex: 100 }
   ];
 
   const [patterns, setPatterns] = useState<Record<string, string>[]>([]);

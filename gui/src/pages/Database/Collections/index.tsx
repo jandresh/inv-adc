@@ -9,8 +9,7 @@ export const Collections: React.FC<{ database: string }> = ({ database }) => {
     {
       field: 'collection',
       headerName: 'Collection',
-      flex: 100,
-      resizable: true
+      flex: 100
     }
   ];
 
@@ -20,7 +19,10 @@ export const Collections: React.FC<{ database: string }> = ({ database }) => {
   );
 
   useEffect(() => {
-    query('listCollections', setCollections, { 'db_name': database });
+    const getCollections: () => Promise<void> = async () => {
+      await query('listCollections', setCollections, { 'db_name': database });
+    };
+    getCollections();
   }, [database]);
 
   if (!collections) {

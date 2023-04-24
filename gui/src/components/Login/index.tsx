@@ -8,6 +8,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as Yup from 'yup';
 import { AppContext } from 'contexts';
+import { Buffer } from 'buffer';
 
 interface ILogin {
   email: string;
@@ -29,18 +30,18 @@ export const Login: React.FC<{
   const handleSubmit = useCallback(
     async (values: ILogin): Promise<void> => {
       const document = {
-        'db_name': 'users',
-        'coll_name': 'adc_cali',
-        query: {
-          email: values.email,
-          password: btoa(values.password)
+        'db_name': 'global',
+        'coll_name': 'users',
+        'query': {
+          'email': values.email,
+          'password': Buffer.from(values.password, 'binary').toString('base64')
         },
-        projection: {
+        'projection': {
           'first_name': 1,
           'last_name': 1,
-          email: 1,
-          created: 1,
-          updated: 1,
+          'email': 1,
+          'created': 1,
+          'updated': 1,
           'is_admin': 1,
           'is_active': 1,
           'is_verified': 1
@@ -90,7 +91,7 @@ export const Login: React.FC<{
         setOpen([true, success]);
       }
     },
-    [context, query, response, setAccess, setOpen]
+    [context, response, setAccess, setOpen]
   );
 
   const onCancel = () => {

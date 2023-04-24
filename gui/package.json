@@ -61,6 +61,7 @@
   "devDependencies": {
     "@types/react-router-dom": "^5.1.6",
     "@typescript-eslint/parser": "^5.27.1",
+    "buffer": "^6.0.3",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",

@@ -7,6 +7,7 @@ import type { IAccess } from 'pages/Home';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as Yup from 'yup';
+import { Buffer } from 'buffer';
 
 interface IRegister {
   firstName: string;
@@ -29,50 +30,89 @@ export const Register: React.FC<{
     confirmPassword: ''
   };
 
-  const [findResponse, setFindResponse] = useState<Record<string, any>[]>([]);
+  const [findEmailResponse, setFindEmailResponse] = useState<
+    Record<string, any>[]
+  >([]);
+  const [findOrgIdResponse, setFindOrgIdResponse] = useState<
+    Record<string, any>[]
+  >([]);
   const [response, setResponse] = useState<Record<string, any>[]>([
     { exit: 1 }
   ]);
   const [open, setOpen] = useState(false);
-
+  const [orgExist, setOrgExist] = useState({ exist: false, name: '' });
   const handleSubmit = useCallback(
     async (values: IRegister): Promise<void> => {
-      const findDocument = {
+      const findEmailDocument = {
         'db_name': 'global',
         'coll_name': 'users',
-        query: {
-          email: values.email
+        'query': {
+          'email': values.email
         },
-        projection: {
-          email: 1
+        'projection': {
+          'email': 1
         }
       };
+      const findOrgIdDocument = {
+        'db_name': 'global',
+        'coll_name': 'users',
+        'query': {
+          'org_id': values.email.split('@')[1]
+        },
+        'projection': {
+          'email': 1,
+          'org':1
+        }
+      };
+      const findEmailResult = await query(
+        'findDocument',
+        setFindEmailResponse,
+        findEmailDocument
+      );
+      const {
+        success: successEmailFind,
+        responseObj: responseEmailFind
+      } = findEmailResult;
+      const findOrgIdResult = await query(
+        'findDocument',
+        setFindOrgIdResponse,
+        findOrgIdDocument
+      );
+      const {
+        success: successOrgIdFind,
+        responseObj: responseOrgIdFind
+      } = findOrgIdResult;
+      setOrgExist({
+        exist: (
+          (successOrgIdFind ? true : false) &&
+          responseOrgIdFind.length > 0 &&
+          (findOrgIdResponse ? true : false)
+        ),
+        name: findOrgIdResponse && responseOrgIdFind.length > 0
+          ? findOrgIdResponse[0]['org']
+          : ''
+      });
       const registerDocument = {
         'db_name': 'global',
         'coll_name': 'users',
         document: {
           'first_name': values.firstName,
           'last_name': values.lastName,
-          org: values.org,
-          email: values.email,
-          password: btoa(values.password),
-          created: new Date(),
-          updated: new Date(),
+          'org': orgExist.exist ? orgExist.name : values.org,
+          'org_id': values.email.split('@')[1],
+          'email': values.email,
+          'password': Buffer.from(values.password, 'binary').toString('base64'),
+          'created': new Date(),
+          'updated': new Date(),
           'is_admin': true,
           'is_active': values.email === 'admin@adccali.com' ? true : false,
           'is_verified': false
         }
       };
-      const findResult = await query(
-        'findDocument',
-        setFindResponse,
-        findDocument
-      );
-      const { success: successFind, responseObj: responseFind } = findResult;
       if (
-        successFind &&
-        responseFind.length === 0 &&
-        findResponse &&
+        successEmailFind &&
+        responseEmailFind.length === 0 &&
+        findEmailResponse &&
         values.email !== 'admin@adccali.com'
       ) {
         const registerResult = await query(
@@ -84,14 +124,14 @@ export const Register: React.FC<{
         if (!successRegister) {
           setResponse([{ exit: 1 }]);
         }
-      } else if (responseFind.length === 0) {
+      } else if (responseEmailFind.length === 0) {
         setResponse([{ exit: 1 }]);
       } else {
         setResponse([{ exit: 2 }]);
       }
       setOpen(true);
     },
-    [findResponse, query, setOpen, setResponse]
+    [findEmailResponse, findOrgIdResponse, orgExist, setOpen, setResponse]
   );
 
   const onCancel = () => {
@@ -213,6 +253,11 @@ export const Register: React.FC<{
                   Your registration was successful. To access the system you
                   must wait for an administrator to authorize and activate your
                   account!
+                  {
+                    orgExist.exist && '\nNote: As your domain was registered ' +
+                    `previously, you have added to the ${orgExist.name} ` +
+                    'organization.'
+                  }
                 </Alert>
               ) : response[0]['exit'] === 2 ? (
                 <Alert

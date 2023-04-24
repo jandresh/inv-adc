@@ -68,25 +68,25 @@ export const UserList: React.FC = () => {
   const [isActiveModalOpen, setIsActiveModalOpen] = useState(false);
   const [email, setEmail] = useState('');
 
-  const handleActiveAccept = () => {
+  const handleActiveAccept = async () => {
     const activateDocument = {
       'db_name': 'global',
       'coll_name': 'users',
       'filter': { 'email': email },
       'document': { 'is_active': !user['is_active'] } };
-    query('updateDocument', undefined, activateDocument);
+    await query('updateDocument', undefined, activateDocument);
     setIsActiveModalOpen(false);
-    query('listDocuments', setUsers, document);
+    await query('listDocuments', setUsers, document);
   };
-  const handleAdminAccept = () => {
+  const handleAdminAccept = async () => {
     const activateDocument = {
       'db_name': 'global',
       'coll_name': 'users',
       'filter': { 'email': email },
       'document': { 'is_admin': !user['is_admin'] } };
-    query('updateDocument', undefined, activateDocument);
+    await query('updateDocument', undefined, activateDocument);
     setIsAdminModalOpen(false);
-    query('listDocuments', setUsers, document);
+    await query('listDocuments', setUsers, document);
   };
   const handleClose = () => {
     setIsActiveModalOpen(false);
@@ -109,7 +109,7 @@ export const UserList: React.FC = () => {
     if (params.colDef.field === 'isAdmin') {
       setDialogContent(
         dialogContentOptions(params.row.user, params.row.org)[
-          params.row.isActive ? 'user' : 'researcher']
+          params.row.isAdmin ? 'user' : 'researcher']
       );
       setIsAdminModalOpen(true);
     }

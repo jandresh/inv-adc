@@ -6,7 +6,7 @@ import { Typography } from '@mui/material';
 
 export const Databases: React.FC = () => {
   const columns: GridColDef[] = [
-    { field: 'database', headerName: 'Database', flex: 100, resizable: true }
+    { field: 'database', headerName: 'Database', flex: 100 }
   ];
   const [database, setDatabase] = useState('');
   const [databases, setDatabases] = useState<Record<string, string[]>[]>([]);
