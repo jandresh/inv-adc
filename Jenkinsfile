@@ -2,7 +2,7 @@ agentName = "ubuntu-2004"
 agentLabel = "${-> println 'Right Now the Agent Name is ' + agentName; return agentName}"
 pipeline {
     environment {
-        PROJECT = "inv-adc"
+        PROJECT = "inv-adc-202306"
         APP_NAME = "inv-adc-app"
         CLUSTER = "jenkins-cd"
         CLUSTER_ZONE = "us-east1-d"
