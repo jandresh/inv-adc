@@ -10,13 +10,15 @@ import {
   CreditCard as BillingIcon
 } from '@mui/icons-material';
 
-import { Arxiv } from 'pages/Arxiv';
-import { Database } from 'pages/Database';
+import { Arxiv } from 'pages/Microservices/Arxiv';
+import { Database } from 'pages/Microservices/Database';
 import { Home } from 'pages/Home';
 import { Dashboard } from 'pages/Dashboard';
-import { Users } from 'pages/Users';
+import { Users } from 'pages/Admin/Users';
 
 import { Route } from '../types';
+import { Patterns } from 'pages/Researcher/Patterns';
+import { Projects } from 'pages/Researcher/Projects';
 
 
 const routes: Array<Route> = [
@@ -147,9 +149,19 @@ const routes: Array<Route> = [
     icon: HealthIcon,
     subRoutes: [
       {
+        key: 'router-researcher-projects',
+        title: 'Projects',
+        description: 'Projects interface',
+        component: Projects,
+        path: '/researcher/projects',
+        isEnabled: true,
+        icon: PublicIcon
+      },
+      {
         key: 'router-researcher-patterns',
         title: 'Patterns',
         description: 'Patterns interface',
+        component: Patterns,
         path: '/researcher/patterns',
         isEnabled: true,
         icon: PublicIcon
