@@ -1,15 +1,12 @@
-# FROM python:3.7-alpine
-FROM python:3.9.9-bullseye
+FROM python:3.12.0
 WORKDIR /app
 ENV DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update && \
-    apt-get -y upgrade
-RUN apt-get -y install python3-sklearn python3-sklearn-lib
-RUN apt-get -y install python3-pandas
-RUN apt-get -y install build-essential libpoppler-cpp-dev pkg-config python3-dev
+RUN apt-get update && apt-get -y install python3-sklearn \
+    python3-sklearn-lib python3-pandas build-essential \
+    libpoppler-cpp-dev pkg-config python3-dev && \
+    apt-get clean
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
-# RUN apk add --no-cache gcc musl-dev linux-headers libxslt-dev
 COPY requirements.txt /app
 COPY app.py /app
 RUN pip install -r requirements.txt
