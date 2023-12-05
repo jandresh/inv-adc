@@ -1,7 +1,7 @@
 import { Button, Stack, Typography } from '@mui/material';
 import React, { useContext, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { AppContext } from '../../contexts';
+import { AppContext } from 'contexts';
 import { APP_TITLE, PAGE_TITLE_HOME } from '../../utils/constants';
 import { Register } from 'components/Register';
 import { Login } from 'components/Login';
@@ -57,6 +57,7 @@ export const Home = () => {
               {`${context.user.firstName} ${context.user.lastName}`}
             </Typography>
             <Typography variant="h4">{`UserId: ${context.user.id}`}</Typography>
+            <Typography variant="h4">{`OrgId: ${context.user.orgId}`}</Typography>
             <Typography variant="h4">{`email: ${context.user.email}`}</Typography>
             <Typography variant="h4">{`CreatedAt: ${context.user.createdAt}`}</Typography>
             <Typography variant="h4">{`UpdatedAt: ${context.user.updatedAt}`}</Typography>

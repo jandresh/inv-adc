@@ -30,6 +30,7 @@ function App () {
 
   const [user, setUser] = useState({
     id: '',
+    orgId: '',
     firstName: 'guest',
     lastName: '',
     email: '',

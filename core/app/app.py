@@ -26,8 +26,12 @@ apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
 
 
 def post_json_request(url, obj):
-    return requests.post(url, json=obj).json()
-
+    try:
+        response = requests.post(url, json=obj).json()
+    except:
+        print(f"Error: Can't process the request to {url}", flush=True)
+        response = {}
+    return response
 
 def object_to_response(object):
     response = Response(
@@ -41,7 +45,7 @@ def object_to_response(object):
 def query_api(search_url, query, scrollId=None):
     result_flag = 0
     while result_flag < 5:
-        print(f"result_flag: {result_flag}")
+        print(f"result_flag: {result_flag}", flush=True)
         try:
             headers = {"Authorization": "Bearer " + apikey}
             if not scrollId:
@@ -55,32 +59,33 @@ def query_api(search_url, query, scrollId=None):
                     headers=headers,
                 )
             print(
-                f"response: {str(response)}, query: {query}, scrollId: {scrollId}"
+                f"response: {str(response)}, query: {query}, scrollId: {scrollId}",
+                flush=True
             )
         except:
-            print("Control Point 1")
-            print("Post request fail, trying again ...")
+            print("Control Point 1", flush=True)
+            print("Post request fail, trying again ...", flush=True)
             time.sleep(3)
             response = None
         if response is not None:
             success = False
             if str(response) == "<Response [200]>":
-                print("Control Point 2")
+                print("Control Point 2", flush=True)
                 success = True
                 try:
                     result = response.json()
                     elapsed = response.elapsed.total_seconds()
                 except:
-                    print("Control Point 3")
+                    print("Control Point 3", flush=True)
                     success = False
             elif str(response) == "<Response [429]>":
                 time.sleep(300)
             if success:
-                print("Control Point 4")
+                print("Control Point 4", flush=True)
                 return result, elapsed
-        print("Control Point 6")
+        print("Control Point 6", flush=True)
         result_flag += 1
-    print("Control Point 7")
+    print("Control Point 7", flush=True)
     return None, None
 
 
@@ -101,7 +106,7 @@ def scroll(search_url, query, extract_info_callback):
             else:
                 allresults.append(extract_info(hit))
         count += result_size
-        print(f"{count}/{totalhits} {elapsed}s")
+        print(f"{count}/{totalhits} {elapsed}s", flush=True)
     return allresults
 
 
@@ -118,19 +123,19 @@ def scroll2(search_url, query, ptid):
             try:
                 result, elapsed = query_api(search_url, query, scrollId)
                 time.sleep(2)
-                print(f'scrollId : {result["scrollId"]}')
+                print(f'scrollId : {result["scrollId"]}', flush=True)
                 if result is None:
-                    print("Control Point 8")
+                    print("Control Point 8", flush=True)
                     break
             except:
-                print("Control Point 9")
+                print("Control Point 9", flush=True)
                 result = None
             if result is not None:
                 scrollId = result["scrollId"]
                 totalhits = result["totalHits"]
                 result_size = len(result["results"])
                 if result_size == 0:
-                    print("Control Point 10")
+                    print("Control Point 10", flush=True)
                     break
                 file_name = f"{int((ptid + 1) / 2)}.csv"
                 with open(file_name, mode="a") as file2:
@@ -170,7 +175,7 @@ def scroll2(search_url, query, ptid):
                             or esp_detect_abstract
                             or esp_detect_fullText
                         ):
-                            print("Control Point 11")
+                            print("Control Point 11", flush=True)
                             writer2.writerow(
                                 [
                                     int((ptid + 1) / 2),
@@ -187,9 +192,10 @@ def scroll2(search_url, query, ptid):
                             int((ptid + 1) / 2),
                             "SpanishCount:",
                             spanish_count,
+                            flush=True
                         )
                     count += result_size
-                    print(f"{count}/{totalhits} {elapsed}s")
+                    print(f"{count}/{totalhits} {elapsed}s", flush=True)
                     writer.writerow(
                         [
                             datetime.now(),
@@ -210,9 +216,9 @@ def scroll2(search_url, query, ptid):
                 print("Control Point 14")
                 file.close()
                 break
-            print("Control Point 15")
+            print("Control Point 15", flush=True)
             file.close()
-    print("Control Point 16")
+    print("Control Point 16", flush=True)
     return spanish_count
 
 
@@ -289,19 +295,19 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
         try:
             results, elapsed = query_api(search_url, query, scrollId)
             time.sleep(2)
-            print(f'scrollId : {result["scrollId"]}')
+            print(f'scrollId : {result["scrollId"]}', flush=True)
             if results is None:
                 print("Control Point 8")
                 break
         except:
-            print("Control Point 9")
+            print("Control Point 9", flush=True)
             result = None
         if results is not None:
             scrollId = results["scrollId"]
             totalhits = results["totalHits"]
             result_size = len(results["results"])
             if result_size == 0:
-                print("Control Point 10")
+                print("Control Point 10", flush=True)
                 break
             for result in results["results"]:
                 abstract = result.get("abstract", "")
@@ -311,18 +317,12 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                 authors = standardize_authors(result.get("authors", ""))
                 url = result.get("downloadUrl", "")
                 year = result.get("publishedDate", "")
-                try:
-                    if abstract is not "":
-                        text = abstract
-                    elif title is not "":
-                        text = title
-                    else:
-                        text = ""
-                    lang_json = post_json_request(
-                        "http://preprocessing:5000/text2lang", {"text": text}
-                    )
-                except:
-                    lang_json["lang"] = ""
+                full_text = post_json_request(
+                        "http://preprocessing:5000/url2text", {"url": url}
+                    ).get("url2text", "")
+                emails = list(set(post_json_request(
+                        "http://preprocessing:5000/text2emails", {"text": full_text}
+                    ).get("emails", [])))
                 if title is not None:
                     document = {
                         "pat_id": patternid,
@@ -331,78 +331,62 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         "title": title,
                         "abstract": abstract,
                         "authors": authors,
+                        "emails": emails,
                         "org": "",
                         "url": url,
                         "year": year,
-                        "lang": lang_json["lang"],
+                        "lang": post_json_request(
+                                "http://preprocessing:5000/text2lang", {"text": full_text}
+                            ).get("lang", ""),
                     }
-                    try:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"{project}_metadata_{patternid}",
+                            "filter": {"title": title},
+                            "document": document,
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"{project}_metadata_global",
+                            "filter": {"title": title},
+                            "document": document,
+                        },
+                    )
+                    for email in emails:
                         post_json_request(
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_metadata_{patternid}",
-                                "filter": {"title": title},
-                                "document": document,
+                                "coll_name": f"{project}_author_vs_doc_id_{patternid}",
+                                "filter": {"author": email},
+                                "document": {
+                                    "doc_id": dbid,
+                                    "doi": doi,
+                                },
                             },
                         )
-                    except:
-                        print(f"Exception can't insert document for {dbid}")
-                    try:
                         post_json_request(
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_metadata_global",
-                                "filter": {"title": title},
-                                "document": document,
+                                "coll_name": f"{project}_author_vs_doc_id_global",
+                                "filter": {"author": email},
+                                "document": {
+                                    "doc_id": dbid,
+                                    "doi": doi,
+                                },
                             },
                         )
-                    except:
-                        print(
-                            f"Exception can't insert global document for {dbid}"
-                        )
-                    for author in authors:
-                        try:
-                            post_json_request(
-                                "http://db:5000/mongo-doc-update",
-                                {
-                                    "db_name": database,
-                                    "coll_name": f"{project}_author_vs_doc_id_{patternid}",
-                                    "filter": {"author": author},
-                                    "document": {
-                                        "doc_id": dbid,
-                                        "doi": doi,
-                                    },
-                                },
-                            )
-                        except:
-                            print(
-                                f"Exception can't insert document for author {author} and {dbid}"
-                            )
-                        try:
-                            post_json_request(
-                                "http://db:5000/mongo-doc-update",
-                                {
-                                    "db_name": database,
-                                    "coll_name": f"{project}_author_vs_doc_id_global",
-                                    "filter": {"author": author},
-                                    "document": {
-                                        "doc_id": dbid,
-                                        "doi": doi,
-                                    },
-                                },
-                            )
-                        except:
-                            print(
-                                f"Exception can't insert document for author {author} and {dbid}"
-                            )
-                    sys.stdout.flush()
             count += result_size
-            print(f"{count}/{totalhits} {elapsed}s")
-            print("Control Point 12")
+            print(f"{count}/{totalhits} {elapsed}s", flush=True)
+            print("Control Point 12", flush=True)
             if count > maxdocs or count == totalhits:
-                print("Control Point 13")
+                print("Control Point 13", flush=True)
                 break
         else:
             break

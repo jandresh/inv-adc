@@ -30,6 +30,7 @@ type Route = {
 
 type User = {
   id: string;
+  orgId: string;
   firstName: string;
   lastName: string;
   email: string;

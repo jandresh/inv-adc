@@ -37,6 +37,7 @@ export const Login: React.FC<{
           'password': Buffer.from(values.password, 'binary').toString('base64')
         },
         'projection': {
+          'org_id': 1,
           'first_name': 1,
           'last_name': 1,
           'email': 1,
@@ -60,6 +61,7 @@ export const Login: React.FC<{
       ) {
         context.setUser({
           id: responseObj[0]['_id'],
+          orgId: responseObj[0]['org_id'],
           firstName: responseObj[0]['first_name'],
           lastName: responseObj[0]['last_name'],
           email: responseObj[0]['email'],
@@ -77,6 +79,7 @@ export const Login: React.FC<{
       ) {
         context.setUser({
           id: '',
+          orgId: 'adc-cali',
           firstName: 'Admin',
           lastName: 'adc Cali',
           email: 'admin@adccali.com',

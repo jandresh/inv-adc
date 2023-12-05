@@ -1,29 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
+import { AppContext } from 'contexts';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { query } from 'utils/queries';
 
 export const PatternsTable = () => {
+  const context = useContext(AppContext);
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', flex: 10 },
-    { field: 'patternid', headerName: 'Pattern Id', flex: 10 },
-    { field: 'db', headerName: 'Database', flex: 10 },
+    { field: '_id', headerName: 'ID', flex: 10 },
+    { field: 'name', headerName: 'Project Name', flex: 10 },
     {
       field: 'description',
       headerName: 'Description',
       flex: 10
     },
-    { field: 'pattern', headerName: 'Query', flex: 100 }
+    { field: 'maxDocs', headerName: 'Max Docs', flex: 10 },
+    { field: 'status', headerName: 'Status', flex: 10 }
   ];
 
-  const [patterns, setPatterns] = useState<Record<string, string>[]>([]);
+  const [projects, setProjects] = useState<Record<string, string>[]>([]);
 
   useEffect(() => {
-    query('getPatterns', setPatterns);
-  }, []);
+    query(
+      'listDocuments',
+      setProjects,
+      { 'db_name': context.user.orgId.split('.')[0], 'coll_name': 'projects' }
+    );
+  }, [context]);
 
   return (
     <DataGrid
-      rows={patterns}
+      rows={projects}
+      getRowId={(row) => row._id}
       columns={columns}
       autoHeight={true}
       initialState={{ pagination: { pageSize: 10 } }}

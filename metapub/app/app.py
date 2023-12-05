@@ -209,7 +209,7 @@ def pdf_from_pmid():
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "BREAST CANCER", "patternid": 1, "maxdocs": 200, "database": "test", "project": "adc-cali" }' http://localhost:5000/query
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast[Title/Abstract] AND carcinoma[Title/Abstract]", "patternid": 1, "maxdocs": 200, "database": "test", "project": "adc-cali" }' http://localhost:5000/query
 #
 
 

@@ -10,6 +10,7 @@ export interface IAppContext {
 export const AppContext = createContext<IAppContext>({
   user: {
     id: '',
+    orgId: '',
     firstName: 'guest',
     lastName: '',
     email: '',

@@ -78,7 +78,7 @@ def text_from_pdf_url():
     if not request.json:
         abort(400)
     url = request.json["url"]
-    return jsonify(pdf2text="\n\n".join(get_pdf_text_by_page(url)))
+    return jsonify(url2text="\n\n".join(get_pdf_text_by_page(url)))
 
 
 # *****htext_from_url()******
