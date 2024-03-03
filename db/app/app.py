@@ -1,6 +1,7 @@
 import csv
 from flask import (
     Flask,
+    abort,
     jsonify,
     request,
     Response,
@@ -27,7 +28,6 @@ config = {
 
 
 def post_json_request(url, obj):
-
     return requests.post(url, json=obj).json()
 
 
@@ -94,7 +94,6 @@ def str2eq(pattern, sentences_str):
 
 @app.route("/")
 def root():
-
     return """db endpoints:
 /
 /init               GET\n
@@ -484,7 +483,7 @@ def mongo_doc_insert():
 # *****mongo_doc_update()******
 # Este metodo es invocado de esta forma:
 # curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast", "document" : {"doc_id" : "123456", "doc_name" : "Breast cancer history"}}' http://localhost:5001/mongo-doc-insert
-# {"db_name": "users", "coll_name": "adc_cali", "document": {"name": "Jaime Hurtado", "email": "jandresh@gmail.com", "password": "Univalle#2004822"}}
+# curl -X POST -H "Content-type: application/json" -d '{"db_name" : "adccali", "coll_name" : "Breast3", "filter": {"author": "jandresh@correounivalle.edu.co"}, "document" : {"related" : {"$each": ["jandresh@gmail.com", "jhurtado@fluidattacks.com", "jaime.hurtado@coreunivalle.edu.co"]}}, "add_to_set": true}' http://localhost:5001/mongo-doc-update
 
 
 @app.route("/mongo-doc-update", methods=["POST"])
@@ -495,12 +494,20 @@ def mongo_doc_update():
     try:
         db_name = request.json["db_name"]
         coll_name = request.json["coll_name"]
-        filter = request.json["filter"]
+        filter_ = request.json["filter"]
         document = request.json["document"]
+        add_to_set = (
+            request.json["add_to_set"]
+            if "add_to_set" in request.json
+            else False
+        )
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
         collection = db[coll_name]
-        insert_id = collection.update_one(filter, {"$set": document}, True)
+        if add_to_set:
+            collection.update_one(filter_, {"$addToSet": document}, True)
+        else:
+            collection.update_one(filter_, {"$set": document}, True)
     except:
         success = 1
     return object_to_response([{"exit": success}])

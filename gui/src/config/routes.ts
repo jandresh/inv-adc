@@ -19,6 +19,7 @@ import { Users } from 'pages/Admin/Users';
 import { Route } from '../types';
 import { Patterns } from 'pages/Researcher/Patterns';
 import { Projects } from 'pages/Researcher/Projects';
+import { Pipelines } from 'pages/Researcher/Pipelines';
 
 
 const routes: Array<Route> = [
@@ -170,6 +171,7 @@ const routes: Array<Route> = [
         key: 'router-researcher-pipelines',
         title: 'Pipelines',
         description: 'Pipelines interface',
+        component: Pipelines,
         path: '/researcher/pipelines',
         isEnabled: true,
         icon: PublicIcon

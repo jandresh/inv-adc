@@ -1,8 +1,11 @@
+import base64
 from datetime import (
     datetime,
 )
+from enum import Enum
 from flask import (
     Flask,
+    abort,
     jsonify,
     request,
     Response,
@@ -14,9 +17,24 @@ import json
 import requests
 import sys
 import time
+import networkx as nx
+import matplotlib.pyplot as plt
+import io
 
 app = Flask(__name__)
 CORS(app)
+
+
+class PipelineStatus(str, Enum):
+    ERROR = "ERROR"
+    FINISHED = "FINISHED"
+    RUNNING = "RUNNING"
+    STARTING = "STARTING"
+
+
+class PipelineType(str, Enum):
+    METADATA = "METADATA"
+    ADJACENCY = "ADJACENCY"
 
 
 def post_json_request(url, obj):
@@ -78,6 +96,31 @@ def state_logger(microservice, state):
             db_name="app_state",
             coll_name=f"{container}_{microservice}",
             document=dict(datetime=datetime.now().isoformat(), state=state),
+        ),
+    )
+
+
+def pipeline_logger(
+    type: PipelineType,
+    organization: str,
+    project: str,
+    actual_pattern: str,
+    percent: int,
+    status: PipelineStatus,
+    message: str,
+):
+    post_json_request(
+        "http://db:5000/mongo-doc-insert",
+        dict(
+            db_name=organization,
+            coll_name=f"pipeline#{type.value.lower()}#{project}",
+            document=dict(
+                datetime=datetime.now().isoformat(),
+                actual_pattern=actual_pattern,
+                percent=percent,
+                status=status,
+                message=message,
+            ),
         ),
     )
 
@@ -146,19 +189,20 @@ def pipeline3():
                                 )
                             except:
                                 metadata_json = None
-                            try:
-                                if metadata_json["abstract"] is not None:
-                                    text = metadata_json["abstract"]
-                                elif metadata_json["title"] is not None:
-                                    text = metadata_json["title"]
-                                else:
-                                    text = ""
-                                lang_json = post_json_request(
-                                    "http://preprocessing:5000/text2lang",
-                                    {"text": text},
-                                )
-                            except:
-                                lang_json["lang"] = ""
+                            if metadata_json:
+                                try:
+                                    if metadata_json["abstract"] is not None:
+                                        text = metadata_json["abstract"]
+                                    elif metadata_json["title"] is not None:
+                                        text = metadata_json["title"]
+                                    else:
+                                        text = ""
+                                    lang_json = post_json_request(
+                                        "http://preprocessing:5000/text2lang",
+                                        {"text": text},
+                                    )
+                                except:
+                                    lang_json["lang"] = ""
                             if metadata_json is not None:
                                 success_doc_insert = 1
                                 try:
@@ -607,3 +651,182 @@ def pipeline7():
                 errors += result
 
     return object_to_response({"errors": errors})
+
+
+# *****metadata_pipeline()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer"}' http://localhost:5004/metadata-pipeline
+
+
+@app.route("/metadata-pipeline", methods=["POST"])
+def metadata_pipeline():
+    if not request.json:
+        abort(400)
+    success = 0
+    pattern_id, pattern_index = ("", 0)
+    try:
+        organization = request.json["organization"]
+        project = request.json["project"]
+        project_info = post_json_request(
+            "http://db:5000/mongo-doc-find",
+            {
+                "db_name": organization,
+                "coll_name": "projects",
+                "query": {"name": project},
+                "projection": {"maxDocs": 1},
+            },
+        )
+        patterns = post_json_request(
+            "http://db:5000/mongo-doc-list",
+            {"db_name": organization, "coll_name": f"patterns#{project}"},
+        )
+        for index, pattern in enumerate(patterns):
+            pattern_id, pattern_index = (pattern["_id"], index)
+            pipeline_logger(
+                PipelineType.METADATA,
+                organization,
+                project,
+                pattern_id,
+                int(pattern_index / len(patterns) * 100),
+                PipelineStatus.RUNNING,
+                f"Processing pattern {pattern['pattern']}",
+            )
+            fill_metadata_result = post_json_request(
+                db_url("CORE"),
+                {
+                    "query": pattern["pattern"],
+                    "patternid": pattern["_id"],
+                    "maxdocs": int(project_info[0]["maxDocs"])
+                    if project_info
+                    else 100,
+                    "organization": organization,
+                    "project": project,
+                },
+            )
+            print(f"fill_metadata: {fill_metadata_result}", flush=True)
+            if fill_metadata_result and fill_metadata_result["exit"] == 0:
+                pipeline_logger(
+                    PipelineType.METADATA,
+                    organization,
+                    project,
+                    pattern_id,
+                    int(pattern_index / len(patterns) * 100),
+                    PipelineStatus.RUNNING,
+                    f"Processed pattern {pattern['pattern']}",
+                )
+            else:
+                pipeline_logger(
+                    PipelineType.METADATA,
+                    organization,
+                    project,
+                    pattern_id,
+                    int(pattern_index / len(patterns) * 100),
+                    PipelineStatus.ERROR,
+                    f"Error in Processing pattern {pattern['pattern']}",
+                )
+
+    except Exception as ex:
+        pipeline_logger(
+            PipelineType.METADATA,
+            organization,
+            project,
+            pattern_id,
+            int(pattern_index / len(patterns) * 100),
+            PipelineStatus.ERROR,
+            str(ex),
+        )
+        success = 1
+    return object_to_response([{"exit": success}])
+
+
+# *****adjacency_pipeline()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer"}' http://localhost:5004/metadata-pipeline
+
+
+@app.route("/adjacency-pipeline", methods=["POST"])
+def adjacency_pipeline():
+    if not request.json:
+        abort(400)
+    success = 0
+    pattern_id, pattern_index = ("", 0)
+    try:
+        organization = request.json["organization"]
+        project = request.json["project"]
+        patterns: list[dict[str, str]] = post_json_request(
+            "http://db:5000/mongo-doc-list",
+            {"db_name": organization, "coll_name": f"patterns#{project}"},
+        )
+        # patterns.append({"_id":"global", "pattern":"global"})
+        patterns = [{"_id": "global", "pattern": "global"}]
+        for index, pattern in enumerate(patterns):
+            pattern_id, pattern_index = (pattern["_id"], index)
+            pipeline_logger(
+                PipelineType.ADJACENCY,
+                organization,
+                project,
+                pattern_id,
+                int(pattern_index / len(patterns) * 100),
+                PipelineStatus.RUNNING,
+                f"Processing pattern {pattern['pattern']}",
+            )
+            authors = post_json_request(
+                "http://db:5000/mongo-doc-list",
+                {
+                    "db_name": organization,
+                    "coll_name": f"authors#{project}#{pattern_id}",
+                },
+            )
+            authors_list = [
+                f'{author["author"]} {" ".join(author["related"])}'
+                for author in authors
+            ]
+            G = nx.parse_adjlist(authors_list, nodetype=str)
+            plt.figure(figsize=(30, 30))
+            nx.draw(
+                G,
+                with_labels=True,
+                node_color="skyblue",
+                node_size=100,
+                font_size=10,
+                style="solid",
+            )
+            nodes = G.number_of_nodes()
+            edges = G.number_of_edges()
+            my_stringIObytes = io.BytesIO()
+            plt.savefig(my_stringIObytes, format="jpg")
+            my_stringIObytes.seek(0)
+            b64_out = base64.b64encode(my_stringIObytes.read()).decode()
+            if authors:
+                pipeline_logger(
+                    PipelineType.ADJACENCY,
+                    organization,
+                    project,
+                    pattern_id,
+                    int(pattern_index / len(patterns) * 100),
+                    PipelineStatus.RUNNING,
+                    f"Processed pattern {pattern['pattern']}\nnodes: {nodes}\nedges:{edges}\nimage: data:image/png;base64,{b64_out}",
+                )
+            else:
+                pipeline_logger(
+                    PipelineType.ADJACENCY,
+                    organization,
+                    project,
+                    pattern_id,
+                    int(pattern_index / len(patterns) * 100),
+                    PipelineStatus.ERROR,
+                    f"Error in Processing pattern {pattern['pattern']}",
+                )
+
+    except Exception as ex:
+        pipeline_logger(
+            PipelineType.ADJACENCY,
+            organization,
+            project,
+            pattern_id,
+            int(pattern_index / len(patterns) * 100),
+            PipelineStatus.ERROR,
+            str(ex),
+        )
+        success = 1
+    return object_to_response([{"exit": success}])

@@ -14,6 +14,7 @@ export const Patterns = () => {
         </title>
       </Helmet>
       <Typography variant="h4">Patterns</Typography>
+      <Typography variant="h5">Select Project</Typography>
       <PatternsTable />
       <Typography variant="h4">Add Pattern</Typography>
       <AddForm />

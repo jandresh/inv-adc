@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useContext, useState } from 'react';
 import { AppContext } from 'contexts';
 import { Formik, Form, Field } from 'formik';
 import { Select, TextField } from 'formik-mui';
-import { Button, LinearProgress, Stack, Typography } from '@mui/material';
+import { Button, LinearProgress, Stack } from '@mui/material';
 import { query } from 'utils/queries';
 import MenuItem from '@mui/material/MenuItem';
 import Snackbar from '@mui/material/Snackbar';
@@ -60,7 +60,7 @@ export const AddForm = () => {
       } = findProjectResult;
       const registerDocument = {
         'db_name': context.user.orgId.split('.')[0],
-        'coll_name': `pattern#${values.project}`,
+        'coll_name': `patterns#${values.project}`,
         document: {
           'pattern': values.pattern
         }
@@ -117,7 +117,7 @@ export const AddForm = () => {
       .required('Pattern is required')
       .max(100)
       .min(2)
-      .matches(/^[a-zA-Z0-9 ]+$/, 'Only alphabets and numbers and spaces are allowed')
+      .matches(/^[a-zA-Z0-9 ]+$/, 'Only alphabets, numbers and spaces are allowed')
   });
 
   return (
@@ -158,7 +158,6 @@ export const AddForm = () => {
             >
               Submit
             </Button>
-            <Typography variant="h4">{`OrgId: ${context.user.orgId.split('.')[0]}`}</Typography>
             <Snackbar
               anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
               open={open}

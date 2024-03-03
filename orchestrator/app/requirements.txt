@@ -1,3 +1,9 @@
 Flask
 flask-cors
 requests
+pandas
+numpy
+networkx
+matplotlib
+scikit-image
+scipy

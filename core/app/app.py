@@ -3,6 +3,7 @@ from datetime import (
     datetime,
 )
 from flask import (
+    abort,
     Flask,
     jsonify,
     request,
@@ -15,8 +16,8 @@ import json
 from langdetect import (
     detect,
 )
+import re
 import requests
-import sys
 import time
 
 app = Flask(__name__)
@@ -31,7 +32,9 @@ def post_json_request(url, obj):
     except:
         print(f"Error: Can't process the request to {url}", flush=True)
         response = {}
+
     return response
+
 
 def object_to_response(object):
     response = Response(
@@ -42,25 +45,25 @@ def object_to_response(object):
     return response
 
 
-def query_api(search_url, query, scrollId=None):
+def query_api(search_url, query, scroll_id=None):
     result_flag = 0
     while result_flag < 5:
         print(f"result_flag: {result_flag}", flush=True)
         try:
             headers = {"Authorization": "Bearer " + apikey}
-            if not scrollId:
+            if not scroll_id:
                 response = requests.get(
                     f"{search_url}?q={query}&limit=100&scroll=true",
                     headers=headers,
                 )
             else:
                 response = requests.get(
-                    f"{search_url}?q={query}&limit=100&scrollId={scrollId}",
+                    f"{search_url}?q={query}&limit=100&scroll_id={scroll_id}",
                     headers=headers,
                 )
             print(
-                f"response: {str(response)}, query: {query}, scrollId: {scrollId}",
-                flush=True
+                f"response: {str(response)}, query: {query}, scroll_id: {scroll_id}",
+                flush=True,
             )
         except:
             print("Control Point 1", flush=True)
@@ -92,10 +95,10 @@ def query_api(search_url, query, scrollId=None):
 def scroll(search_url, query, extract_info_callback):
     allresults = []
     count = 0
-    scrollId = None
+    scroll_id = None
     while True:
-        result, elapsed = query_api(search_url, query, scrollId)
-        scrollId = result["scrollId"]
+        result, elapsed = query_api(search_url, query, scroll_id)
+        scroll_id = result["scroll_id"]
         totalhits = result["totalHits"]
         result_size = len(result["results"])
         if result_size == 0:
@@ -113,7 +116,7 @@ def scroll(search_url, query, extract_info_callback):
 def scroll2(search_url, query, ptid):
     count = 0
     spanish_count = 0
-    scrollId = None
+    scroll_id = None
     while True:
         with open("program_out.csv", mode="a") as file:
             writer = csv.writer(
@@ -121,9 +124,9 @@ def scroll2(search_url, query, ptid):
             )
             result = True
             try:
-                result, elapsed = query_api(search_url, query, scrollId)
+                result, elapsed = query_api(search_url, query, scroll_id)
                 time.sleep(2)
-                print(f'scrollId : {result["scrollId"]}', flush=True)
+                print(f'scroll_id : {result["scroll_id"]}', flush=True)
                 if result is None:
                     print("Control Point 8", flush=True)
                     break
@@ -131,7 +134,7 @@ def scroll2(search_url, query, ptid):
                 print("Control Point 9", flush=True)
                 result = None
             if result is not None:
-                scrollId = result["scrollId"]
+                scroll_id = result["scroll_id"]
                 totalhits = result["totalHits"]
                 result_size = len(result["results"])
                 if result_size == 0:
@@ -192,7 +195,7 @@ def scroll2(search_url, query, ptid):
                             int((ptid + 1) / 2),
                             "SpanishCount:",
                             spanish_count,
-                            flush=True
+                            flush=True,
                         )
                     count += result_size
                     print(f"{count}/{totalhits} {elapsed}s", flush=True)
@@ -287,15 +290,46 @@ def standardize_authors(authors):
     return standardized_authors
 
 
+def fill_authors_graph(
+    authors: list[str], organization: str, project: str, pattern_id: str
+) -> None:
+    if len(authors) < 2:
+        return None
+
+    author = authors.pop()
+    document = {"related": {"$each": sorted(authors)}}
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"authors#{project}#global",
+            "filter": {"author": author},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"authors#{project}#{pattern_id}",
+            "filter": {"author": author},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    fill_authors_graph(authors, organization, project, pattern_id)
+
+
 def iterator(search_url, query, patternid, database, project, maxdocs):
     count = 0
     spanish_count = 0
-    scrollId = None
+    scroll_id = None
     while True:
         try:
-            results, elapsed = query_api(search_url, query, scrollId)
+            results, elapsed = query_api(search_url, query, scroll_id)
             time.sleep(2)
-            print(f'scrollId : {result["scrollId"]}', flush=True)
+            print(f'scroll_id : {result["scroll_id"]}', flush=True)
             if results is None:
                 print("Control Point 8")
                 break
@@ -303,7 +337,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
             print("Control Point 9", flush=True)
             result = None
         if results is not None:
-            scrollId = results["scrollId"]
+            scroll_id = results["scrollId"]
             totalhits = results["totalHits"]
             result_size = len(results["results"])
             if result_size == 0:
@@ -318,11 +352,16 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                 url = result.get("downloadUrl", "")
                 year = result.get("publishedDate", "")
                 full_text = post_json_request(
-                        "http://preprocessing:5000/url2text", {"url": url}
-                    ).get("url2text", "")
-                emails = list(set(post_json_request(
-                        "http://preprocessing:5000/text2emails", {"text": full_text}
-                    ).get("emails", [])))
+                    "http://preprocessing:5000/url2text", {"url": url}
+                ).get("url2text", "")
+                emails = list(
+                    set(
+                        post_json_request(
+                            "http://preprocessing:5000/text2emails",
+                            {"text": full_text},
+                        ).get("emails", [])
+                    )
+                )
                 if title is not None:
                     document = {
                         "pat_id": patternid,
@@ -336,23 +375,28 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         "url": url,
                         "year": year,
                         "lang": post_json_request(
-                                "http://preprocessing:5000/text2lang", {"text": full_text}
-                            ).get("lang", ""),
+                            "http://preprocessing:5000/text2lang",
+                            {"text": full_text},
+                        ).get("lang", ""),
                     }
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"{project}_metadata_{patternid}",
+                            "coll_name": f"metadata#{project}#{patternid}",
                             "filter": {"title": title},
                             "document": document,
                         },
+                    )
+                    authors_set = sorted(set(emails), reverse=True)
+                    fill_authors_graph(
+                        authors_set, database, project, patternid
                     )
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"{project}_metadata_global",
+                            "coll_name": f"metadata#{project}#global",
                             "filter": {"title": title},
                             "document": document,
                         },
@@ -362,7 +406,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_author_vs_doc_id_{patternid}",
+                                "coll_name": f"author_vs_doc#{project}#{patternid}",
                                 "filter": {"author": email},
                                 "document": {
                                     "doc_id": dbid,
@@ -374,7 +418,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_author_vs_doc_id_global",
+                                "coll_name": f"author_vs_doc#{project}#global",
                                 "filter": {"author": email},
                                 "document": {
                                     "doc_id": dbid,
@@ -440,14 +484,38 @@ def query_core_scroll():
     result = None
     query = request.json["query"]
     ptid = request.json["idpattern"]
-    result = scroll2(f"https://api.core.ac.uk/v3/search/works", query, ptid)
+    result = scroll2("https://api.core.ac.uk/v3/search/works", query, ptid)
     return jsonify(result=result)
+
+
+def str2eq(pattern, sentences_str):
+    pattern = re.compile(pattern)
+    match = ""
+    sentences = []
+    while match != None:
+        match = pattern.search(sentences_str)
+        if match != None:
+            sentences.append(sentences_str[: match.start()].split())
+            sentences_str = sentences_str[match.end() :]
+
+    return sentences
+
+
+def search_equation(query: list[str]) -> str:
+    pattern = "abstract:("
+    for i in range(len(query)):
+        if i == len(query) - 1:
+            pattern += "%s)" % (query[i])
+        else:
+            pattern += "%s AND " % (query[i])
+    print(f"search_equation={pattern}", flush=True)
+    return pattern
 
 
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "abstract:(breast AND carcinoma)", "patternid": 1, "maxdocs": 200, "database": "test4", "project": "adc-cali" }' http://localhost:5003/query
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast carcinoma", "patternid": 1, "maxdocs": 200, "organization": "test4", "project": "adc-cali" }' http://localhost:5003/query
 #
 
 
@@ -455,18 +523,17 @@ def query_core_scroll():
 def query():
     if not request.json:
         abort(400)
-    result = None
-    query = request.json["query"]
+    query: str = request.json["query"]
     ptid = request.json["patternid"]
-    database = request.json["database"]
+    organization = request.json["organization"]
     project = request.json["project"]
-    maxdocs = request.json["maxdocs"]
-    result = iterator(
+    max_docs = request.json["maxdocs"]
+    iterator(
         f"https://api.core.ac.uk/v3/search/works",
-        query,
+        search_equation(query.strip().split()),
         ptid,
-        database,
+        organization,
         project,
-        maxdocs,
+        max_docs,
     )
     return object_to_response({"exit": 0})

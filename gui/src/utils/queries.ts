@@ -15,33 +15,35 @@ type TSelector =
   | 'listCollections'
   | 'listDatabases'
   | 'listDocuments'
+  | 'runMetadataPipeline'
   | 'updateDocument';
 
-const host = {
+const hosts = {
   localDb: 'http://localhost:5001',
-  remoteDb: 'http://34.139.145.179:5000'
+  remoteDb: 'http://localhost:5001',
+  orchestrator: 'http://localhost:5004'
 };
 
 const queries: Record<TSelector, IQuery> = {
   createDatabase: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-db-create`
+    url: `${hosts.remoteDb}/mongo-db-create`
   },
   createCollection: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-db-create`
+    url: `${hosts.remoteDb}/mongo-db-create`
   },
   createDocument: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-doc-insert`
+    url: `${hosts.remoteDb}/mongo-doc-insert`
   },
   findDocument: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-doc-find`
+    url: `${hosts.remoteDb}/mongo-doc-find`
   },
   getCountries: {
     errorMsg: '',
@@ -53,27 +55,33 @@ const queries: Record<TSelector, IQuery> = {
   getPatterns: {
     errorMsg: '',
     method: 'GET',
-    url: `${host.remoteDb}/patterns`
+    url: `${hosts.remoteDb}/patterns`
   },
   listCollections: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-coll-list`
+    url: `${hosts.remoteDb}/mongo-coll-list`
   },
   listDatabases: {
     errorMsg: '',
     method: 'GET',
-    url: `${host.remoteDb}/mongo-db-list`
+    url: `${hosts.remoteDb}/mongo-db-list`
   },
   listDocuments: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-doc-list`
+    url: `${hosts.remoteDb}/mongo-doc-list`
+  },
+  runMetadataPipeline: {
+    errorMsg: '',
+    method: 'POST',
+    // url: `${hosts.orchestrator}/metadata-pipeline`
+    url: `${hosts.orchestrator}/adjacency-pipeline`
   },
   updateDocument: {
     errorMsg: '',
     method: 'POST',
-    url: `${host.remoteDb}/mongo-doc-update`
+    url: `${hosts.remoteDb}/mongo-doc-update`
   }
 };
 
