@@ -20,6 +20,7 @@ import { Route } from '../types';
 import { Patterns } from 'pages/Researcher/Patterns';
 import { Projects } from 'pages/Researcher/Projects';
 import { Pipelines } from 'pages/Researcher/Pipelines';
+import { Report } from 'pages/User/Report';
 
 
 const routes: Array<Route> = [
@@ -128,6 +129,7 @@ const routes: Array<Route> = [
         key: 'router-user-report',
         title: 'Report',
         description: 'Report interface',
+        component: Report,
         path: '/user/report',
         isEnabled: true,
         icon: PublicIcon

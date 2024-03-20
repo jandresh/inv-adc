@@ -741,7 +741,7 @@ def metadata_pipeline():
 
 # *****adjacency_pipeline()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer"}' http://localhost:5004/metadata-pipeline
+# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer", "pattern": "global"}' http://localhost:5004/adjacency-pipeline
 
 
 @app.route("/adjacency-pipeline", methods=["POST"])
@@ -749,32 +749,34 @@ def adjacency_pipeline():
     if not request.json:
         abort(400)
     success = 0
-    pattern_id, pattern_index = ("", 0)
+    nodes = 0
+    edges = 0
+    b64_image = ""
+    node_link_data = {}
     try:
         organization = request.json["organization"]
         project = request.json["project"]
+        pattern = request.json["pattern"]
         patterns: list[dict[str, str]] = post_json_request(
             "http://db:5000/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
-        # patterns.append({"_id":"global", "pattern":"global"})
-        patterns = [{"_id": "global", "pattern": "global"}]
-        for index, pattern in enumerate(patterns):
-            pattern_id, pattern_index = (pattern["_id"], index)
+        print(f"patterns: {patterns}, {type(patterns)}", flush=True)
+        if pattern == "global" or (patterns and pattern in [item["_id"] for item in patterns]):
             pipeline_logger(
                 PipelineType.ADJACENCY,
                 organization,
                 project,
-                pattern_id,
-                int(pattern_index / len(patterns) * 100),
+                pattern,
+                100,
                 PipelineStatus.RUNNING,
-                f"Processing pattern {pattern['pattern']}",
+                f"Processing pattern {pattern}",
             )
             authors = post_json_request(
                 "http://db:5000/mongo-doc-list",
                 {
                     "db_name": organization,
-                    "coll_name": f"authors#{project}#{pattern_id}",
+                    "coll_name": f"authors#{project}#{pattern}",
                 },
             )
             authors_list = [
@@ -793,29 +795,30 @@ def adjacency_pipeline():
             )
             nodes = G.number_of_nodes()
             edges = G.number_of_edges()
-            my_stringIObytes = io.BytesIO()
-            plt.savefig(my_stringIObytes, format="jpg")
-            my_stringIObytes.seek(0)
-            b64_out = base64.b64encode(my_stringIObytes.read()).decode()
+            image_bytes = io.BytesIO()
+            plt.savefig(image_bytes, format="jpg")
+            image_bytes.seek(0)
+            b64_image = f"data:image/png;base64,{base64.b64encode(image_bytes.read()).decode()}"
+            node_link_data = nx.node_link_data(G)
             if authors:
                 pipeline_logger(
                     PipelineType.ADJACENCY,
                     organization,
                     project,
-                    pattern_id,
-                    int(pattern_index / len(patterns) * 100),
+                    pattern,
+                    100,
                     PipelineStatus.RUNNING,
-                    f"Processed pattern {pattern['pattern']}\nnodes: {nodes}\nedges:{edges}\nimage: data:image/png;base64,{b64_out}",
+                    f"Processed pattern {pattern}\nnodes: {nodes}\nedges:{edges}",
                 )
             else:
                 pipeline_logger(
                     PipelineType.ADJACENCY,
                     organization,
                     project,
-                    pattern_id,
-                    int(pattern_index / len(patterns) * 100),
+                    pattern,
+                    100,
                     PipelineStatus.ERROR,
-                    f"Error in Processing pattern {pattern['pattern']}",
+                    f"Error in Processing pattern {pattern}",
                 )
 
     except Exception as ex:
@@ -823,10 +826,10 @@ def adjacency_pipeline():
             PipelineType.ADJACENCY,
             organization,
             project,
-            pattern_id,
-            int(pattern_index / len(patterns) * 100),
+            pattern,
+            100,
             PipelineStatus.ERROR,
             str(ex),
         )
         success = 1
-    return object_to_response([{"exit": success}])
+    return object_to_response([{"exit": success, "nodes": nodes, "edges": edges, "b64_image": b64_image, "node_link_data": node_link_data }])

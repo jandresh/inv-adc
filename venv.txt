@@ -1,0 +1,9 @@
+nix-env -iA nixpkgs.virtualenv
+virtualenv venv
+source venv/bin/activate
+pip install -r arxiv/app/requirements.txt
+apt-get update && apt-get -y install python3-sklearn \
+python3-sklearn-lib python3-pandas build-essential \
+libpoppler-cpp-dev pkg-config python3-dev && \
+apt-get clean
+https://copyprogramming.com/howto/python-creating-an-adjacency-matrix-from-a-dataframe

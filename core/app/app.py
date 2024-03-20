@@ -2,6 +2,7 @@ import csv
 from datetime import (
     datetime,
 )
+from enum import Enum
 from flask import (
     abort,
     Flask,
@@ -22,6 +23,10 @@ import time
 
 app = Flask(__name__)
 CORS(app)
+
+class GraphType(str, Enum):
+    AUTHORS = "authors"
+    ORGANIZATIONS = "organizations"
 
 apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
 
@@ -290,20 +295,25 @@ def standardize_authors(authors):
     return standardized_authors
 
 
-def fill_authors_graph(
-    authors: list[str], organization: str, project: str, pattern_id: str
+def fill_graph(
+    graph_type: GraphType,
+    items: list[str],
+    organization: str,
+    project: str,
+    pattern_id: str
 ) -> None:
-    if len(authors) < 2:
+    if len(items) < 2:
         return None
 
-    author = authors.pop()
-    document = {"related": {"$each": sorted(authors)}}
+    singular = graph_type.value[:-1]
+    item = items.pop()
+    document = {"related": {"$each": sorted(items)}}
     post_json_request(
         "http://db:5000/mongo-doc-update",
         {
             "db_name": organization,
-            "coll_name": f"authors#{project}#global",
-            "filter": {"author": author},
+            "coll_name": f"{graph_type.value}#{project}#global",
+            "filter": {singular: item},
             "document": document,
             "add_to_set": True,
         },
@@ -312,13 +322,13 @@ def fill_authors_graph(
         "http://db:5000/mongo-doc-update",
         {
             "db_name": organization,
-            "coll_name": f"authors#{project}#{pattern_id}",
-            "filter": {"author": author},
+            "coll_name": f"{graph_type.value}#{project}#{pattern_id}",
+            "filter": {singular: item},
             "document": document,
             "add_to_set": True,
         },
     )
-    fill_authors_graph(authors, organization, project, pattern_id)
+    fill_graph(graph_type, items, organization, project, pattern_id)
 
 
 def iterator(search_url, query, patternid, database, project, maxdocs):
@@ -354,7 +364,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                 full_text = post_json_request(
                     "http://preprocessing:5000/url2text", {"url": url}
                 ).get("url2text", "")
-                emails = list(
+                emails: list[str] = list(
                     set(
                         post_json_request(
                             "http://preprocessing:5000/text2emails",
@@ -362,6 +372,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         ).get("emails", [])
                     )
                 )
+                organizations = list({email.split("@")[1] for email in emails if "@" in email})
                 if title is not None:
                     document = {
                         "pat_id": patternid,
@@ -371,7 +382,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         "abstract": abstract,
                         "authors": authors,
                         "emails": emails,
-                        "org": "",
+                        "organizations": organizations,
                         "url": url,
                         "year": year,
                         "lang": post_json_request(
@@ -389,8 +400,12 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         },
                     )
                     authors_set = sorted(set(emails), reverse=True)
-                    fill_authors_graph(
-                        authors_set, database, project, patternid
+                    fill_graph(
+                        GraphType.AUTHORS, authors_set, database, project, patternid
+                    )
+                    organizations_set = sorted(set(organizations), reverse=True)
+                    fill_graph(
+                        GraphType.ORGANIZATIONS, organizations_set, database, project, patternid
                     )
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
@@ -420,6 +435,31 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                 "db_name": database,
                                 "coll_name": f"author_vs_doc#{project}#global",
                                 "filter": {"author": email},
+                                "document": {
+                                    "doc_id": dbid,
+                                    "doi": doi,
+                                },
+                            },
+                        )
+                    for organization in organizations:
+                        post_json_request(
+                            "http://db:5000/mongo-doc-update",
+                            {
+                                "db_name": database,
+                                "coll_name": f"organization_vs_doc#{project}#{patternid}",
+                                "filter": {"organization": organization},
+                                "document": {
+                                    "doc_id": dbid,
+                                    "doi": doi,
+                                },
+                            },
+                        )
+                        post_json_request(
+                            "http://db:5000/mongo-doc-update",
+                            {
+                                "db_name": database,
+                                "coll_name": f"organization_vs_doc#{project}#global",
+                                "filter": {"organization": organization},
                                 "document": {
                                     "doc_id": dbid,
                                     "doi": doi,

@@ -15,6 +15,7 @@ type TSelector =
   | 'listCollections'
   | 'listDatabases'
   | 'listDocuments'
+  | 'runAdjacencyPipeline'
   | 'runMetadataPipeline'
   | 'updateDocument';
 
@@ -72,11 +73,15 @@ const queries: Record<TSelector, IQuery> = {
     method: 'POST',
     url: `${hosts.remoteDb}/mongo-doc-list`
   },
+  runAdjacencyPipeline: {
+    errorMsg: '',
+    method: 'POST',
+    url: `${hosts.orchestrator}/adjacency-pipeline`
+  },
   runMetadataPipeline: {
     errorMsg: '',
     method: 'POST',
-    // url: `${hosts.orchestrator}/metadata-pipeline`
-    url: `${hosts.orchestrator}/adjacency-pipeline`
+    url: `${hosts.orchestrator}/metadata-pipeline`
   },
   updateDocument: {
     errorMsg: '',
