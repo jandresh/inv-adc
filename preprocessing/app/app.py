@@ -1,6 +1,6 @@
 from flask import (
-    Flask,
     abort,
+    Flask,
     jsonify,
     request,
 )
@@ -27,10 +27,16 @@ nltk.download("punkt")
 nltk.download("averaged_perceptron_tagger")
 nltk.download("maxent_ne_chunker")
 nltk.download("words")
+from gensim.summarization import (
+    keywords,
+)
 from langdetect import (
     detect,
 )
 import urllib.parse
+import warnings
+
+warnings.filterwarnings("ignore")
 
 app = Flask(__name__)
 CORS(app)
@@ -38,7 +44,6 @@ CORS(app)
 
 def get_continuous_chunks(text, label):
     chunked = ne_chunk(pos_tag(word_tokenize(text)))
-    prev = None
     continuous_chunk = []
     current_chunk = []
 
@@ -168,3 +173,21 @@ def language_from_text():
         lang = ""
 
     return jsonify(lang=lang)
+
+
+# *****keywords_from_text()******
+# Este metodo es invocado de esta forma:
+# curl -X POST -H "Content-type: application/json" -d '{ "text": ""}' http://localhost:5002/text2keywords
+
+
+@app.route("/text2keywords", methods=["POST"])
+def keywords_from_text():
+    if not request.json:
+        abort(400)
+    try:
+        output = keywords(text=request.json["text"], split="\n", scores=True)
+    except ValueError as ex:
+        print(f"Exception in fetch keywords: {ex}", flush=True)
+        output = []
+
+    return jsonify(keywords=output)

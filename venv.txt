@@ -7,3 +7,4 @@ python3-sklearn-lib python3-pandas build-essential \
 libpoppler-cpp-dev pkg-config python3-dev && \
 apt-get clean
 https://copyprogramming.com/howto/python-creating-an-adjacency-matrix-from-a-dataframe
+m github:fluidattacks/makes-example@main

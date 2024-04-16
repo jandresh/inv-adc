@@ -2,10 +2,12 @@ import base64
 from datetime import (
     datetime,
 )
-from enum import Enum
+from enum import (
+    Enum,
+)
 from flask import (
-    Flask,
     abort,
+    Flask,
     jsonify,
     request,
     Response,
@@ -13,13 +15,13 @@ from flask import (
 from flask_cors import (
     CORS,
 )
+import io
 import json
+import matplotlib.pyplot as plt
+import networkx as nx
 import requests
 import sys
 import time
-import networkx as nx
-import matplotlib.pyplot as plt
-import io
 
 app = Flask(__name__)
 CORS(app)
@@ -741,7 +743,7 @@ def metadata_pipeline():
 
 # *****adjacency_pipeline()******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer", "pattern": "global"}' http://localhost:5004/adjacency-pipeline
+# curl -X POST -H "Content-type: application/json" -d '{"organization" : "correounivalle", "project" : "BreastCancer", "pattern": "global", graph_type: "authors"}' http://localhost:5004/adjacency-pipeline
 
 
 @app.route("/adjacency-pipeline", methods=["POST"])
@@ -757,12 +759,15 @@ def adjacency_pipeline():
         organization = request.json["organization"]
         project = request.json["project"]
         pattern = request.json["pattern"]
+        graph_type = request.json["graph_type"]
         patterns: list[dict[str, str]] = post_json_request(
             "http://db:5000/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
-        print(f"patterns: {patterns}, {type(patterns)}", flush=True)
-        if pattern == "global" or (patterns and pattern in [item["_id"] for item in patterns]):
+        singular = graph_type[:-1]
+        if pattern == "global" or (
+            patterns and pattern in [item["_id"] for item in patterns]
+        ):
             pipeline_logger(
                 PipelineType.ADJACENCY,
                 organization,
@@ -772,18 +777,18 @@ def adjacency_pipeline():
                 PipelineStatus.RUNNING,
                 f"Processing pattern {pattern}",
             )
-            authors = post_json_request(
+            items = post_json_request(
                 "http://db:5000/mongo-doc-list",
                 {
                     "db_name": organization,
-                    "coll_name": f"authors#{project}#{pattern}",
+                    "coll_name": f"{graph_type}#{project}#{pattern}",
                 },
             )
-            authors_list = [
-                f'{author["author"]} {" ".join(author["related"])}'
-                for author in authors
+            items_list = [
+                f'{item[singular]} {" ".join(item["related"])}'
+                for item in items
             ]
-            G = nx.parse_adjlist(authors_list, nodetype=str)
+            G = nx.parse_adjlist(items_list, nodetype=str)
             plt.figure(figsize=(30, 30))
             nx.draw(
                 G,
@@ -800,7 +805,7 @@ def adjacency_pipeline():
             image_bytes.seek(0)
             b64_image = f"data:image/png;base64,{base64.b64encode(image_bytes.read()).decode()}"
             node_link_data = nx.node_link_data(G)
-            if authors:
+            if items:
                 pipeline_logger(
                     PipelineType.ADJACENCY,
                     organization,
@@ -832,4 +837,14 @@ def adjacency_pipeline():
             str(ex),
         )
         success = 1
-    return object_to_response([{"exit": success, "nodes": nodes, "edges": edges, "b64_image": b64_image, "node_link_data": node_link_data }])
+    return object_to_response(
+        [
+            {
+                "exit": success,
+                "nodes": nodes,
+                "edges": edges,
+                "b64_image": b64_image,
+                "node_link_data": node_link_data,
+            }
+        ]
+    )

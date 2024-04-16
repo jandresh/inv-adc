@@ -2,7 +2,9 @@ import csv
 from datetime import (
     datetime,
 )
-from enum import Enum
+from enum import (
+    Enum,
+)
 from flask import (
     abort,
     Flask,
@@ -24,9 +26,12 @@ import time
 app = Flask(__name__)
 CORS(app)
 
+
 class GraphType(str, Enum):
     AUTHORS = "authors"
+    KEYWORDS = "keywords"
     ORGANIZATIONS = "organizations"
+
 
 apikey = "JAnjvcE7LDiB0aHeh8ruR3gUGFVW6qSI"
 
@@ -300,7 +305,7 @@ def fill_graph(
     items: list[str],
     organization: str,
     project: str,
-    pattern_id: str
+    pattern_id: str,
 ) -> None:
     if len(items) < 2:
         return None
@@ -372,7 +377,18 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         ).get("emails", [])
                     )
                 )
-                organizations = list({email.split("@")[1] for email in emails if "@" in email})
+                keywords_with_score: list[list[str, float]] = sorted(
+                    post_json_request(
+                        "http://preprocessing:5000/text2keywords",
+                        {"text": full_text},
+                    ).get("keywords", []),
+                    key=lambda x: x[1],
+                    reverse=True,
+                )
+                keywords = [keyword[0] for keyword in keywords_with_score[:20]]
+                organizations = list(
+                    {email.split("@")[1] for email in emails if "@" in email}
+                )
                 if title is not None:
                     document = {
                         "pat_id": patternid,
@@ -382,6 +398,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         "abstract": abstract,
                         "authors": authors,
                         "emails": emails,
+                        "keywords": keywords,
                         "organizations": organizations,
                         "url": url,
                         "year": year,
@@ -401,11 +418,29 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                     )
                     authors_set = sorted(set(emails), reverse=True)
                     fill_graph(
-                        GraphType.AUTHORS, authors_set, database, project, patternid
+                        GraphType.AUTHORS,
+                        authors_set,
+                        database,
+                        project,
+                        patternid,
                     )
-                    organizations_set = sorted(set(organizations), reverse=True)
+                    keywords_set = sorted(set(keywords), reverse=True)
                     fill_graph(
-                        GraphType.ORGANIZATIONS, organizations_set, database, project, patternid
+                        GraphType.KEYWORDS,
+                        keywords_set,
+                        database,
+                        project,
+                        patternid,
+                    )
+                    organizations_set = sorted(
+                        set(organizations), reverse=True
+                    )
+                    fill_graph(
+                        GraphType.ORGANIZATIONS,
+                        organizations_set,
+                        database,
+                        project,
+                        patternid,
                     )
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
