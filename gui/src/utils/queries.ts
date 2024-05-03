@@ -21,8 +21,8 @@ type TSelector =
 
 const hosts = {
   localDb: 'http://localhost:5001',
-  remoteDb: 'http://localhost:5001',
-  orchestrator: 'http://localhost:5004'
+  remoteDb: 'http://jenkins-cd:5001',
+  orchestrator: 'http://jenkins:5004'
 };
 
 const queries: Record<TSelector, IQuery> = {

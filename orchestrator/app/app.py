@@ -22,6 +22,9 @@ import networkx as nx
 import requests
 import sys
 import time
+from wordcloud import (
+    WordCloud,
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -753,7 +756,8 @@ def adjacency_pipeline():
     success = 0
     nodes = 0
     edges = 0
-    b64_image = ""
+    b64_image = "data:image/png;base64,"
+    wordcloud_b64_image = "data:image/png;base64,"
     node_link_data = {}
     try:
         organization = request.json["organization"]
@@ -803,8 +807,41 @@ def adjacency_pipeline():
             image_bytes = io.BytesIO()
             plt.savefig(image_bytes, format="jpg")
             image_bytes.seek(0)
-            b64_image = f"data:image/png;base64,{base64.b64encode(image_bytes.read()).decode()}"
+            b64_image = (
+                f"{b64_image}{base64.b64encode(image_bytes.read()).decode()}"
+            )
             node_link_data = nx.node_link_data(G)
+
+            keyword_items = post_json_request(
+                "http://db:5000/mongo-doc-list",
+                {
+                    "db_name": organization,
+                    "coll_name": f"wordcloud#{project}#{pattern}",
+                },
+            )
+            keyword_list = [item["keyword"] for item in keyword_items]
+            text = " ".join(keyword_list)
+            # mask = np.array(Image.open(path.join(d, "batman.jpg")))
+            wc = WordCloud(
+                background_color="black",
+                max_words=3000,
+                # mask=mask,
+                max_font_size=30,
+                min_font_size=0.1,
+                random_state=42,
+            )
+            wc.generate(text)
+            plt.figure(figsize=(30, 30))
+            plt.imshow(wc, interpolation="bilinear")
+            plt.axis("off")
+            wordcloud_image_bytes = io.BytesIO()
+            plt.savefig(
+                wordcloud_image_bytes,
+                bbox_inches="tight",
+                format="jpg",
+            )
+            wordcloud_image_bytes.seek(0)
+            wordcloud_b64_image = f"{wordcloud_b64_image}{base64.b64encode(wordcloud_image_bytes.read()).decode()}"
             if items:
                 pipeline_logger(
                     PipelineType.ADJACENCY,
@@ -845,6 +882,9 @@ def adjacency_pipeline():
                 "edges": edges,
                 "b64_image": b64_image,
                 "node_link_data": node_link_data,
+                "wordcloud_image": wordcloud_b64_image
+                if wordcloud_b64_image is not None
+                else "",
             }
         ]
     )

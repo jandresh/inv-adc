@@ -476,6 +476,27 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                 },
                             },
                         )
+                    for keyword in keywords:
+                        post_json_request(
+                            "http://db:5000/mongo-doc-insert",
+                            {
+                                "db_name": database,
+                                "coll_name": f"wordcloud#{project}#{patternid}",
+                                "document": {
+                                    "keyword": keyword,
+                                },
+                            },
+                        )
+                        post_json_request(
+                            "http://db:5000/mongo-doc-insert",
+                            {
+                                "db_name": database,
+                                "coll_name": f"wordcloud#{project}#global",
+                                "document": {
+                                    "keyword": keyword,
+                                },
+                            },
+                        )
                     for organization in organizations:
                         post_json_request(
                             "http://db:5000/mongo-doc-update",

@@ -45,11 +45,18 @@ export const NetworkSelector = () => {
       <PatternSelector project={project} setPattern={setPattern}/>
       {!_.isUndefined(networkData[0]) && (
         <>
+          <Typography variant="h4">WordCloud Graph</Typography>
+          <Card sx={{ maxWidth: 'fit-content' }}>
+            <CardMedia
+              component='img'
+              src={networkData[0]['wordcloud_image']}
+              title="Network"
+            />
+          </Card>
           <Typography variant="h4">NetworkX Graph</Typography>
           <Card sx={{ maxWidth: 'fit-content' }}>
             <CardMedia
               component='img'
-              // eslint-disable-next-line max-len
               src={networkData[0]['b64_image']}
               title="Network"
             />
