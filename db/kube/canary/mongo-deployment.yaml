@@ -31,7 +31,7 @@ spec:
           volumeMounts:
             - mountPath: /data/db
               name: mongo-db
-      restartPolicy: OnFailure
+      restartPolicy: Always
       volumes:
         - name: mongo-db
           persistentVolumeClaim:
