@@ -22,7 +22,7 @@ type TSelector =
 const hosts = {
   localDb: 'http://localhost:5001',
   localOrchestrator: 'localhost:5004',
-  remoteDb: 'http://35.185.35.255:5001',
+  remoteDb: 'http://35.185.35.255:5000',
   remoteOrchestrator: 'http://34.75.81.226:5000'
 };
 
