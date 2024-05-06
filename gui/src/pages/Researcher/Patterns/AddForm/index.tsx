@@ -39,9 +39,9 @@ export const AddForm = () => {
   const [open, setOpen] = useState(false);
   const handleSubmit = useCallback(
     async (values: IPatternsForm): Promise<void> => {
-      const findProjectDocument = {
+      const findPatternDocument = {
         'db_name': context.user.orgId.split('.')[0],
-        'coll_name': `patter#${values.project}`,
+        'coll_name': `patterns#${values.project}`,
         'query': {
           'pattern': values.pattern
         },
@@ -49,15 +49,15 @@ export const AddForm = () => {
           'pattern': 1
         }
       };
-      const findProjectResult = await query(
+      const findPatternResult = await query(
         'findDocument',
         setFindPatternResponse,
-        findProjectDocument
+        findPatternDocument
       );
       const {
-        success: successProjectFind,
-        responseObj: responseProjectFind
-      } = findProjectResult;
+        success: successPatternFind,
+        responseObj: responsePatternFind
+      } = findPatternResult;
       const registerDocument = {
         'db_name': context.user.orgId.split('.')[0],
         'coll_name': `patterns#${values.project}`,
@@ -66,16 +66,16 @@ export const AddForm = () => {
         }
       };
       if (
-        successProjectFind &&
-        responseProjectFind.length === 0 &&
+        successPatternFind &&
+        responsePatternFind.length === 0 &&
         findPatternResponse
       ) {
-        const addProjectResult = await query(
+        const addPatternResult = await query(
           'createDocument',
           setResponse,
           registerDocument
         );
-        const { success: successRegister } = addProjectResult;
+        const { success: successRegister } = addPatternResult;
         if (!successRegister) {
           setResponse([{ exit: 1 }]);
         }
@@ -170,7 +170,7 @@ export const AddForm = () => {
                   severity="success"
                   sx={{ width: '100%' }}
                 >
-                  Your project adding was success!
+                  Your pattern adding was success!
                 </Alert>
               ) : (
                 <Alert
@@ -178,8 +178,8 @@ export const AddForm = () => {
                   severity="error"
                   sx={{ width: '100%' }}
                 >
-                  Your project adding was unsuccess.
-                  You have another project with same name!
+                  Your pattern adding was unsuccess.
+                  It had already been added previously!
                 </Alert>
               )}
             </Snackbar>

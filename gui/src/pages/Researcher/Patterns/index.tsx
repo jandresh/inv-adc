@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet';
 import { APP_TITLE, PAGE_TITLE_HOME } from 'utils/constants';
 import { PatternsTable } from './PatternsTable';
 import { AddForm } from './AddForm';
+import { AddFileForm } from './AddFileForm';
 
 export const Patterns = () => {
   return (
@@ -18,6 +19,8 @@ export const Patterns = () => {
       <PatternsTable />
       <Typography variant="h4">Add Pattern</Typography>
       <AddForm />
+      <Typography variant="h4">Add Patterns File</Typography>
+      <AddFileForm />
     </>
   );
 };
