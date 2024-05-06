@@ -21,8 +21,9 @@ type TSelector =
 
 const hosts = {
   localDb: 'http://localhost:5001',
-  remoteDb: 'http://jenkins-cd:5001',
-  orchestrator: 'http://jenkins:5004'
+  localOrchestrator: 'localhost:5004',
+  remoteDb: 'http://35.185.35.255:5001',
+  remoteOrchestrator: 'http://34.75.81.226:5000'
 };
 
 const queries: Record<TSelector, IQuery> = {
@@ -76,12 +77,12 @@ const queries: Record<TSelector, IQuery> = {
   runAdjacencyPipeline: {
     errorMsg: '',
     method: 'POST',
-    url: `${hosts.orchestrator}/adjacency-pipeline`
+    url: `${hosts.remoteOrchestrator}/adjacency-pipeline`
   },
   runMetadataPipeline: {
     errorMsg: '',
     method: 'POST',
-    url: `${hosts.orchestrator}/metadata-pipeline`
+    url: `${hosts.remoteOrchestrator}/metadata-pipeline`
   },
   updateDocument: {
     errorMsg: '',
