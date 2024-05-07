@@ -350,8 +350,8 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                 break
         except:
             print("Control Point 9", flush=True)
-            result = None
-        if results is not None:
+            results = None
+        if results is not None and "scrollId" in results:
             scroll_id = results["scrollId"]
             totalhits = results["totalHits"]
             result_size = len(results["results"])
