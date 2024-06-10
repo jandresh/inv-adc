@@ -40,7 +40,7 @@ def post_json_request(url, obj):
     try:
         response = requests.post(url, json=obj).json()
     except:
-        print(f"Error: Can't process the request to {url}", flush=True)
+        print(f"Error: Can't process the request to {url}\n {obj}", flush=True)
         response = {}
 
     return response

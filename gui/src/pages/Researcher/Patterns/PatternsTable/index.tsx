@@ -28,10 +28,17 @@ export const PatternsTable = () => {
       <DataGrid
         rows={projects}
         getRowId={(row) => row._id}
+        getRowHeight={() => 'auto'}
         columns={columns}
         autoHeight={true}
-        initialState={{ pagination: { pageSize: 10 } }}
-        rowsPerPageOptions={[10, 50, 100]}
+        initialState={
+          {
+            pagination: {
+              paginationModel: { pageSize: 10 }
+            }
+          }
+        }
+        pageSizeOptions={[10, 50, 100]}
       />
     </>
   );

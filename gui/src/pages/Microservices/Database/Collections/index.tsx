@@ -44,11 +44,18 @@ export const Collections: React.FC<{ database: string }> = ({ database }) => {
         columns={columns}
         autoHeight={true}
         getRowId={(row) => row.collection}
-        initialState={{ pagination: { pageSize: 10 } }}
-        onSelectionModelChange={(ids) => {
+        getRowHeight={() => 'auto'}
+        initialState={
+          {
+            pagination: {
+              paginationModel: { pageSize: 10 }
+            }
+          }
+        }
+        onRowSelectionModelChange={(ids) => {
           setCollection(ids.length > 0 ? ids[0].toString() : '');
         }}
-        rowsPerPageOptions={[10, 50, 100]}
+        pageSizeOptions={[10, 50, 100]}
       />
       <Typography variant="h4">Documents</Typography>
       {database === '' || collection === ''

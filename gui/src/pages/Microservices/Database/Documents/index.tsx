@@ -35,10 +35,16 @@ export const Documents: React.FC<{ database: string, collection: string }> = (
     <DataGrid
       rows={documents ? documents : []}
       columns={columns}
-      autoHeight={true}
+      getRowHeight={() => 'auto'}
       getRowId={(row) => row._id}
-      initialState={{ pagination: { pageSize: 10 } }}
-      rowsPerPageOptions={[10, 50, 100]}
+      initialState={
+        {
+          pagination: {
+            paginationModel: { pageSize: 10 }
+          }
+        }
+      }
+      pageSizeOptions={[10, 50, 100]}
     />
   );
 };

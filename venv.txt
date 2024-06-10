@@ -8,3 +8,7 @@ libpoppler-cpp-dev pkg-config python3-dev && \
 apt-get clean
 https://copyprogramming.com/howto/python-creating-an-adjacency-matrix-from-a-dataframe
 m github:fluidattacks/makes-example@main
+npm i -g npm-check-updates
+sudo npm i -g npm-check-updates
+ncu -u
+npm install

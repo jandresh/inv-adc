@@ -172,7 +172,7 @@ export const Register: React.FC<{
       .required('Password confirmation is required')
       .min(2)
       .max(20)
-      .oneOf([Yup.ref('password'), null], 'Passwords not match')
+      .oneOf([Yup.ref('password')], 'Passwords not match')
   });
 
   return (

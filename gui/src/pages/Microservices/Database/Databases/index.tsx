@@ -32,9 +32,16 @@ export const Databases: React.FC = () => {
         columns={columns}
         autoHeight={true}
         getRowId={(row) => row.database}
-        initialState={{ pagination: { pageSize: 10 } }}
-        rowsPerPageOptions={[10, 50, 100]}
-        onSelectionModelChange={(ids) => {
+        getRowHeight={() => 'auto'}
+        initialState={
+          {
+            pagination: {
+              paginationModel: { pageSize: 10 }
+            }
+          }
+        }
+        pageSizeOptions={[10, 50, 100]}
+        onRowSelectionModelChange={(ids) => {
           setDatabase(ids.length > 0 ? ids[0].toString() : '');
         }}
       />

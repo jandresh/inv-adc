@@ -145,10 +145,17 @@ export const UserList: React.FC = () => {
         rows={rows}
         columns={columns}
         autoHeight={true}
+        getRowHeight={() => 'auto'}
         getRowId={(row) => row.user}
-        initialState={{ pagination: { pageSize: 10 } }}
+        initialState={
+          {
+            pagination: {
+              paginationModel: { pageSize: 10 }
+            }
+          }
+        }
         onCellClick={handleOnCellClick}
-        rowsPerPageOptions={[10, 50, 100]}
+        pageSizeOptions={[10, 50, 100]}
       />
       <Dialog
         open={isActiveModalOpen}

@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useState, useCallback, useRef } from 'react';
 import { AppContext } from 'contexts';
 import { query } from 'utils/queries';
 import { ProjectSelector } from './ProjectSelector';
@@ -8,6 +8,19 @@ import _ from 'lodash';
 import { ForceGraph2D, ForceGraph3D } from 'react-force-graph';
 import { GraphTypeSelector } from './graphTypeSelector';
 
+type NodeObject$1 = object & {
+  id?: string | number;
+  x?: number;
+  y?: number;
+  z?: number;
+  vx?: number;
+  vy?: number;
+  vz?: number;
+  fx?: number;
+  fy?: number;
+  fz?: number;
+};
+
 export const NetworkSelector = () => {
   const context = useContext(AppContext);
 
@@ -15,10 +28,7 @@ export const NetworkSelector = () => {
   const [project, setProject] = useState<string>('');
   const [pattern, setPattern] = useState<string>('');
   const [networkData, setNetworkData] = useState<Record<string, any>[]>([]);
-  // function openTab (url: string) {
-  //   console.log("openTab");
-  //   window.open(url, '_blank');
-  // }
+  const fgRef = useRef<any>(null);
 
   useEffect(() => {
     if (graphType && project && pattern) {
@@ -34,6 +44,24 @@ export const NetworkSelector = () => {
       );
     }
   }, [context, graphType, pattern, project]);
+
+  const handleClick = useCallback((node: NodeObject$1) => {
+    // Aim at node from outside it
+    const distance = 40;
+    const distRatio = 1 + distance / Math.hypot(node.x ?? 1, node.y ?? 1, node.z ?? 1);
+
+    if (node.x && node.y && node.z && fgRef.current && 'cameraPosition' in fgRef.current) {
+      fgRef.current.cameraPosition(
+        {
+          x: node.x * distRatio,
+          y: node.y * distRatio,
+          z: node.z * distRatio
+        }, // new position
+        node, // lookAt ({ x, y, z })
+        3000 // ms transition duration
+      );
+    }
+  }, [fgRef]);
 
   return (
     <>
@@ -73,9 +101,13 @@ export const NetworkSelector = () => {
           </Card>
           <Typography variant="h4">ForceGraph3D</Typography>
           <ForceGraph3D
+            ref={fgRef}
             graphData={networkData[0]['node_link_data']}
-            nodeColor={'group'}
             nodeLabel={'id'}
+            nodeAutoColorBy={'id'}
+            linkWidth={1}
+            linkDirectionalParticles={1}
+            onNodeClick={handleClick}
             // onNodeClick={node => {openTab(node.id as string)}}
           />
           <Typography variant="h4">ForceGraph2D</Typography>

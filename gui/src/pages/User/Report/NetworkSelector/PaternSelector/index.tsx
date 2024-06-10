@@ -12,6 +12,7 @@ export const PatternSelector: React.FC<{
 }> = ({ project, setPattern }) => {
   const context = useContext(AppContext);
   const [patterns, setPatterns] = useState<Record<string, string>[]>([]);
+  const [selectedValue, setSelectedValue] = useState('');
 
   useEffect(() => {
     query(
@@ -24,6 +25,7 @@ export const PatternSelector: React.FC<{
   const handleChange = (event: SelectChangeEvent<unknown>) => {
     if (_.isString(event.target.value)) {
       setPattern(event.target.value);
+      setSelectedValue(event.target.value);
     }
   };
 
@@ -34,6 +36,7 @@ export const PatternSelector: React.FC<{
         id="demo-simple-select"
         label="project"
         onChange={handleChange}
+        value={selectedValue}
       >
         <MenuItem key={'global'} value={'global'}>
           Global

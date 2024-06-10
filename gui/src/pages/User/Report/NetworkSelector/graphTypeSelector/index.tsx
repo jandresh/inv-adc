@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import _ from 'lodash';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
@@ -12,10 +12,12 @@ export const GraphTypeSelector: React.FC<{
     { '_id': '2', 'name': 'Keywords', 'value': 'keywords' },
     { '_id': '3', 'name': 'Organizations', 'value': 'organizations' }
   ];
+  const [selectedValue, setSelectedValue] = useState('');
 
   const handleChange = (event: SelectChangeEvent<unknown>) => {
     if (_.isString(event.target.value)) {
       setGraphType(event.target.value);
+      setSelectedValue(event.target.value);
     }
   };
 
@@ -26,6 +28,7 @@ export const GraphTypeSelector: React.FC<{
         id="demo-simple-select"
         label="project"
         onChange={handleChange}
+        value={selectedValue}
       >
         {graphTypes.map(
           (selectedType): JSX.Element => (

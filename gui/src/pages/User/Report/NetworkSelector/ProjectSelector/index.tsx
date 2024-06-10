@@ -11,6 +11,7 @@ export const ProjectSelector: React.FC<{
 }> = ({ setProject }) => {
   const context = useContext(AppContext);
   const [projects, setProjects] = useState<Record<string, string>[]>([]);
+  const [selectedValue, setSelectedValue] = useState('');
 
   useEffect(() => {
     query(
@@ -23,6 +24,7 @@ export const ProjectSelector: React.FC<{
   const handleChange = (event: SelectChangeEvent<unknown>) => {
     if (_.isString(event.target.value)) {
       setProject(event.target.value);
+      setSelectedValue(event.target.value);
     }
   };
 
@@ -33,6 +35,7 @@ export const ProjectSelector: React.FC<{
         id="demo-simple-select"
         label="project"
         onChange={handleChange}
+        value={selectedValue}
       >
         {projects.map(
           (selectedProject): JSX.Element => (
