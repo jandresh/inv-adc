@@ -1,3 +1,4 @@
+import asyncio
 import base64
 from datetime import (
     datetime,
@@ -44,6 +45,10 @@ class PipelineType(str, Enum):
 
 def post_json_request(url, obj):
     return requests.post(url, json=obj).json()
+
+
+async def async_post_json_request(url, obj):
+    return await asyncio.to_thread(post_json_request, url, obj)
 
 
 def get_json_orcid_request(name):
@@ -664,7 +669,7 @@ def pipeline7():
 
 
 @app.route("/metadata-pipeline", methods=["POST"])
-def metadata_pipeline():
+async def metadata_pipeline():
     if not request.json:
         abort(400)
     success = 0
@@ -696,20 +701,22 @@ def metadata_pipeline():
                 PipelineStatus.RUNNING,
                 f"Processing pattern {pattern['pattern']}",
             )
-            fill_metadata_result = post_json_request(
-                db_url("CORE"),
-                {
-                    "query": pattern["pattern"],
-                    "patternid": pattern["_id"],
-                    "maxdocs": int(project_info[0]["maxDocs"])
-                    if project_info
-                    else 100,
-                    "organization": organization,
-                    "project": project,
-                },
-            )
-            print(f"fill_metadata: {fill_metadata_result}", flush=True)
-            if fill_metadata_result and fill_metadata_result["exit"] == 0:
+            urls = [db_url("PUBMED"), db_url("ARXIV"), db_url("CORE")]
+            data = {
+                "query": pattern["pattern"],
+                "patternid": pattern["_id"],
+                "maxdocs": int(project_info[0]["maxDocs"])
+                if project_info
+                else 100,
+                "organization": organization,
+                "project": project,
+            }
+            tasks = [async_post_json_request(url, data) for url in urls]
+            fill_metadata_results = await asyncio.gather(*tasks)
+            print(f"fill_metadata: {fill_metadata_results}", flush=True)
+            if fill_metadata_results and all(
+                result.get("exit") == 0 for result in fill_metadata_results
+            ):
                 pipeline_logger(
                     PipelineType.METADATA,
                     organization,

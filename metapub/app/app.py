@@ -3,7 +3,9 @@
 # Author: Jaime Hurtado - jaime.hurtado@correounivalle.edu.co
 # Fecha: 2022-03-02
 #
-from enum import Enum
+from enum import (
+    Enum,
+)
 from flask import (
     abort,
     Flask,
