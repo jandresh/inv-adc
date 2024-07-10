@@ -3,6 +3,7 @@
 # Author: Jaime Hurtado - jaime.hurtado@correounivalle.edu.co
 # Fecha: 2022-03-02
 #
+from enum import Enum
 from flask import (
     abort,
     Flask,
@@ -24,6 +25,12 @@ import time
 
 app = Flask(__name__)
 CORS(app)
+
+
+class GraphType(str, Enum):
+    AUTHORS = "authors"
+    KEYWORDS = "keywords"
+    ORGANIZATIONS = "organizations"
 
 
 def post_json_request(url, obj):
@@ -207,10 +214,57 @@ def pdf_from_pmid():
     return jsonify(pdf_url=src.url)
 
 
+def search_equation(query: list[str]) -> str:
+    pattern = ""
+    for i in range(len(query)):
+        if i == len(query) - 1:
+            pattern += "%s[Title/Abstract]" % (query[i])
+        else:
+            pattern += "%s[Title/Abstract] AND " % (query[i])
+    print(f"search_equation={pattern}", flush=True)
+    return pattern
+
+
+def fill_graph(
+    graph_type: GraphType,
+    items: list[str],
+    organization: str,
+    project: str,
+    pattern_id: str,
+) -> None:
+    if len(items) < 2:
+        return None
+
+    singular = graph_type.value[:-1]
+    item = items.pop()
+    document = {"related": {"$each": sorted(items)}}
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"{graph_type.value}#{project}#global",
+            "filter": {singular: item},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"{graph_type.value}#{project}#{pattern_id}",
+            "filter": {singular: item},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    fill_graph(graph_type, items, organization, project, pattern_id)
+
+
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast[Title/Abstract] AND carcinoma[Title/Abstract]", "patternid": 1, "maxdocs": 200, "database": "test", "project": "adc-cali" }' http://localhost:5000/query
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast carcinoma", "patternid": 1, "maxdocs": 200, "organization": "test4", "project": "adc-cali" }' http://localhost:5000/query
 #
 
 
@@ -221,7 +275,7 @@ def query():
         abort(400)
     query = request.json["query"]
     patternid = request.json["patternid"]
-    database = request.json["database"]
+    database = request.json["organization"]
     project = request.json["project"]
     maxdocs = request.json["maxdocs"]
     count = 0
@@ -231,7 +285,9 @@ def query():
     while not success:
         attempts += 1
         try:
-            pmids = fetch.pmids_for_query(query, retmax=maxdocs)
+            pmids = fetch.pmids_for_query(
+                search_equation(query.strip().split()), retmax=maxdocs
+            )
             success = True
         except:
             time.sleep(5)
@@ -253,102 +309,181 @@ def query():
                     time.sleep(5)
                     success = False if attempts > 2 else True
             if success:
-                abstract = article.get("abstract", "")
-                title = article.get("title", "")
-                dbid = article.get("pmid", "")
-                doi = article.get("doi", "")
-                authors = article.get("authors", "")
-                url = ""
                 try:
-                    url = FindIt(pmid).url
-                except:
+                    abstract = article.get("abstract", "")
+                    title = article.get("title", "")
+                    dbid = article.get("pmid", "")
+                    doi = article.get("doi", "")
+                    authors = article.get("authors", "")
                     url = ""
-                year = article.get("year", "")
-                try:
-                    if abstract is not "":
-                        text = abstract
-                    elif title is not "":
-                        text = title
-                    else:
-                        text = ""
-                    lang_json = post_json_request(
-                        "http://preprocessing:5000/text2lang", {"text": text}
+                    try:
+                        url = FindIt(pmid).url
+                    except:
+                        url = ""
+                    year = article.get("year", "")
+                    full_text = post_json_request(
+                        "http://preprocessing:5000/url2text", {"url": url}
+                    ).get("url2text", "")
+                    emails: list[str] = list(
+                        set(
+                            post_json_request(
+                                "http://preprocessing:5000/text2emails",
+                                {"text": full_text},
+                            ).get("emails", [])
+                        )
                     )
-                except:
-                    lang_json["lang"] = ""
-                if title is not None:
-                    document = {
-                        "pat_id": patternid,
-                        "dbid": dbid,
-                        "doi": doi,
-                        "title": title,
-                        "abstract": abstract,
-                        "authors": authors,
-                        "org": "",
-                        "url": url,
-                        "year": year,
-                        "lang": lang_json["lang"],
-                    }
-                    try:
+                    keywords_with_score: list[list[str]] = sorted(
+                        post_json_request(
+                            "http://preprocessing:5000/text2keywords",
+                            {"text": full_text},
+                        ).get("keywords", []),
+                        key=lambda x: x[1],
+                        reverse=True,
+                    )
+                    keywords = [
+                        keyword[0] for keyword in keywords_with_score[:10]
+                    ]
+                    organizations = list(
+                        {
+                            email.split("@")[1]
+                            for email in emails
+                            if "@" in email
+                        }
+                    )
+                    if title is not None:
+                        document = {
+                            "pat_id": patternid,
+                            "dbid": dbid,
+                            "doi": doi,
+                            "title": title,
+                            "abstract": abstract,
+                            "authors": authors,
+                            "emails": emails,
+                            "keywords": keywords,
+                            "organizations": organizations,
+                            "url": url,
+                            "year": year,
+                            "lang": post_json_request(
+                                "http://preprocessing:5000/text2lang",
+                                {"text": full_text},
+                            ).get("lang", ""),
+                        }
                         post_json_request(
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_metadata_{patternid}",
+                                "coll_name": f"metadata#{project}#{patternid}",
                                 "filter": {"title": title},
                                 "document": document,
                             },
                         )
-                    except:
-                        print(f"Exception can't insert document for {dbid}")
-                    try:
+                        authors_set = sorted(set(emails), reverse=True)
+                        fill_graph(
+                            GraphType.AUTHORS,
+                            authors_set,
+                            database,
+                            project,
+                            patternid,
+                        )
+                        keywords_set = sorted(set(keywords), reverse=True)
+                        fill_graph(
+                            GraphType.KEYWORDS,
+                            keywords_set,
+                            database,
+                            project,
+                            patternid,
+                        )
+                        organizations_set = sorted(
+                            set(organizations), reverse=True
+                        )
+                        fill_graph(
+                            GraphType.ORGANIZATIONS,
+                            organizations_set,
+                            database,
+                            project,
+                            patternid,
+                        )
                         post_json_request(
                             "http://db:5000/mongo-doc-update",
                             {
                                 "db_name": database,
-                                "coll_name": f"{project}_metadata_global",
+                                "coll_name": f"metadata#{project}#global",
                                 "filter": {"title": title},
                                 "document": document,
                             },
                         )
-                    except:
-                        print(
-                            f"Exception can't insert global document for {dbid}"
-                        )
-                    for author in authors:
-                        try:
+                        for email in emails:
                             post_json_request(
                                 "http://db:5000/mongo-doc-update",
                                 {
                                     "db_name": database,
-                                    "coll_name": f"{project}_author_vs_doc_id_{patternid}",
-                                    "filter": {"author": author},
+                                    "coll_name": f"author_vs_doc#{project}#{patternid}",
+                                    "filter": {"author": email},
                                     "document": {
                                         "doc_id": dbid,
                                         "doi": doi,
                                     },
                                 },
                             )
-                        except:
-                            print(
-                                f"Exception can't insert document for author {author} and {dbid}"
-                            )
-                        try:
                             post_json_request(
                                 "http://db:5000/mongo-doc-update",
                                 {
                                     "db_name": database,
-                                    "coll_name": f"{project}_author_vs_doc_id_global",
-                                    "filter": {"author": author},
+                                    "coll_name": f"author_vs_doc#{project}#global",
+                                    "filter": {"author": email},
                                     "document": {
                                         "doc_id": dbid,
                                         "doi": doi,
                                     },
                                 },
                             )
-                        except:
-                            print(
-                                f"Exception can't insert document for author {author} and {dbid}"
+                        for keyword in keywords:
+                            post_json_request(
+                                "http://db:5000/mongo-doc-insert",
+                                {
+                                    "db_name": database,
+                                    "coll_name": f"wordcloud#{project}#{patternid}",
+                                    "document": {
+                                        "keyword": keyword,
+                                    },
+                                },
                             )
-                    sys.stdout.flush()
+                            post_json_request(
+                                "http://db:5000/mongo-doc-insert",
+                                {
+                                    "db_name": database,
+                                    "coll_name": f"wordcloud#{project}#global",
+                                    "document": {
+                                        "keyword": keyword,
+                                    },
+                                },
+                            )
+                        for organization in organizations:
+                            post_json_request(
+                                "http://db:5000/mongo-doc-update",
+                                {
+                                    "db_name": database,
+                                    "coll_name": f"organization_vs_doc#{project}#{patternid}",
+                                    "filter": {"organization": organization},
+                                    "document": {
+                                        "doc_id": dbid,
+                                        "doi": doi,
+                                    },
+                                },
+                            )
+                            post_json_request(
+                                "http://db:5000/mongo-doc-update",
+                                {
+                                    "db_name": database,
+                                    "coll_name": f"organization_vs_doc#{project}#global",
+                                    "filter": {"organization": organization},
+                                    "document": {
+                                        "doc_id": dbid,
+                                        "doi": doi,
+                                    },
+                                },
+                            )
+                except requests.exceptions.JSONDecodeError as error:
+                    print(error, flush=True)
+
     return object_to_response([{"exit": 0}])

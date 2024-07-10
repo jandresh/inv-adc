@@ -19,7 +19,6 @@ import json
 from langdetect import (
     detect,
 )
-import re
 import requests
 import time
 
@@ -582,19 +581,6 @@ def query_core_scroll():
     ptid = request.json["idpattern"]
     result = scroll2("https://api.core.ac.uk/v3/search/works", query, ptid)
     return jsonify(result=result)
-
-
-def str2eq(pattern, sentences_str):
-    pattern = re.compile(pattern)
-    match = ""
-    sentences = []
-    while match != None:
-        match = pattern.search(sentences_str)
-        if match != None:
-            sentences.append(sentences_str[: match.start()].split())
-            sentences_str = sentences_str[match.end() :]
-
-    return sentences
 
 
 def search_equation(query: list[str]) -> str:

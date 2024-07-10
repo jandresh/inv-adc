@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
         "microservices"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }

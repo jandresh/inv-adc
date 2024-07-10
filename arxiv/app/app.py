@@ -1,4 +1,7 @@
 import arxiv
+from enum import (
+    Enum,
+)
 from flask import (
     abort,
     Flask,
@@ -11,12 +14,15 @@ from flask_cors import (
 import json
 import requests
 import sys
-from unittest import (
-    skip,
-)
 
 app = Flask(__name__)
 CORS(app)
+
+
+class GraphType(str, Enum):
+    AUTHORS = "authors"
+    KEYWORDS = "keywords"
+    ORGANIZATIONS = "organizations"
 
 
 def post_json_request(url, obj):
@@ -45,7 +51,7 @@ def root():
 #
 # *****query_arxiv******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "terms: AND abstract=BREAST; AND abstract=CANCER" }' http://localhost:5005/arxiv | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "BREAST CANCER" }' http://localhost:5005/arxiv | jq '.' | less
 #
 
 
@@ -58,7 +64,9 @@ def query_arxiv():
     )
     query = request.json["query"]
     count = 0
-    results = big_slow_client.results(arxiv.Search(query=query))
+    results = big_slow_client.results(
+        arxiv.Search(query=query, max_results=200)
+    )
     for result in results:
         count = count + 1
         if count > 1000:
@@ -77,19 +85,65 @@ def query_arxiv():
             result.primary_category: {result.primary_category}
             result.categories: {result.categories}
             result.links: {result.links}
-            result.pdf_url: {result.pdf_url}"""
+            result.pdf_url: {result.pdf_url}""",
+            flush=True,
         )
-        authors = list(map(lambda author: author.name))
-        print(authors)
-        sys.stdout.flush()
+        print([author.name for author in result.authors], flush=True)
 
     return object_to_response({"exit": 0})
+
+
+def search_equation(query: list[str]) -> str:
+    pattern = "abs:"
+    for i in range(len(query)):
+        if i == len(query) - 1:
+            pattern += "%s" % (query[i])
+        else:
+            pattern += "%s AND abs:" % (query[i])
+    print(f"search_equation={pattern}", flush=True)
+    return pattern
+
+
+def fill_graph(
+    graph_type: GraphType,
+    items: list[str],
+    organization: str,
+    project: str,
+    pattern_id: str,
+) -> None:
+    if len(items) < 2:
+        return None
+
+    singular = graph_type.value[:-1]
+    item = items.pop()
+    document = {"related": {"$each": sorted(items)}}
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"{graph_type.value}#{project}#global",
+            "filter": {singular: item},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    post_json_request(
+        "http://db:5000/mongo-doc-update",
+        {
+            "db_name": organization,
+            "coll_name": f"{graph_type.value}#{project}#{pattern_id}",
+            "filter": {singular: item},
+            "document": document,
+            "add_to_set": True,
+        },
+    )
+    fill_graph(graph_type, items, organization, project, pattern_id)
 
 
 #
 # *****query_arxiv******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "terms: AND abstract=BREAST; AND abstract=CANCER", "patternid": 1, "maxdocs": 2000 }' http://localhost:5005/query | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast carcinoma", "patternid": 1, "maxdocs": 200, "organization": "test4", "project": "adc-cali" }' http://localhost:5005/query | jq '.' | less
 #
 
 
@@ -97,108 +151,184 @@ def query_arxiv():
 def query():
     if not request.json:
         abort(400)
+    query: str = request.json["query"]
+    database = request.json["organization"]
+    project = request.json["project"]
+    max_docs = request.json["maxdocs"]
     big_slow_client = arxiv.Client(
         page_size=500, delay_seconds=10, num_retries=5
     )
-    query = request.json["query"]
     patternid = request.json["patternid"]
-    maxdocs = request.json["maxdocs"]
-    count = 0
-    results = big_slow_client.results(arxiv.Search(query=query))
+    results = big_slow_client.results(
+        arxiv.Search(
+            query=search_equation(query.strip().split()), max_results=max_docs
+        )
+    )
+
     for result in results:
-        count = count + 1
-        if count > maxdocs:
-            break
-        abstract = result.summary
-        title = result.title
-        dbid = result.entry_id.replace("http://arxiv.org/abs/", "")
-        doi = result.doi
-        authors = list(map(lambda author: author.name, result.authors))
-        url = result.pdf_url
-        year = result.published.isoformat()
         try:
-            if abstract is not None:
-                text = abstract
-            elif title is not None:
-                text = title
-            else:
-                text = ""
-            lang_json = post_json_request(
-                "http://preprocessing:5000/text2lang", {"text": text}
+            abstract = result.summary
+            title = result.title
+            dbid = result.entry_id.replace("http://arxiv.org/abs/", "")
+            doi = result.doi
+            authors = [author.name for author in result.authors]
+            url = result.pdf_url
+            year = result.published.isoformat()
+            full_text = post_json_request(
+                "http://preprocessing:5000/url2text", {"url": url}
+            ).get("url2text", "")
+            emails: list[str] = list(
+                set(
+                    post_json_request(
+                        "http://preprocessing:5000/text2emails",
+                        {"text": full_text},
+                    ).get("emails", [])
+                )
             )
-        except:
-            lang_json["lang"] = ""
-        if result is not None:
-            document = {
-                "pat_id": patternid if patternid is not None else "",
-                "dbid": dbid if dbid is not None else "",
-                "doi": doi if doi is not None else "",
-                "title": title if title is not None else "",
-                "abstract": abstract if abstract is not None else "",
-                "authors": authors if authors is not None else "",
-                "org": "",
-                "url": url if url is not None else "",
-                "year": year if year is not None else "",
-                "lang": lang_json["lang"]
-                if lang_json["lang"] is not None
-                else "",
-            }
-            try:
+            keywords_with_score: list[list[str]] = sorted(
                 post_json_request(
-                    "http://db:5000/mongo-doc-insert",
+                    "http://preprocessing:5000/text2keywords",
+                    {"text": full_text},
+                ).get("keywords", []),
+                key=lambda x: x[1],
+                reverse=True,
+            )
+            keywords = [keyword[0] for keyword in keywords_with_score[:10]]
+            organizations = list(
+                {email.split("@")[1] for email in emails if "@" in email}
+            )
+            if title is not None:
+                document = {
+                    "pat_id": patternid,
+                    "dbid": dbid,
+                    "doi": doi,
+                    "title": title,
+                    "abstract": abstract,
+                    "authors": authors,
+                    "emails": emails,
+                    "keywords": keywords,
+                    "organizations": organizations,
+                    "url": url,
+                    "year": year,
+                    "lang": post_json_request(
+                        "http://preprocessing:5000/text2lang",
+                        {"text": full_text},
+                    ).get("lang", ""),
+                }
+                post_json_request(
+                    "http://db:5000/mongo-doc-update",
                     {
-                        "db_name": "metadata",
-                        "coll_name": f"metadata_{patternid}",
+                        "db_name": database,
+                        "coll_name": f"metadata#{project}#{patternid}",
+                        "filter": {"title": title},
                         "document": document,
                     },
                 )
-            except:
-                print(f"Exception on can't insert document for {dbid}")
-            try:
+                authors_set = sorted(set(emails), reverse=True)
+                fill_graph(
+                    GraphType.AUTHORS,
+                    authors_set,
+                    database,
+                    project,
+                    patternid,
+                )
+                keywords_set = sorted(set(keywords), reverse=True)
+                fill_graph(
+                    GraphType.KEYWORDS,
+                    keywords_set,
+                    database,
+                    project,
+                    patternid,
+                )
+                organizations_set = sorted(set(organizations), reverse=True)
+                fill_graph(
+                    GraphType.ORGANIZATIONS,
+                    organizations_set,
+                    database,
+                    project,
+                    patternid,
+                )
                 post_json_request(
-                    "http://db:5000/mongo-doc-insert",
+                    "http://db:5000/mongo-doc-update",
                     {
-                        "db_name": "metadata",
-                        "coll_name": f"metadata_global",
+                        "db_name": database,
+                        "coll_name": f"metadata#{project}#global",
+                        "filter": {"title": title},
                         "document": document,
                     },
                 )
-            except:
-                print(f"Exception on can't insert document for {dbid}")
-            for author in authors:
-                try:
+                for email in emails:
                     post_json_request(
-                        "http://db:5000/mongo-doc-insert",
+                        "http://db:5000/mongo-doc-update",
                         {
-                            "db_name": "authors",
-                            "coll_name": f"author_vs_doc_id_{patternid}",
+                            "db_name": database,
+                            "coll_name": f"author_vs_doc#{project}#{patternid}",
+                            "filter": {"author": email},
                             "document": {
-                                "author": author,
-                                "doc_id": dbid if dbid is not None else "",
-                                "doi": doi if doi is not None else "",
+                                "doc_id": dbid,
+                                "doi": doi,
                             },
                         },
                     )
-                except:
-                    print(
-                        f"Exception on can't insert document for author {author}"
-                    )
-                try:
                     post_json_request(
-                        "http://db:5000/mongo-doc-insert",
+                        "http://db:5000/mongo-doc-update",
                         {
-                            "db_name": "authors",
-                            "coll_name": f"author_vs_doc_id_global",
+                            "db_name": database,
+                            "coll_name": f"author_vs_doc#{project}#global",
+                            "filter": {"author": email},
                             "document": {
-                                "author": author,
-                                "doc_id": dbid if dbid is not None else "",
-                                "doi": doi if doi is not None else "",
+                                "doc_id": dbid,
+                                "doi": doi,
                             },
                         },
                     )
-                except:
-                    print(
-                        f"Exception on can't insert document for author {author}"
+                for keyword in keywords:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-insert",
+                        {
+                            "db_name": database,
+                            "coll_name": f"wordcloud#{project}#{patternid}",
+                            "document": {
+                                "keyword": keyword,
+                            },
+                        },
                     )
-            sys.stdout.flush()
+                    post_json_request(
+                        "http://db:5000/mongo-doc-insert",
+                        {
+                            "db_name": database,
+                            "coll_name": f"wordcloud#{project}#global",
+                            "document": {
+                                "keyword": keyword,
+                            },
+                        },
+                    )
+                for organization in organizations:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"organization_vs_doc#{project}#{patternid}",
+                            "filter": {"organization": organization},
+                            "document": {
+                                "doc_id": dbid,
+                                "doi": doi,
+                            },
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"organization_vs_doc#{project}#global",
+                            "filter": {"organization": organization},
+                            "document": {
+                                "doc_id": dbid,
+                                "doi": doi,
+                            },
+                        },
+                    )
+        except requests.exceptions.JSONDecodeError as error:
+            print(error, flush=True)
+
     return object_to_response({"exit": 0})

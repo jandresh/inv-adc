@@ -12,3 +12,12 @@ npm i -g npm-check-updates
 sudo npm i -g npm-check-updates
 ncu -u
 npm install
+m github:fluidattacks/makes-example@main /formatPython/default
+python3 -m venv inv-adc
+source inv-adc/bin/activate
+pip install -r metapub/app/requirements.txt
+pip install -r arxiv/app/requirements.txt
+pip install -r core/app/requirements.txt
+pip install -r preprocessing/app/requirements.txt
+pip install -r db/app/requirements.txt
+pip install -r orchestrator/app/requirements.txt
