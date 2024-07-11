@@ -310,7 +310,9 @@ def fill_graph(
     if len(items) < 2:
         return None
 
-    singular = graph_type.value[:-1]
+    singular = (
+        graph_type.value[:-1] if graph_type.value != "countries" else "country"
+    )
     item = items.pop()
     document = {"related": {"$each": sorted(items)}}
     post_json_request(
@@ -367,6 +369,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                     authors = standardize_authors(result.get("authors", ""))
                     url = result.get("downloadUrl", "")
                     year = result.get("publishedDate", "")
+                    year = datetime.fromisoformat(year).year if year else None
                     if not url:
                         continue
                     full_text = post_json_request(
@@ -411,10 +414,12 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                     countries = [
                         country[0] for country in countries_with_score[:3]
                     ]
-                    language =  post_json_request(
-                                "http://preprocessing:5000/text2lang",
-                                {"text": full_text},
-                            ).get("lang", ""),
+                    language = (
+                        post_json_request(
+                            "http://preprocessing:5000/text2lang",
+                            {"text": full_text},
+                        ).get("lang", ""),
+                    )
                     if title is not None:
                         document = {
                             "pat_id": patternid,
@@ -491,12 +496,14 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"language_info#{project}#{patternid}",
                                     "filter": {"language": language},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
-                                        "organizations": { "$each": organizations_set },
+                                        "keywords": {"$each": keywords_set},
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -509,12 +516,14 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"language_info#{project}#global",
                                     "filter": {"language": language},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
-                                        "organizations": { "$each": organizations_set },
+                                        "keywords": {"$each": keywords_set},
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -528,12 +537,14 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"year_info#{project}#{patternid}",
                                     "filter": {"year": str(year)},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
-                                        "organizations": { "$each": organizations_set },
+                                        "keywords": {"$each": keywords_set},
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                     },
                                     "add_to_set": True,
                                 },
@@ -545,12 +556,14 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"year_info#{project}#global",
                                     "filter": {"year": str(year)},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
-                                        "organizations": { "$each": organizations_set },
+                                        "keywords": {"$each": keywords_set},
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                     },
                                     "add_to_set": True,
                                 },
@@ -563,13 +576,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"author_info#{project}#{patternid}",
                                     "filter": {"author": email},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -582,13 +597,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"author_info#{project}#global",
                                     "filter": {"author": email},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -622,13 +639,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"keyword_info#{project}#{patternid}",
                                     "filter": {"keyword": keyword},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -641,13 +660,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"keyword_info#{project}#global",
                                     "filter": {"keyword": keyword},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -661,13 +682,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"organization_info#{project}#{patternid}",
                                     "filter": {"organization": organization},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -680,13 +703,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"organization_info#{project}#global",
                                     "filter": {"organization": organization},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -700,13 +725,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"country_info#{project}#{patternid}",
                                     "filter": {"country": country},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -719,13 +746,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "coll_name": f"country_info#{project}#global",
                                     "filter": {"country": country},
                                     "document": {
-                                        "authors": { "$each": authors_set },
-                                        "countries": { "$each": countries_set },
+                                        "authors": {"$each": authors_set},
+                                        "countries": {"$each": countries_set},
                                         "doc_id": dbid,
                                         "doi": doi,
-                                        "keywords": { "$each": keywords_set },
+                                        "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": { "$each": organizations_set },
+                                        "organizations": {
+                                            "$each": organizations_set
+                                        },
                                         "year": year,
                                     },
                                     "add_to_set": True,

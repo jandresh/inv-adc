@@ -21,6 +21,7 @@ CORS(app)
 
 class GraphType(str, Enum):
     AUTHORS = "authors"
+    COUNTRIES = "countries"
     KEYWORDS = "keywords"
     ORGANIZATIONS = "organizations"
 
@@ -114,7 +115,9 @@ def fill_graph(
     if len(items) < 2:
         return None
 
-    singular = graph_type.value[:-1]
+    singular = (
+        graph_type.value[:-1] if graph_type.value != "countries" else "country"
+    )
     item = items.pop()
     document = {"related": {"$each": sorted(items)}}
     post_json_request(
@@ -173,10 +176,14 @@ def query():
             doi = result.doi
             authors = [author.name for author in result.authors]
             url = result.pdf_url
-            year = result.published.isoformat()
+            year = result.published.year
+            if not url:
+                continue
             full_text = post_json_request(
                 "http://preprocessing:5000/url2text", {"url": url}
-            ).get("url2text", "")
+            ).get("url2text")
+            if not full_text:
+                continue
             emails: list[str] = list(
                 set(
                     post_json_request(
@@ -193,9 +200,24 @@ def query():
                 key=lambda x: x[1],
                 reverse=True,
             )
-            keywords = [keyword[0] for keyword in keywords_with_score[:10]]
+            keywords = [keyword[0] for keyword in keywords_with_score[:3]]
             organizations = list(
                 {email.split("@")[1] for email in emails if "@" in email}
+            )
+            countries_with_score: list[list[str]] = sorted(
+                post_json_request(
+                    "http://preprocessing:5000/text2places",
+                    {"text": full_text},
+                ).get("places", []),
+                key=lambda x: x[1],
+                reverse=True,
+            )
+            countries = [country[0] for country in countries_with_score[:3]]
+            language = (
+                post_json_request(
+                    "http://preprocessing:5000/text2lang",
+                    {"text": full_text},
+                ).get("lang", ""),
             )
             if title is not None:
                 document = {
@@ -208,12 +230,10 @@ def query():
                     "emails": emails,
                     "keywords": keywords,
                     "organizations": organizations,
+                    "countries": countries,
                     "url": url,
                     "year": year,
-                    "lang": post_json_request(
-                        "http://preprocessing:5000/text2lang",
-                        {"text": full_text},
-                    ).get("lang", ""),
+                    "language": language,
                 }
                 post_json_request(
                     "http://db:5000/mongo-doc-update",
@@ -227,7 +247,7 @@ def query():
                 authors_set = sorted(set(emails), reverse=True)
                 fill_graph(
                     GraphType.AUTHORS,
-                    authors_set,
+                    authors_set.copy(),
                     database,
                     project,
                     patternid,
@@ -235,7 +255,7 @@ def query():
                 keywords_set = sorted(set(keywords), reverse=True)
                 fill_graph(
                     GraphType.KEYWORDS,
-                    keywords_set,
+                    keywords_set.copy(),
                     database,
                     project,
                     patternid,
@@ -243,7 +263,15 @@ def query():
                 organizations_set = sorted(set(organizations), reverse=True)
                 fill_graph(
                     GraphType.ORGANIZATIONS,
-                    organizations_set,
+                    organizations_set.copy(),
+                    database,
+                    project,
+                    patternid,
+                )
+                countries_set = sorted(set(countries), reverse=True)
+                fill_graph(
+                    GraphType.COUNTRIES,
+                    countries_set.copy(),
                     database,
                     project,
                     patternid,
@@ -257,29 +285,115 @@ def query():
                         "document": document,
                     },
                 )
-                for email in emails:
+                if language:
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"author_vs_doc#{project}#{patternid}",
-                            "filter": {"author": email},
+                            "coll_name": f"language_info#{project}#{patternid}",
+                            "filter": {"language": language},
                             "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
                                 "doc_id": dbid,
                                 "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
                             },
+                            "add_to_set": True,
                         },
                     )
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"author_vs_doc#{project}#global",
-                            "filter": {"author": email},
+                            "coll_name": f"language_info#{project}#global",
+                            "filter": {"language": language},
                             "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
                                 "doc_id": dbid,
                                 "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
                             },
+                            "add_to_set": True,
+                        },
+                    )
+                if year:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"year_info#{project}#{patternid}",
+                            "filter": {"year": str(year)},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "organizations": {"$each": organizations_set},
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"year_info#{project}#global",
+                            "filter": {"year": str(year)},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "organizations": {"$each": organizations_set},
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                for email in emails:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"author_info#{project}#{patternid}",
+                            "filter": {"author": email},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"author_info#{project}#global",
+                            "filter": {"author": email},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
                         },
                     )
                 for keyword in keywords:
@@ -303,29 +417,120 @@ def query():
                             },
                         },
                     )
-                for organization in organizations:
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"organization_vs_doc#{project}#{patternid}",
-                            "filter": {"organization": organization},
+                            "coll_name": f"keyword_info#{project}#{patternid}",
+                            "filter": {"keyword": keyword},
                             "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
                                 "doc_id": dbid,
                                 "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
                             },
+                            "add_to_set": True,
                         },
                     )
                     post_json_request(
                         "http://db:5000/mongo-doc-update",
                         {
                             "db_name": database,
-                            "coll_name": f"organization_vs_doc#{project}#global",
-                            "filter": {"organization": organization},
+                            "coll_name": f"keyword_info#{project}#global",
+                            "filter": {"keyword": keyword},
                             "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
                                 "doc_id": dbid,
                                 "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
                             },
+                            "add_to_set": True,
+                        },
+                    )
+                for organization in organizations:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"organization_info#{project}#{patternid}",
+                            "filter": {"organization": organization},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"organization_info#{project}#global",
+                            "filter": {"organization": organization},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                for country in countries:
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"country_info#{project}#{patternid}",
+                            "filter": {"country": country},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
+                        },
+                    )
+                    post_json_request(
+                        "http://db:5000/mongo-doc-update",
+                        {
+                            "db_name": database,
+                            "coll_name": f"country_info#{project}#global",
+                            "filter": {"country": country},
+                            "document": {
+                                "authors": {"$each": authors_set},
+                                "countries": {"$each": countries_set},
+                                "doc_id": dbid,
+                                "doi": doi,
+                                "keywords": {"$each": keywords_set},
+                                "language": language,
+                                "organizations": {"$each": organizations_set},
+                                "year": year,
+                            },
+                            "add_to_set": True,
                         },
                     )
         except requests.exceptions.JSONDecodeError as error:
