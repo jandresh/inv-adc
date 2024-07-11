@@ -155,7 +155,12 @@ def emails_from_text():
     if not request.json:
         abort(400)
     text = request.json["text"]
-    return jsonify(emails=re.findall(r"[\w\.-]+@[\w\.-]+", text))
+    return jsonify(
+        emails=re.findall(
+            r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+            text,
+        )
+    )
 
 
 # *****language_from_text()******
