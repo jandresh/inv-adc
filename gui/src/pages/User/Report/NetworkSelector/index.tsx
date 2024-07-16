@@ -7,6 +7,7 @@ import { Card, CardContent, CardMedia, Typography } from '@mui/material';
 import _ from 'lodash';
 import { ForceGraph2D, ForceGraph3D } from 'react-force-graph';
 import { GraphTypeSelector } from './graphTypeSelector';
+import DataModal from 'components/Modals/Authors';
 
 type NodeObject$1 = object & {
   id?: string | number;
@@ -23,11 +24,14 @@ type NodeObject$1 = object & {
 
 export const NetworkSelector = () => {
   const context = useContext(AppContext);
+  const organization = context.user.orgId.split('.')[0];
 
   const [graphType, setGraphType] = useState<string>('');
   const [project, setProject] = useState<string>('');
   const [pattern, setPattern] = useState<string>('');
   const [networkData, setNetworkData] = useState<Record<string, any>[]>([]);
+  const [selectedNode, setSelectedNode] = useState<string | number | undefined>('');
+  const [openModal, setOpenModal] = useState<boolean>(false);
   const fgRef = useRef<any>(null);
 
   useEffect(() => {
@@ -36,17 +40,16 @@ export const NetworkSelector = () => {
         'runAdjacencyPipeline',
         setNetworkData,
         {
-          'organization': context.user.orgId.split('.')[0],
+          'organization': organization,
           'project': project,
           'pattern': pattern,
           'graph_type': graphType
         }
       );
     }
-  }, [context, graphType, pattern, project]);
+  }, [graphType, organization, pattern, project]);
 
   const handleClick = useCallback((node: NodeObject$1) => {
-    // Aim at node from outside it
     const distance = 40;
     const distRatio = 1 + distance / Math.hypot(node.x ?? 1, node.y ?? 1, node.z ?? 1);
 
@@ -56,12 +59,27 @@ export const NetworkSelector = () => {
           x: node.x * distRatio,
           y: node.y * distRatio,
           z: node.z * distRatio
-        }, // new position
-        node, // lookAt ({ x, y, z })
-        3000 // ms transition duration
+        },
+        node,
+        3000
       );
     }
+
+    setSelectedNode(node.id);
+    setOpenModal(true);
   }, [fgRef]);
+
+  // const calculateNodeDegrees = (data: { links: { source: string | number; target: string | number; }[]; nodes: any[]; }) => {
+  //   const nodeDegrees = {};
+  //   data.links.forEach((link: { source: string | number; target: string | number; }) => {
+  //     nodeDegrees[link.source] = (nodeDegrees[link.source] || 0) + 1;
+  //     nodeDegrees[link.target] = (nodeDegrees[link.target] || 0) + 1;
+  //   });
+  //   data.nodes.forEach(node => {
+  //     node.degree = nodeDegrees[node.id] || 0;
+  //   });
+  //   return data;
+  // };
 
   return (
     <>
@@ -105,15 +123,24 @@ export const NetworkSelector = () => {
             graphData={networkData[0]['node_link_data']}
             nodeLabel={'id'}
             nodeAutoColorBy={'id'}
+            nodeVal={node => Math.cbrt(node.degree) * 2}
             linkWidth={1}
             linkDirectionalParticles={1}
             onNodeClick={handleClick}
-            // onNodeClick={node => {openTab(node.id as string)}}
           />
           <Typography variant="h4">ForceGraph2D</Typography>
           <ForceGraph2D
             graphData={networkData[0]['node_link_data']}
             nodeLabel={'id'}
+          />
+          <DataModal
+            graphType={graphType}
+            node={selectedNode}
+            open={openModal}
+            organization={organization}
+            project={project}
+            pattern={pattern}
+            setOpen={setOpenModal}
           />
         </>)}
     </>

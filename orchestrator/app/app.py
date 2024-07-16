@@ -690,7 +690,20 @@ async def metadata_pipeline():
             "http://db:5000/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
-        for index, pattern in enumerate(patterns):
+    except Exception as ex:
+        patterns = []
+        pipeline_logger(
+            PipelineType.METADATA,
+            organization,
+            project,
+            pattern_id,
+            0,
+            PipelineStatus.ERROR,
+            str(ex),
+        )
+        success = 1
+    for index, pattern in enumerate(patterns):
+        try:
             pattern_id, pattern_index = (pattern["_id"], index)
             pipeline_logger(
                 PipelineType.METADATA,
@@ -715,7 +728,7 @@ async def metadata_pipeline():
             fill_metadata_results = await asyncio.gather(*tasks)
             print(f"fill_metadata: {fill_metadata_results}", flush=True)
             if fill_metadata_results and all(
-                result.get("exit") == 0 for result in fill_metadata_results
+                result[0].get("exit") == 0 for result in fill_metadata_results
             ):
                 pipeline_logger(
                     PipelineType.METADATA,
@@ -737,17 +750,17 @@ async def metadata_pipeline():
                     f"Error in Processing pattern {pattern['pattern']}",
                 )
 
-    except Exception as ex:
-        pipeline_logger(
-            PipelineType.METADATA,
-            organization,
-            project,
-            pattern_id,
-            int(pattern_index / len(patterns) * 100),
-            PipelineStatus.ERROR,
-            str(ex),
-        )
-        success = 1
+        except Exception as ex:
+            pipeline_logger(
+                PipelineType.METADATA,
+                organization,
+                project,
+                pattern_id,
+                int(pattern_index / len(patterns) * 100),
+                PipelineStatus.ERROR,
+                str(ex),
+            )
+            success = 1
     return object_to_response([{"exit": success}])
 
 
@@ -775,7 +788,9 @@ def adjacency_pipeline():
             "http://db:5000/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
-        singular = graph_type[:-1]
+        singular = (
+            graph_type[:-1] if graph_type != "countries" else "country"
+        )
         if pattern == "global" or (
             patterns and pattern in [item["_id"] for item in patterns]
         ):

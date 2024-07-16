@@ -10,7 +10,8 @@ export const GraphTypeSelector: React.FC<{
   const graphTypes: Record<string, string>[] = [
     { '_id': '1', 'name': 'Authors', 'value': 'authors' },
     { '_id': '2', 'name': 'Keywords', 'value': 'keywords' },
-    { '_id': '3', 'name': 'Organizations', 'value': 'organizations' }
+    { '_id': '3', 'name': 'Organizations', 'value': 'organizations' },
+    { '_id': '4', 'name': 'Countries', 'value': 'countries' }
   ];
   const [selectedValue, setSelectedValue] = useState('');
 
