@@ -3,7 +3,7 @@ flask-cors
 gensim==3.8.0
 geograpy3
 langdetect
-lxml[html_clean]
+lxml_html_clean
 nltk
 numpy
 pdftotext

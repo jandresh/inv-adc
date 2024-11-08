@@ -69,7 +69,12 @@ export const NetworkSelector = () => {
     setOpenModal(true);
   }, [fgRef]);
 
-  // const calculateNodeDegrees = (data: { links: { source: string | number; target: string | number; }[]; nodes: any[]; }) => {
+  // const calculateNodeDegrees = (
+  //   data: {
+  //     links: { source: string | number; target: string | number; }[];
+  //     nodes: any[];
+  //   }
+  // ) => {
   //   const nodeDegrees = {};
   //   data.links.forEach((link: { source: string | number; target: string | number; }) => {
   //     nodeDegrees[link.source] = (nodeDegrees[link.source] || 0) + 1;

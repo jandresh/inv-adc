@@ -33,7 +33,6 @@ from gensim.summarization import (
 from langdetect import (
     detect,
 )
-import urllib.parse
 import warnings
 
 warnings.filterwarnings("ignore")
