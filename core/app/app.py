@@ -423,6 +423,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                     if title is not None:
                         document = {
                             "pat_id": patternid,
+                            "source": "core",
                             "dbid": dbid,
                             "doi": doi,
                             "title": title,

@@ -379,6 +379,7 @@ def query():
                     if title is not None:
                         document = {
                             "pat_id": patternid,
+                            "source": "pubmed",
                             "dbid": dbid,
                             "doi": doi,
                             "title": title,
