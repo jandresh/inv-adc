@@ -788,9 +788,7 @@ def adjacency_pipeline():
             "http://db:5000/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
-        singular = (
-            graph_type[:-1] if graph_type != "countries" else "country"
-        )
+        singular = graph_type[:-1] if graph_type != "countries" else "country"
         if pattern == "global" or (
             patterns and pattern in [item["_id"] for item in patterns]
         ):
