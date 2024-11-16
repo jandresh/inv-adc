@@ -59,7 +59,7 @@ export const Login: React.FC<{
         response &&
         responseObj[0]['is_active']
       ) {
-        context.setUser({
+        const userData = {
           id: responseObj[0]['_id'],
           orgId: responseObj[0]['org_id'],
           firstName: responseObj[0]['first_name'],
@@ -70,14 +70,16 @@ export const Login: React.FC<{
           isActive: responseObj[0]['is_active'],
           isAdmin: responseObj[0]['is_admin'],
           isVerified: responseObj[0]['is_verified']
-        });
+        };
+        context.setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
         setAccess('LOGGED');
       } else if (
         success &&
         values.email === 'admin@adccali.com' &&
         values.password === 'admin'
       ) {
-        context.setUser({
+        const adminData = {
           id: '',
           orgId: 'adc-cali',
           firstName: 'Admin',
@@ -88,7 +90,9 @@ export const Login: React.FC<{
           isActive: true,
           isAdmin: true,
           isVerified: false
-        });
+        };
+        context.setUser(adminData);
+        localStorage.setItem('user', JSON.stringify(adminData));
         setAccess('LOGGED');
       } else {
         setOpen([true, success]);

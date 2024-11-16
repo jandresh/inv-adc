@@ -7,18 +7,20 @@ export interface IAppContext {
   setUser: React.Dispatch<React.SetStateAction<User>>;
 }
 
+export const guestUser = {
+  id: '',
+  orgId: '',
+  firstName: 'guest',
+  lastName: '',
+  email: '',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  isActive: false,
+  isAdmin: false,
+  isVerified: false
+};
+
 export const AppContext = createContext<IAppContext>({
-  user: {
-    id: '',
-    orgId: '',
-    firstName: 'guest',
-    lastName: '',
-    email: '',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    isActive: false,
-    isAdmin: false,
-    isVerified: false
-  },
+  user: guestUser,
   setUser: () => {}
 });

@@ -30,7 +30,6 @@ export const Home = () => {
       <Stack spacing={2}>
         {access === 'GUEST' && (
           <React.Fragment>
-            <Typography variant="h4">Welcome</Typography>
             <Button variant="contained" onClick={loginClick}>
               Login
             </Button>

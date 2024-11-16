@@ -1,12 +1,26 @@
 import {
   Home as HomeIcon,
-  BarChartOutlined as DashboardIcon,
-  Public as PublicIcon,
-  MonitorHeart as HealthIcon,
-  PublicOff as PrivateIcon,
+  InsightsOutlined as DashboardIcon,
+  IntegrationInstructions as MicroservicesIcon,
+  DnsOutlined as DatabaseIcon,
+  AutoFixHigh as PreprocessingIcon,
+  DescriptionOutlined as AcademicIcon,
+  Business as InstitutionsIcon,
+  SearchOutlined as QueryIcon,
+  SummarizeOutlined as ReportIcon,
+  History as HistoricIcon,
+  FolderOpenOutlined as ProjectsIcon,
+  GridViewOutlined as PatternsIcon,
+  CompareArrowsOutlined as PipelinesIcon,
+  CheckCircleOutlined as ValidateIcon,
+  GroupOutlined as UsersManagementIcon,
+  AdminPanelSettingsOutlined as AdminIcon,
+  ManageAccountsOutlined as AccountAdminIcon,
+  BuildOutlined as SetupIcon,
+  Timeline as UsageIcon,
   AccountBoxRounded as UserIcon,
   SettingsOutlined as SettingsIcon,
-  ListAlt as ListIcon,
+  TuneOutlined as PreferencesIcon,
   CreditCard as BillingIcon
 } from '@mui/icons-material';
 
@@ -21,7 +35,6 @@ import { Patterns } from 'pages/Researcher/Patterns';
 import { Projects } from 'pages/Researcher/Projects';
 import { Pipelines } from 'pages/Researcher/Pipelines';
 import { Report } from 'pages/User/Report';
-
 
 const routes: Array<Route> = [
   {
@@ -45,10 +58,10 @@ const routes: Array<Route> = [
   },
   {
     key: 'router-microservices',
-    title: 'microservices',
-    description: 'Micorservices interfaces',
+    title: 'Microservices',
+    description: 'Microservices interfaces',
     isEnabled: true,
-    icon: HealthIcon,
+    icon: MicroservicesIcon,
     subRoutes: [
       {
         key: 'router-microservices-arxiv',
@@ -57,7 +70,7 @@ const routes: Array<Route> = [
         component: Arxiv,
         path: '/microservices/arxiv',
         isEnabled: true,
-        icon: PublicIcon
+        icon: AcademicIcon
       },
       {
         key: 'router-microservices-core',
@@ -65,7 +78,7 @@ const routes: Array<Route> = [
         description: 'Core interface',
         path: '/microservices/core',
         isEnabled: true,
-        icon: PublicIcon
+        icon: AcademicIcon
       },
       {
         key: 'router-microservices-metapub',
@@ -73,7 +86,7 @@ const routes: Array<Route> = [
         description: 'Pubmed interface',
         path: '/microservices/metapub',
         isEnabled: true,
-        icon: PublicIcon
+        icon: AcademicIcon
       },
       {
         key: 'router-microservices-preprocessing',
@@ -81,7 +94,7 @@ const routes: Array<Route> = [
         description: 'Preprocessing microservices',
         path: '/microservices/preprocessing',
         isEnabled: true,
-        icon: PublicIcon
+        icon: PreprocessingIcon
       },
       {
         key: 'router-microservices-database',
@@ -90,7 +103,7 @@ const routes: Array<Route> = [
         component: Database,
         path: '/microservices/database',
         isEnabled: true,
-        icon: PublicIcon
+        icon: DatabaseIcon
       },
       {
         key: 'router-microservices-orchestrator',
@@ -98,7 +111,7 @@ const routes: Array<Route> = [
         description: 'Orchestrator microservices',
         path: '/microservices/orchestrator',
         isEnabled: true,
-        icon: PublicIcon
+        icon: DatabaseIcon
       },
       {
         key: 'router-search-institutions',
@@ -106,7 +119,7 @@ const routes: Array<Route> = [
         description: 'Institutions',
         path: '/search/institutions',
         isEnabled: false,
-        icon: PrivateIcon
+        icon: InstitutionsIcon
       }
     ]
   },
@@ -115,7 +128,7 @@ const routes: Array<Route> = [
     title: 'User',
     description: 'User interface',
     isEnabled: true,
-    icon: HealthIcon,
+    icon: UserIcon,
     subRoutes: [
       {
         key: 'router-user-query',
@@ -123,7 +136,7 @@ const routes: Array<Route> = [
         description: 'Query interface',
         path: '/user/query',
         isEnabled: true,
-        icon: PublicIcon
+        icon: QueryIcon
       },
       {
         key: 'router-user-report',
@@ -132,7 +145,7 @@ const routes: Array<Route> = [
         component: Report,
         path: '/user/report',
         isEnabled: true,
-        icon: PublicIcon
+        icon: ReportIcon
       },
       {
         key: 'router-user-historic',
@@ -140,7 +153,7 @@ const routes: Array<Route> = [
         description: 'Historic interface',
         path: '/user/historic',
         isEnabled: true,
-        icon: PublicIcon
+        icon: HistoricIcon
       }
     ]
   },
@@ -149,7 +162,7 @@ const routes: Array<Route> = [
     title: 'Researcher',
     description: 'Researcher interfaces',
     isEnabled: true,
-    icon: HealthIcon,
+    icon: UserIcon,
     subRoutes: [
       {
         key: 'router-researcher-projects',
@@ -158,7 +171,7 @@ const routes: Array<Route> = [
         component: Projects,
         path: '/researcher/projects',
         isEnabled: true,
-        icon: PublicIcon
+        icon: ProjectsIcon
       },
       {
         key: 'router-researcher-patterns',
@@ -167,7 +180,7 @@ const routes: Array<Route> = [
         component: Patterns,
         path: '/researcher/patterns',
         isEnabled: true,
-        icon: PublicIcon
+        icon: PatternsIcon
       },
       {
         key: 'router-researcher-pipelines',
@@ -176,7 +189,7 @@ const routes: Array<Route> = [
         component: Pipelines,
         path: '/researcher/pipelines',
         isEnabled: true,
-        icon: PublicIcon
+        icon: PipelinesIcon
       },
       {
         key: 'router-researcher-validate',
@@ -184,7 +197,7 @@ const routes: Array<Route> = [
         description: 'Validate interface',
         path: '/researcher/validate',
         isEnabled: true,
-        icon: PublicIcon
+        icon: ValidateIcon
       }
     ]
   },
@@ -193,7 +206,7 @@ const routes: Array<Route> = [
     title: 'Admin',
     description: 'Admin interfaces',
     isEnabled: true,
-    icon: HealthIcon,
+    icon: AdminIcon,
     subRoutes: [
       {
         key: 'router-admin-users',
@@ -202,7 +215,7 @@ const routes: Array<Route> = [
         component: Users,
         path: '/admin/users',
         isEnabled: true,
-        icon: PublicIcon
+        icon: UsersManagementIcon
       },
       {
         key: 'router-admin-setup',
@@ -210,7 +223,7 @@ const routes: Array<Route> = [
         description: 'System setup',
         path: '/admin/setup',
         isEnabled: true,
-        icon: PublicIcon
+        icon: SetupIcon
       },
       {
         key: 'router-admin-usage',
@@ -218,7 +231,7 @@ const routes: Array<Route> = [
         description: 'Usage reports',
         path: '/admin/usage',
         isEnabled: true,
-        icon: PublicIcon
+        icon: UsageIcon
       }
     ],
     appendDivider: true
@@ -229,7 +242,7 @@ const routes: Array<Route> = [
     description: 'My Account',
     path: '/account',
     isEnabled: true,
-    icon: UserIcon,
+    icon: AccountAdminIcon,
     subRoutes: [
       {
         key: 'router-settings',
@@ -245,7 +258,7 @@ const routes: Array<Route> = [
         description: 'Account Preferences',
         path: '/account/preferences',
         isEnabled: true,
-        icon: ListIcon
+        icon: PreferencesIcon
       },
       {
         key: 'router-billing',

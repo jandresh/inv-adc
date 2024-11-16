@@ -8,7 +8,9 @@ export const navOpenedMixin = (theme: Theme): CSSObject => ({
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.enteringScreen
   }),
-  overflowX: 'hidden'
+  overflowX: 'hidden',
+  overflowY: 'scroll',
+  scrollbarWidth: 'none'
 });
 
 export const navClosedMixin = (theme: Theme): CSSObject => ({
@@ -17,8 +19,10 @@ export const navClosedMixin = (theme: Theme): CSSObject => ({
     duration: theme.transitions.duration.leavingScreen
   }),
   overflowX: 'hidden',
+  overflowY: 'scroll',
+  scrollbarWidth: 'none',
   width: `calc(${theme.spacing(7)} + 1px)`,
   [theme.breakpoints.up('sm')]: {
-    width: `calc(${theme.spacing(8)} + 1px)`
+    width: `calc(${theme.spacing(8)} + 2px)`
   }
 });

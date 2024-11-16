@@ -12,7 +12,7 @@ type LayoutProps = {
 };
 
 export const Layout: FC<LayoutProps> = ({ children }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const toggleNavigation = () => setOpen((status) => !status);
 
   return (

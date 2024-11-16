@@ -11,6 +11,7 @@ import { Route as AppRoute } from './types';
 
 import { getAppTheme } from './styles/theme';
 import { DARK_MODE_THEME, LIGHT_MODE_THEME } from './utils/constants';
+import { NotFound } from 'components/Navigation/Routes/NotFound';
 
 function App () {
   const [mode, setMode] = useState<
@@ -52,7 +53,10 @@ function App () {
   );
 
   useEffect(() => {
-    // Cualquier efecto de carga inicial aquí
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
 
   return (
@@ -63,11 +67,14 @@ function App () {
           <Router>
             <Layout>
               <Routes>
-                {routes.map((route: AppRoute) =>
-                  route.subRoutes
-                    ? route.subRoutes.map((item: AppRoute) => addRoute(item))
-                    : addRoute(route)
-                )}
+                {user.firstName === 'guest'
+                  ? addRoute(routes[0])
+                  : routes.map((route: AppRoute) =>
+                    route.subRoutes
+                      ? route.subRoutes.map((item: AppRoute) => addRoute(item))
+                      : addRoute(route)
+                  )}
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
           </Router>
