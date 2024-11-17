@@ -5,7 +5,6 @@ import { Messages, Notifications, SignOut, Settings } from '../../Actions';
 import { ThemeSwitcher } from '../ThemeSwitcher';
 import { ThemeModeContext } from '../../../contexts';
 import { guestUser } from 'contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
 
 interface MobileMenuProps {
   isMenuOpen: boolean;
@@ -24,7 +23,6 @@ export const MobileMenu = ({
 }: MobileMenuProps) => {
   const { toggleThemeMode } = useContext(ThemeModeContext);
   const context = useContext(AppContext);
-  const navigate = useNavigate();
 
   return (
     <Menu
@@ -47,7 +45,7 @@ export const MobileMenu = ({
           <ThemeSwitcher disableTooltip />
           Toggle Theme
         </MenuItem>
-        {context.user.firstName !== 'guest' && (
+        {context.user.role !== 'guest' && (
           <Fragment>
             <MenuItem onClick={handleMenuClose}>
               <Messages total={0} disableTooltip />
@@ -63,9 +61,9 @@ export const MobileMenu = ({
             </MenuItem>
             <MenuItem onClick={() => {
               context.setUser(guestUser);
-              localStorage.removeItem('user');
-              navigate('/');
+              localStorage.setItem('user', JSON.stringify(guestUser));
               handleMenuClose();
+              window.location.href = '/';
             }}>
               <SignOut disableTooltip />
               Sign Out

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { List, Divider, Collapse } from '@mui/material';
 
 import { AppContext } from 'contexts';
@@ -27,10 +27,7 @@ export const Routes = () => {
       <List component="nav" sx={{ height: '100%' }}>
         {routesState
           .filter(
-            (route: Route) =>
-              context.user.firstName !== 'guest' ||
-              (route.key === 'router-home' &&
-                context.user.firstName === 'guest')
+            (route) => route.allowedRoles.includes(context.user.role)
           )
           .map((route: Route) => (
             <div key={route.key}>
@@ -44,7 +41,9 @@ export const Routes = () => {
                   />
                   <Collapse in={route.expanded} timeout="auto" unmountOnExit>
                     <List component="div" disablePadding>
-                      {route.subRoutes.map((sRoute: Route) => (
+                      {route.subRoutes.filter(
+                        (subRoute) => subRoute.allowedRoles.includes(context.user.role)
+                      ).map((sRoute: Route) => (
                         <RouteItem
                           key={`${sRoute.key}`}
                           route={sRoute}

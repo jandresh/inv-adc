@@ -40,13 +40,13 @@ export const Header = ({ toggleNavigation }: HeaderProps) => {
         <Toolbar disableGutters variant="dense">
           <Hamburger toggleNavigation={toggleNavigation} />
           <AppTitle />
-          {context.user.firstName !== 'guest' && <Search />}
+          {context.user.role !== 'guest' && <Search />}
           <Box sx={{ flexGrow: 1 }} />
           <Box
             sx={{ display: { xs: 'none', md: 'flex', alignItems: 'center' } }}
           >
             <ThemeSwitcher />
-            {context.user.firstName !== 'guest' && (
+            {context.user.role !== 'guest' && (
               <Fragment>
                 <Messages total={0} />
                 <Notifications total={0} />

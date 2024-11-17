@@ -15,19 +15,6 @@ type MenuItem = {
   active: boolean;
 };
 
-type Route = {
-  key: string;
-  title: string;
-  description?: string;
-  path?: string;
-  component?: FC<{}>;
-  isEnabled: boolean;
-  icon?: ComponentType;
-  subRoutes?: Route[];
-  appendDivider?: boolean;
-  expanded?: boolean;
-};
-
 type User = {
   id: string;
   orgId: string;
@@ -39,6 +26,21 @@ type User = {
   isActive: boolean;
   isAdmin: boolean;
   isVerified: boolean;
+  role: 'admin' | 'guest' | 'researcher' | 'user';
+};
+
+type Route = {
+  key: string;
+  title: string;
+  description?: string;
+  path?: string;
+  component?: FC<{}>;
+  isEnabled: boolean;
+  icon?: ComponentType;
+  subRoutes?: Route[];
+  appendDivider?: boolean;
+  expanded?: boolean;
+  allowedRoles: Array<User['role']>;
 };
 
 export type { MenuItem, Patterns, Route, User };

@@ -3,7 +3,6 @@ import React, { useContext } from 'react';
 
 import { Settings, Preferences, SignOut } from '../../Actions';
 import { AppContext, guestUser } from 'contexts/AppContext';
-import { useNavigate } from 'react-router-dom';
 
 interface DefaultMenuProps {
   isMenuOpen: boolean;
@@ -17,7 +16,6 @@ export const DefaultMenu = ({
   anchorEl
 }: DefaultMenuProps) => {
   const context = useContext(AppContext);
-  const navigate = useNavigate();
   return (
     <Menu
       anchorEl={anchorEl}
@@ -37,9 +35,9 @@ export const DefaultMenu = ({
       <Divider />
       <MenuItem onClick={() => {
         context.setUser(guestUser);
-        localStorage.removeItem('user');
-        navigate('/');
+        localStorage.setItem('user', JSON.stringify(guestUser));
         handleMenuClose();
+        window.location.href = '/';
       }}>
         <SignOut disableTooltip />
         Sign Out

@@ -45,7 +45,8 @@ const routes: Array<Route> = [
     path: '/',
     isEnabled: true,
     icon: HomeIcon,
-    appendDivider: true
+    appendDivider: true,
+    allowedRoles: ['admin', 'guest', 'researcher', 'user']
   },
   {
     key: 'router-dashboard',
@@ -54,7 +55,8 @@ const routes: Array<Route> = [
     component: Dashboard,
     path: '/dashboard',
     isEnabled: true,
-    icon: DashboardIcon
+    icon: DashboardIcon,
+    allowedRoles: ['admin', 'researcher', 'user']
   },
   {
     key: 'router-microservices',
@@ -62,6 +64,7 @@ const routes: Array<Route> = [
     description: 'Microservices interfaces',
     isEnabled: true,
     icon: MicroservicesIcon,
+    allowedRoles: ['admin', 'researcher'],
     subRoutes: [
       {
         key: 'router-microservices-arxiv',
@@ -70,7 +73,8 @@ const routes: Array<Route> = [
         component: Arxiv,
         path: '/microservices/arxiv',
         isEnabled: true,
-        icon: AcademicIcon
+        icon: AcademicIcon,
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-microservices-core',
@@ -78,7 +82,8 @@ const routes: Array<Route> = [
         description: 'Core interface',
         path: '/microservices/core',
         isEnabled: true,
-        icon: AcademicIcon
+        icon: AcademicIcon,
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-microservices-metapub',
@@ -86,7 +91,8 @@ const routes: Array<Route> = [
         description: 'Pubmed interface',
         path: '/microservices/metapub',
         isEnabled: true,
-        icon: AcademicIcon
+        icon: AcademicIcon,
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-microservices-preprocessing',
@@ -94,7 +100,8 @@ const routes: Array<Route> = [
         description: 'Preprocessing microservices',
         path: '/microservices/preprocessing',
         isEnabled: true,
-        icon: PreprocessingIcon
+        icon: PreprocessingIcon,
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-microservices-database',
@@ -103,7 +110,8 @@ const routes: Array<Route> = [
         component: Database,
         path: '/microservices/database',
         isEnabled: true,
-        icon: DatabaseIcon
+        icon: DatabaseIcon,
+        allowedRoles: ['admin']
       },
       {
         key: 'router-microservices-orchestrator',
@@ -111,7 +119,8 @@ const routes: Array<Route> = [
         description: 'Orchestrator microservices',
         path: '/microservices/orchestrator',
         isEnabled: true,
-        icon: DatabaseIcon
+        icon: DatabaseIcon,
+        allowedRoles: ['admin']
       },
       {
         key: 'router-search-institutions',
@@ -119,7 +128,8 @@ const routes: Array<Route> = [
         description: 'Institutions',
         path: '/search/institutions',
         isEnabled: false,
-        icon: InstitutionsIcon
+        icon: InstitutionsIcon,
+        allowedRoles: ['admin']
       }
     ]
   },
@@ -129,6 +139,7 @@ const routes: Array<Route> = [
     description: 'User interface',
     isEnabled: true,
     icon: UserIcon,
+    allowedRoles: ['admin', 'researcher', 'user'],
     subRoutes: [
       {
         key: 'router-user-query',
@@ -136,7 +147,8 @@ const routes: Array<Route> = [
         description: 'Query interface',
         path: '/user/query',
         isEnabled: true,
-        icon: QueryIcon
+        icon: QueryIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-user-report',
@@ -145,7 +157,8 @@ const routes: Array<Route> = [
         component: Report,
         path: '/user/report',
         isEnabled: true,
-        icon: ReportIcon
+        icon: ReportIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-user-historic',
@@ -153,7 +166,8 @@ const routes: Array<Route> = [
         description: 'Historic interface',
         path: '/user/historic',
         isEnabled: true,
-        icon: HistoricIcon
+        icon: HistoricIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       }
     ]
   },
@@ -163,6 +177,7 @@ const routes: Array<Route> = [
     description: 'Researcher interfaces',
     isEnabled: true,
     icon: UserIcon,
+    allowedRoles: ['admin', 'researcher', 'user'],
     subRoutes: [
       {
         key: 'router-researcher-projects',
@@ -171,7 +186,8 @@ const routes: Array<Route> = [
         component: Projects,
         path: '/researcher/projects',
         isEnabled: true,
-        icon: ProjectsIcon
+        icon: ProjectsIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-researcher-patterns',
@@ -180,7 +196,8 @@ const routes: Array<Route> = [
         component: Patterns,
         path: '/researcher/patterns',
         isEnabled: true,
-        icon: PatternsIcon
+        icon: PatternsIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-researcher-pipelines',
@@ -189,7 +206,8 @@ const routes: Array<Route> = [
         component: Pipelines,
         path: '/researcher/pipelines',
         isEnabled: true,
-        icon: PipelinesIcon
+        icon: PipelinesIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-researcher-validate',
@@ -197,7 +215,8 @@ const routes: Array<Route> = [
         description: 'Validate interface',
         path: '/researcher/validate',
         isEnabled: true,
-        icon: ValidateIcon
+        icon: ValidateIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       }
     ]
   },
@@ -207,6 +226,7 @@ const routes: Array<Route> = [
     description: 'Admin interfaces',
     isEnabled: true,
     icon: AdminIcon,
+    allowedRoles: ['admin', 'researcher', 'user'],
     subRoutes: [
       {
         key: 'router-admin-users',
@@ -215,7 +235,8 @@ const routes: Array<Route> = [
         component: Users,
         path: '/admin/users',
         isEnabled: true,
-        icon: UsersManagementIcon
+        icon: UsersManagementIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-admin-setup',
@@ -223,7 +244,8 @@ const routes: Array<Route> = [
         description: 'System setup',
         path: '/admin/setup',
         isEnabled: true,
-        icon: SetupIcon
+        icon: SetupIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-admin-usage',
@@ -231,7 +253,8 @@ const routes: Array<Route> = [
         description: 'Usage reports',
         path: '/admin/usage',
         isEnabled: true,
-        icon: UsageIcon
+        icon: UsageIcon,
+        allowedRoles: ['admin', 'guest', 'researcher', 'user']
       }
     ],
     appendDivider: true
@@ -243,6 +266,7 @@ const routes: Array<Route> = [
     path: '/account',
     isEnabled: true,
     icon: AccountAdminIcon,
+    allowedRoles: ['admin', 'researcher', 'user'],
     subRoutes: [
       {
         key: 'router-settings',
@@ -250,7 +274,8 @@ const routes: Array<Route> = [
         description: 'Account Settings',
         path: '/account/settings',
         isEnabled: true,
-        icon: SettingsIcon
+        icon: SettingsIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-preferences',
@@ -258,7 +283,8 @@ const routes: Array<Route> = [
         description: 'Account Preferences',
         path: '/account/preferences',
         isEnabled: true,
-        icon: PreferencesIcon
+        icon: PreferencesIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       },
       {
         key: 'router-billing',
@@ -266,7 +292,8 @@ const routes: Array<Route> = [
         description: 'Account Billing',
         path: '/account/billing',
         isEnabled: true,
-        icon: BillingIcon
+        icon: BillingIcon,
+        allowedRoles: ['admin', 'researcher', 'user']
       }
     ]
   }

@@ -7,11 +7,12 @@ import { PageDefault } from './components/PageDefault';
 
 import { AppContext, ThemeModeContext } from './contexts';
 import routes from './config/routes';
-import { Route as AppRoute } from './types';
+import { Route as AppRoute, User } from './types';
 
 import { getAppTheme } from './styles/theme';
 import { DARK_MODE_THEME, LIGHT_MODE_THEME } from './utils/constants';
 import { NotFound } from 'components/Navigation/Routes/NotFound';
+import { guestUser } from 'contexts/AppContext';
 
 function App () {
   const [mode, setMode] = useState<
@@ -26,7 +27,7 @@ function App () {
 
   const theme = useMemo(() => getAppTheme(mode), [mode]);
 
-  const [user, setUser] = useState({
+  const [user, setUser] = useState<User>({
     id: '',
     orgId: '',
     firstName: 'guest',
@@ -36,7 +37,8 @@ function App () {
     updatedAt: new Date(),
     isActive: false,
     isAdmin: false,
-    isVerified: false
+    isVerified: false,
+    role: 'guest'
   });
 
   const appClient = { user, setUser };
@@ -56,7 +58,7 @@ function App () {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
-    }
+    } else {setUser(guestUser)}
   }, []);
 
   return (
@@ -67,13 +69,15 @@ function App () {
           <Router>
             <Layout>
               <Routes>
-                {user.firstName === 'guest'
-                  ? addRoute(routes[0])
-                  : routes.map((route: AppRoute) =>
-                    route.subRoutes
-                      ? route.subRoutes.map((item: AppRoute) => addRoute(item))
-                      : addRoute(route)
-                  )}
+                {routes.filter(
+                  (route) => route.allowedRoles.includes(user.role)
+                ).map((route: AppRoute) =>
+                  route.subRoutes
+                    ? route.subRoutes.filter(
+                      (subRoute) => subRoute.allowedRoles.includes(user.role)
+                    ).map((item: AppRoute) => addRoute(item))
+                    : addRoute(route)
+                )}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>

@@ -9,6 +9,7 @@ import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import * as Yup from 'yup';
 import { AppContext } from 'contexts';
 import { Buffer } from 'buffer';
+import { User } from 'types';
 
 interface ILogin {
   email: string;
@@ -59,7 +60,7 @@ export const Login: React.FC<{
         response &&
         responseObj[0]['is_active']
       ) {
-        const userData = {
+        const userData: User = {
           id: responseObj[0]['_id'],
           orgId: responseObj[0]['org_id'],
           firstName: responseObj[0]['first_name'],
@@ -69,7 +70,8 @@ export const Login: React.FC<{
           updatedAt: responseObj[0]['updated'],
           isActive: responseObj[0]['is_active'],
           isAdmin: responseObj[0]['is_admin'],
-          isVerified: responseObj[0]['is_verified']
+          isVerified: responseObj[0]['is_verified'],
+          role: responseObj[0]['is_admin'] ? 'researcher' : 'user'
         };
         context.setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
@@ -79,7 +81,7 @@ export const Login: React.FC<{
         values.email === 'admin@adccali.com' &&
         values.password === 'admin'
       ) {
-        const adminData = {
+        const adminData: User = {
           id: '',
           orgId: 'adc-cali',
           firstName: 'Admin',
@@ -89,7 +91,8 @@ export const Login: React.FC<{
           updatedAt: new Date(),
           isActive: true,
           isAdmin: true,
-          isVerified: false
+          isVerified: false,
+          role: 'admin'
         };
         context.setUser(adminData);
         localStorage.setItem('user', JSON.stringify(adminData));

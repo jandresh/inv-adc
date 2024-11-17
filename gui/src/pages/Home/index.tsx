@@ -12,7 +12,9 @@ export interface IAccess {
 
 export const Home = () => {
   const context = useContext(AppContext);
-  const [access, setAccess] = useState<IAccess['access']>('GUEST');
+  const [access, setAccess] = useState<IAccess['access']>(
+    context.user.role === 'guest' ? 'GUEST' : 'LOGGED'
+  );
   const loginClick = () => {
     setAccess('LOGIN');
   };
