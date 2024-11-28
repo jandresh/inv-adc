@@ -31,9 +31,7 @@ def post_json_request(url, obj):
 
 
 def object_to_response(object):
-    response = Response(
-        response=json.dumps(object), mimetype="application/json"
-    )
+    response = Response(response=json.dumps(object), mimetype="application/json")
     response.headers["Access-Control-Allow-Origin"] = "*"
 
     return response
@@ -60,14 +58,10 @@ def root():
 def query_arxiv():
     if not request.json:
         abort(400)
-    big_slow_client = arxiv.Client(
-        page_size=1000, delay_seconds=10, num_retries=5
-    )
+    big_slow_client = arxiv.Client(page_size=1000, delay_seconds=10, num_retries=5)
     query = request.json["query"]
     count = 0
-    results = big_slow_client.results(
-        arxiv.Search(query=query, max_results=200)
-    )
+    results = big_slow_client.results(arxiv.Search(query=query, max_results=200))
     for result in results:
         count = count + 1
         if count > 1000:
@@ -115,9 +109,7 @@ def fill_graph(
     if len(items) < 2:
         return None
 
-    singular = (
-        graph_type.value[:-1] if graph_type.value != "countries" else "country"
-    )
+    singular = graph_type.value[:-1] if graph_type.value != "countries" else "country"
     item = items.pop()
     document = {"related": {"$each": sorted(items)}}
     post_json_request(
@@ -158,14 +150,10 @@ def query():
     database = request.json["organization"]
     project = request.json["project"]
     max_docs = request.json["maxdocs"]
-    big_slow_client = arxiv.Client(
-        page_size=500, delay_seconds=10, num_retries=5
-    )
+    big_slow_client = arxiv.Client(page_size=500, delay_seconds=10, num_retries=5)
     patternid = request.json["patternid"]
     results = big_slow_client.results(
-        arxiv.Search(
-            query=search_equation(query.strip().split()), max_results=max_docs
-        )
+        arxiv.Search(query=search_equation(query.strip().split()), max_results=max_docs)
     )
 
     for result in results:

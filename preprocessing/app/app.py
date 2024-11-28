@@ -52,9 +52,7 @@ def get_continuous_chunks(text, label):
 
     for subtree in chunked:
         if type(subtree) == Tree and subtree.label() == label:
-            current_chunk.append(
-                " ".join([token for token, pos in subtree.leaves()])
-            )
+            current_chunk.append(" ".join([token for token, pos in subtree.leaves()]))
         if current_chunk:
             named_entity = " ".join(current_chunk)
             if named_entity not in continuous_chunk:
@@ -74,7 +72,7 @@ def get_pdf_text_by_page(url):
 
 @app.route("/")
 def helloworld():
-    return "preprocesing endpoints: /\n/url2text\n/url2htext\n/text2locations\n/text2places\n/text2ner\n/text2emails"
+    return "preprocessing endpoints: /\n/url2text\n/url2htext\n/text2locations\n/text2places\n/text2ner\n/text2emails"
 
 
 # *****text_from_pdf_url()******
@@ -127,9 +125,7 @@ def places_from_text():
     if not request.json:
         abort(400)
     text = request.json["text"]
-    return jsonify(
-        places=geograpy.get_place_context(text=text).country_mentions
-    )
+    return jsonify(places=geograpy.get_place_context(text=text).country_mentions)
 
 
 # *****ner_from_text()******

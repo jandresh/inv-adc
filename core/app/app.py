@@ -47,9 +47,7 @@ def post_json_request(url, obj):
 
 
 def object_to_response(object):
-    response = Response(
-        response=json.dumps(object), mimetype="application/json"
-    )
+    response = Response(response=json.dumps(object), mimetype="application/json")
     response.headers["Access-Control-Allow-Origin"] = "*"
 
     return response
@@ -162,9 +160,7 @@ def scroll2(search_url, query, ptid):
                         if item["title"] == None:
                             item["title"] = ""
                         try:
-                            esp_detect_title = (
-                                detect(item["title"].lower()) == "es"
-                            )
+                            esp_detect_title = detect(item["title"].lower()) == "es"
                         except:
                             esp_detect_title = False
                         if item["abstract"] == None:
@@ -281,17 +277,12 @@ def standardize_authors(authors):
             ),
         )
     )
-    if (
-        len(standardized_authors) == 1
-        and type(standardized_authors[0]) == "list"
-    ):
+    if len(standardized_authors) == 1 and type(standardized_authors[0]) == "list":
         return list(
             filter(
                 lambda item: item != "",
                 map(
-                    lambda author: format_pubmed_author(
-                        author.get("name", "")
-                    ),
+                    lambda author: format_pubmed_author(author.get("name", "")),
                     standardized_authors[0],
                 ),
             )
@@ -310,9 +301,7 @@ def fill_graph(
     if len(items) < 2:
         return None
 
-    singular = (
-        graph_type.value[:-1] if graph_type.value != "countries" else "country"
-    )
+    singular = graph_type.value[:-1] if graph_type.value != "countries" else "country"
     item = items.pop()
     document = {"related": {"$each": sorted(items)}}
     post_json_request(
@@ -393,15 +382,9 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         key=lambda x: x[1],
                         reverse=True,
                     )
-                    keywords = [
-                        keyword[0] for keyword in keywords_with_score[:3]
-                    ]
+                    keywords = [keyword[0] for keyword in keywords_with_score[:3]]
                     organizations = list(
-                        {
-                            email.split("@")[1]
-                            for email in emails
-                            if "@" in email
-                        }
+                        {email.split("@")[1] for email in emails if "@" in email}
                     )
                     countries_with_score: list[list[str]] = sorted(
                         post_json_request(
@@ -411,9 +394,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                         key=lambda x: x[1],
                         reverse=True,
                     )
-                    countries = [
-                        country[0] for country in countries_with_score[:3]
-                    ]
+                    countries = [country[0] for country in countries_with_score[:3]]
                     language = (
                         post_json_request(
                             "http://preprocessing:5000/text2lang",
@@ -462,9 +443,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                             project,
                             patternid,
                         )
-                        organizations_set = sorted(
-                            set(organizations), reverse=True
-                        )
+                        organizations_set = sorted(set(organizations), reverse=True)
                         fill_graph(
                             GraphType.ORGANIZATIONS,
                             organizations_set.copy(),
@@ -502,9 +481,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -522,9 +499,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -543,9 +518,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                     },
                                     "add_to_set": True,
                                 },
@@ -562,9 +535,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                     },
                                     "add_to_set": True,
                                 },
@@ -583,9 +554,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -604,9 +573,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -646,9 +613,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -667,9 +632,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -689,9 +652,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -710,9 +671,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -732,9 +691,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -753,9 +710,7 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -797,9 +752,7 @@ def query_core():
         abort(400)
     result = None
     query = request.json["query"]
-    search, seconds = query_api(
-        f"https://api.core.ac.uk/v3/search/works", query
-    )
+    search, seconds = query_api(f"https://api.core.ac.uk/v3/search/works", query)
     for key, value in search.items():
         if key == "results":
             result = value

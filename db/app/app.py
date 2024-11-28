@@ -210,25 +210,19 @@ def search_insert():
                     " ".join(
                         map(
                             str,
-                            re.findall(
-                                "[a-zA-Z]\w+[.,;:]*", title.capitalize()
-                            ),
+                            re.findall("[a-zA-Z]\w+[.,;:]*", title.capitalize()),
                         )
                     ),
                     " ".join(
                         map(
                             str,
-                            re.findall(
-                                "[a-zA-Z]\w+[.,;:]*", abstract.capitalize()
-                            ),
+                            re.findall("[a-zA-Z]\w+[.,;:]*", abstract.capitalize()),
                         )
                     ),
                     " ".join(
                         map(
                             str,
-                            re.findall(
-                                "[a-zA-Z]\w+[.,;:]*", fulltext.capitalize()
-                            ),
+                            re.findall("[a-zA-Z]\w+[.,;:]*", fulltext.capitalize()),
                         )
                     ),
                 ]
@@ -372,9 +366,7 @@ def mongo_db_create():
 def mongo_db_list():
     client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
 
-    return object_to_response(
-        [{"databases": list(client.list_database_names())}]
-    )
+    return object_to_response([{"databases": list(client.list_database_names())}])
 
 
 # *****mongo_db_delete()******
@@ -497,9 +489,7 @@ def mongo_doc_update():
         filter_ = request.json["filter"]
         document = request.json["document"]
         add_to_set = (
-            request.json["add_to_set"]
-            if "add_to_set" in request.json
-            else False
+            request.json["add_to_set"] if "add_to_set" in request.json else False
         )
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]

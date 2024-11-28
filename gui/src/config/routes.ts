@@ -177,7 +177,7 @@ const routes: Array<Route> = [
     description: 'Researcher interfaces',
     isEnabled: true,
     icon: UserIcon,
-    allowedRoles: ['admin', 'researcher', 'user'],
+    allowedRoles: ['admin', 'researcher'],
     subRoutes: [
       {
         key: 'router-researcher-projects',
@@ -187,7 +187,7 @@ const routes: Array<Route> = [
         path: '/researcher/projects',
         isEnabled: true,
         icon: ProjectsIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-researcher-patterns',
@@ -197,7 +197,7 @@ const routes: Array<Route> = [
         path: '/researcher/patterns',
         isEnabled: true,
         icon: PatternsIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-researcher-pipelines',
@@ -207,7 +207,7 @@ const routes: Array<Route> = [
         path: '/researcher/pipelines',
         isEnabled: true,
         icon: PipelinesIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin', 'researcher']
       },
       {
         key: 'router-researcher-validate',
@@ -216,7 +216,7 @@ const routes: Array<Route> = [
         path: '/researcher/validate',
         isEnabled: true,
         icon: ValidateIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin', 'researcher']
       }
     ]
   },
@@ -226,7 +226,7 @@ const routes: Array<Route> = [
     description: 'Admin interfaces',
     isEnabled: true,
     icon: AdminIcon,
-    allowedRoles: ['admin', 'researcher', 'user'],
+    allowedRoles: ['admin'],
     subRoutes: [
       {
         key: 'router-admin-users',
@@ -236,7 +236,7 @@ const routes: Array<Route> = [
         path: '/admin/users',
         isEnabled: true,
         icon: UsersManagementIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-admin-setup',
@@ -245,7 +245,7 @@ const routes: Array<Route> = [
         path: '/admin/setup',
         isEnabled: true,
         icon: SetupIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-admin-usage',
@@ -254,7 +254,7 @@ const routes: Array<Route> = [
         path: '/admin/usage',
         isEnabled: true,
         icon: UsageIcon,
-        allowedRoles: ['admin', 'guest', 'researcher', 'user']
+        allowedRoles: ['admin']
       }
     ],
     appendDivider: true

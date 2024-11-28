@@ -58,16 +58,12 @@ def get_json_orcid_request(name):
     }
     # params = (('q', f'{id_type}-self:{doc_id}'),)
     name = name.split()
-    params = (
-        ("q", f"family-name:{name[0]}+AND+given-names:{name[1]}&start=0&ro=1"),
-    )
+    params = (("q", f"family-name:{name[0]}+AND+given-names:{name[1]}&start=0&ro=1"),)
     return requests.get(url, headers=headers, params=params).json()
 
 
 def object_to_response(object):
-    response = Response(
-        response=json.dumps(object), mimetype="application/json"
-    )
+    response = Response(response=json.dumps(object), mimetype="application/json")
     response.headers["Access-Control-Allow-Origin"] = "*"
 
     return response
@@ -120,7 +116,7 @@ def pipeline_logger(
     message: str,
 ):
     post_json_request(
-        "http://db:5000/mongo-doc-insert",
+        "http://192.168.1.32:5001/mongo-doc-insert",
         dict(
             db_name=organization,
             coll_name=f"pipeline#{type.value.lower()}#{project}",
@@ -160,11 +156,7 @@ def pipeline3():
         "http://db:5000/mongo-db-create", {"db_name": "authors"}
     )
     actual_pattern = 1
-    if (
-        patterns_list is not None
-        and create_metadata_db == 0
-        and create_authors_db == 0
-    ):
+    if patterns_list is not None and create_metadata_db == 0 and create_authors_db == 0:
         for pattern in patterns_list:
             create_mongo_coll_metadata = post_json_request(
                 "http://db:5000/mongo-coll-create",
@@ -226,42 +218,30 @@ def pipeline3():
                                                 if pattern["id"] is not None
                                                 else "",
                                                 "pmid": metadata_json["pmid"]
-                                                if metadata_json["pmid"]
-                                                is not None
+                                                if metadata_json["pmid"] is not None
                                                 else "",
                                                 "coreid": "",
                                                 "doi": metadata_json["doi"]
-                                                if metadata_json["doi"]
-                                                is not None
+                                                if metadata_json["doi"] is not None
                                                 else "",
                                                 "title": metadata_json["title"]
-                                                if metadata_json["title"]
-                                                is not None
+                                                if metadata_json["title"] is not None
                                                 else "",
-                                                "abstract": metadata_json[
-                                                    "abstract"
-                                                ]
-                                                if metadata_json["abstract"]
-                                                is not None
+                                                "abstract": metadata_json["abstract"]
+                                                if metadata_json["abstract"] is not None
                                                 else "",
-                                                "authors": metadata_json[
-                                                    "authors"
-                                                ]
-                                                if metadata_json["authors"]
-                                                is not None
+                                                "authors": metadata_json["authors"]
+                                                if metadata_json["authors"] is not None
                                                 else "",
                                                 "org": "",
                                                 "url": metadata_json["url"]
-                                                if metadata_json["url"]
-                                                is not None
+                                                if metadata_json["url"] is not None
                                                 else "",
                                                 "year": metadata_json["year"]
-                                                if metadata_json["year"]
-                                                is not None
+                                                if metadata_json["year"] is not None
                                                 else "",
                                                 "lang": lang_json["lang"]
-                                                if lang_json["lang"]
-                                                is not None
+                                                if lang_json["lang"] is not None
                                                 else "",
                                             },
                                         },
@@ -271,18 +251,14 @@ def pipeline3():
                                         f"Exception on can't insert document for {pmid}"
                                     )
                                 if success_doc_insert == 0:
-                                    print(
-                                        f"Inserted on mongo a doc for {pmid}"
-                                    )
+                                    print(f"Inserted on mongo a doc for {pmid}")
                                 for author in list(metadata_json["authors"]):
                                     # try:
                                     #     # orcid = get_json_orcid_request(str(author))['expanded-result'][0]['orcid-id']
                                     #     orcid = ""
                                     # except:
                                     #     orcid = ""
-                                    print(
-                                        f"Inserted on mongo a doc for {author}"
-                                    )
+                                    print(f"Inserted on mongo a doc for {author}")
                                     sys.stdout.flush()
                                     success_author_insert = 1
                                     try:
@@ -293,11 +269,8 @@ def pipeline3():
                                                 "coll_name": f"author_vs_doc_id_{actual_pattern}",
                                                 "document": {
                                                     "author": author,
-                                                    "doc_id": metadata_json[
-                                                        "pmid"
-                                                    ]
-                                                    if metadata_json["pmid"]
-                                                    is not None
+                                                    "doc_id": metadata_json["pmid"]
+                                                    if metadata_json["pmid"] is not None
                                                     else "",
                                                     # "orcid" : orcid,
                                                     # Afiliacion y correo
@@ -499,9 +472,7 @@ def pipeline6():
     coll_list = post_json_request(
         "http://db:5000/mongo-coll-list", {"db_name": "network"}
     )
-    related_coll_list = list(
-        filter(lambda x: x[0] == "r", coll_list["collections"])
-    )
+    related_coll_list = list(filter(lambda x: x[0] == "r", coll_list["collections"]))
     for collection in related_coll_list:
         coll_name = f"authors{collection.replace('related', '')}"
         create_mongo_coll = post_json_request(
@@ -653,9 +624,7 @@ def pipeline7():
                     dict(
                         stage=2,
                         description="metadata creation",
-                        data=dict(
-                            pattern=pattern["patternid"], success=result == 0
-                        ),
+                        data=dict(pattern=pattern["patternid"], success=result == 0),
                     ),
                 )
                 errors += result
@@ -718,9 +687,7 @@ async def metadata_pipeline():
             data = {
                 "query": pattern["pattern"],
                 "patternid": pattern["_id"],
-                "maxdocs": int(project_info[0]["maxDocs"])
-                if project_info
-                else 100,
+                "maxdocs": int(project_info[0]["maxDocs"]) if project_info else 100,
                 "organization": organization,
                 "project": project,
             }
@@ -809,8 +776,7 @@ def adjacency_pipeline():
                 },
             )
             items_list = [
-                f'{item[singular]} {" ".join(item["related"])}'
-                for item in items
+                f'{item[singular]} {" ".join(item["related"])}' for item in items
             ]
             G = nx.parse_adjlist(items_list, nodetype=str)
             plt.figure(figsize=(30, 30))
@@ -827,9 +793,7 @@ def adjacency_pipeline():
             image_bytes = io.BytesIO()
             plt.savefig(image_bytes, format="jpg")
             image_bytes.seek(0)
-            b64_image = (
-                f"{b64_image}{base64.b64encode(image_bytes.read()).decode()}"
-            )
+            b64_image = f"{b64_image}{base64.b64encode(image_bytes.read()).decode()}"
             node_link_data = nx.node_link_data(G)
 
             keyword_items = post_json_request(

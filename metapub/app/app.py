@@ -41,9 +41,7 @@ def post_json_request(url, obj):
 
 
 def object_to_response(object):
-    response = Response(
-        response=json.dumps(object), mimetype="application/json"
-    )
+    response = Response(response=json.dumps(object), mimetype="application/json")
     response.headers["Access-Control-Allow-Origin"] = "*"
 
     return response
@@ -193,7 +191,7 @@ def metadata_from_pmid():
         # book_contribution_date=article.book_contribution_date,
         # book_date_revised=article.book_date_revised,
         # journal=article.journal,
-        year=article.year
+        year=article.year,
         # history=article.history,
     )
 
@@ -238,9 +236,7 @@ def fill_graph(
     if len(items) < 2:
         return None
 
-    singular = (
-        graph_type.value[:-1] if graph_type.value != "countries" else "country"
-    )
+    singular = graph_type.value[:-1] if graph_type.value != "countries" else "country"
     item = items.pop()
     document = {"related": {"$each": sorted(items)}}
     post_json_request(
@@ -349,15 +345,9 @@ def query():
                         key=lambda x: x[1],
                         reverse=True,
                     )
-                    keywords = [
-                        keyword[0] for keyword in keywords_with_score[:3]
-                    ]
+                    keywords = [keyword[0] for keyword in keywords_with_score[:3]]
                     organizations = list(
-                        {
-                            email.split("@")[1]
-                            for email in emails
-                            if "@" in email
-                        }
+                        {email.split("@")[1] for email in emails if "@" in email}
                     )
                     countries_with_score: list[list[str]] = sorted(
                         post_json_request(
@@ -367,9 +357,7 @@ def query():
                         key=lambda x: x[1],
                         reverse=True,
                     )
-                    countries = [
-                        country[0] for country in countries_with_score[:3]
-                    ]
+                    countries = [country[0] for country in countries_with_score[:3]]
                     language = (
                         post_json_request(
                             "http://preprocessing:5000/text2lang",
@@ -418,9 +406,7 @@ def query():
                             project,
                             patternid,
                         )
-                        organizations_set = sorted(
-                            set(organizations), reverse=True
-                        )
+                        organizations_set = sorted(set(organizations), reverse=True)
                         fill_graph(
                             GraphType.ORGANIZATIONS,
                             organizations_set.copy(),
@@ -458,9 +444,7 @@ def query():
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -478,9 +462,7 @@ def query():
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -499,9 +481,7 @@ def query():
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                     },
                                     "add_to_set": True,
                                 },
@@ -518,9 +498,7 @@ def query():
                                         "doc_id": dbid,
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                     },
                                     "add_to_set": True,
                                 },
@@ -539,9 +517,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -560,9 +536,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -602,9 +576,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -623,9 +595,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -645,9 +615,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -666,9 +634,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -688,9 +654,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
@@ -709,9 +673,7 @@ def query():
                                         "doi": doi,
                                         "keywords": {"$each": keywords_set},
                                         "language": language,
-                                        "organizations": {
-                                            "$each": organizations_set
-                                        },
+                                        "organizations": {"$each": organizations_set},
                                         "year": year,
                                     },
                                     "add_to_set": True,
