@@ -13,7 +13,6 @@ from flask_cors import (
 )
 import json
 import requests
-import sys
 
 app = Flask(__name__)
 CORS(app)
