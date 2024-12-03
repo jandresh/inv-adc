@@ -5,12 +5,16 @@ import { ProjectSelector } from './ProjectSelector';
 import { PatternSelector } from './PaternSelector';
 import { Card, CardContent, CardMedia, Typography } from '@mui/material';
 import _ from 'lodash';
-import { ForceGraph2D, ForceGraph3D } from 'react-force-graph';
+import { ForceGraph3D } from 'react-force-graph';
 import { GraphTypeSelector } from './graphTypeSelector';
 import DataModal from 'components/Modals/Authors';
 
 type NodeObject$1 = object & {
   id?: string | number;
+  degree?: number;
+  betweenness?: number;
+  closeness?: number;
+  community?: number;
   x?: number;
   y?: number;
   z?: number;
@@ -69,22 +73,14 @@ export const NetworkSelector = () => {
     setOpenModal(true);
   }, [fgRef]);
 
-  // const calculateNodeDegrees = (
-  //   data: {
-  //     links: { source: string | number; target: string | number; }[];
-  //     nodes: any[];
-  //   }
-  // ) => {
-  //   const nodeDegrees = {};
-  //   data.links.forEach((link: { source: string | number; target: string | number; }) => {
-  //     nodeDegrees[link.source] = (nodeDegrees[link.source] || 0) + 1;
-  //     nodeDegrees[link.target] = (nodeDegrees[link.target] || 0) + 1;
-  //   });
-  //   data.nodes.forEach(node => {
-  //     node.degree = nodeDegrees[node.id] || 0;
-  //   });
-  //   return data;
-  // };
+  const positionNodesByCommunity = (node) => {
+    if (node.community === 1) {
+      return { x: node.x * 2, y: node.y * 2, z: node.z * 2 };
+    } else if (node.community === 2) {
+      return { x: node.x - 3, y: node.y - 3, z: node.z - 3 };
+    }
+    return { x: node.x, y: node.y, z: node.z };
+  };
 
   return (
     <>
@@ -127,17 +123,17 @@ export const NetworkSelector = () => {
             ref={fgRef}
             graphData={networkData[0]['node_link_data']}
             nodeLabel={'id'}
-            nodeAutoColorBy={'id'}
-            nodeVal={node => Math.cbrt(node.degree) * 2}
-            linkWidth={1}
-            linkDirectionalParticles={1}
+            nodeAutoColorBy={'community'}
+            nodeVal={node => Math.pow((node.degree ?? 1) / 40, 2)}
+            linkOpacity={0.15}
+            linkWidth={0.3}
             onNodeClick={handleClick}
           />
-          <Typography variant="h4">ForceGraph2D</Typography>
+          {/* <Typography variant="h4">ForceGraph2D</Typography>
           <ForceGraph2D
             graphData={networkData[0]['node_link_data']}
             nodeLabel={'id'}
-          />
+          /> */}
           <DataModal
             graphType={graphType}
             node={selectedNode}
