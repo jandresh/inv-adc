@@ -21,6 +21,7 @@ import io
 import json
 import matplotlib.pyplot as plt
 import networkx as nx
+from networkx.algorithms.community import louvain_communities
 import requests
 from wordcloud import (
     WordCloud,
@@ -297,9 +298,21 @@ def adjacency_pipeline():
                 },
             )
             items_list = [
-                f'{item[singular]} {" ".join(item["related"])}' for item in items
+                f'{item[singular]},{",".join(item["related"])}' for item in items
             ]
-            G = nx.parse_adjlist(items_list, nodetype=str)
+            print(f"items_list: {items_list}", flush=True)
+            G = nx.parse_adjlist(items_list, nodetype=str, delimiter=",")
+            degree_dict = dict(G.degree())
+            betweenness_dict = nx.betweenness_centrality(G)
+            closeness_dict = nx.closeness_centrality(G)
+            for node in G.nodes():
+                G.nodes[node]["degree"] = degree_dict[node]
+                G.nodes[node]["betweenness"] = betweenness_dict[node]
+                G.nodes[node]["closeness"] = closeness_dict[node]
+            communities = louvain_communities(G)
+            for i, community in enumerate(communities):
+                for node in community:
+                    G.nodes[node]['community'] = i
             plt.figure(figsize=(30, 30))
             nx.draw(
                 G,

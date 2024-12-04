@@ -73,15 +73,6 @@ export const NetworkSelector = () => {
     setOpenModal(true);
   }, [fgRef]);
 
-  const positionNodesByCommunity = (node) => {
-    if (node.community === 1) {
-      return { x: node.x * 2, y: node.y * 2, z: node.z * 2 };
-    } else if (node.community === 2) {
-      return { x: node.x - 3, y: node.y - 3, z: node.z - 3 };
-    }
-    return { x: node.x, y: node.y, z: node.z };
-  };
-
   return (
     <>
       <Typography variant="h5">Select Graph Type</Typography>

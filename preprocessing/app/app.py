@@ -65,9 +65,17 @@ def get_continuous_chunks(text, label):
 
 
 def get_pdf_text_by_page(url):
-    req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    pdf_pages = pdftotext.PDF(io.BytesIO(urlopen(req).read()))
-    return pdf_pages
+    try:
+        print(f"Processing PDF: {url}", flush=True)
+        req = Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        pdf_pages = pdftotext.PDF(io.BytesIO(urlopen(req).read()))
+        if pdf_pages:
+            return pdf_pages
+        else:
+            return [""]
+    except Exception as e:
+        print(f"Error in PDF processing: {str(e)}", flush=True)
+        return [""]
 
 
 @app.route("/")
@@ -85,7 +93,7 @@ def text_from_pdf_url():
     if not request.json:
         abort(400)
     url = request.json["url"]
-    return jsonify(url2text="\n\n".join(get_pdf_text_by_page(url)))
+    return jsonify(url2text=("\n\n".join(get_pdf_text_by_page(url)))[:10000])
 
 
 # *****htext_from_url()******
