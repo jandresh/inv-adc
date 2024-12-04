@@ -6,6 +6,7 @@ from datetime import (
 from enum import (
     Enum,
 )
+import gc
 from flask import (
     abort,
     Flask,
@@ -29,6 +30,9 @@ from wordcloud import (
 
 app = Flask(__name__)
 CORS(app)
+
+db_endpoint = "http://192.168.1.32:5001"
+db_endpoint = "http://db:5000"
 
 
 class PipelineStatus(str, Enum):
@@ -85,10 +89,10 @@ container = "orchestrator"
 
 def create_logger(microservice):
     create_state_db = post_json_request(
-        "http://db:5000/mongo-db-create", {"db_name": "app_state"}
+        f"{db_endpoint}/mongo-db-create", {"db_name": "app_state"}
     )
     create_state_coll = post_json_request(
-        "http://db:5000/mongo-coll-create",
+        f"{db_endpoint}/mongo-coll-create",
         {"db_name": "app_state", "coll_name": f"{container}_{microservice}"},
     )
 
@@ -97,7 +101,7 @@ def create_logger(microservice):
 
 def state_logger(microservice, state):
     return post_json_request(
-        "http://db:5000/mongo-doc-insert",
+        f"{db_endpoint}/mongo-doc-insert",
         dict(
             db_name="app_state",
             coll_name=f"{container}_{microservice}",
@@ -116,7 +120,7 @@ def pipeline_logger(
     message: str,
 ):
     post_json_request(
-        "http://db:5000/mongo-doc-insert",
+        f"{db_endpoint}/mongo-doc-insert",
         dict(
             db_name=organization,
             coll_name=f"pipeline#{type.value.lower()}#{project}",
@@ -138,7 +142,7 @@ def pipeline_logger(
 
 @app.route("/")
 def root():
-    return "orchestrator endpoints: /"
+    return "orchestrator endpoints: /, /metadata-pipeline, /adjacency-pipeline"
 
 
 # *****metadata_pipeline()******
@@ -156,7 +160,7 @@ async def metadata_pipeline():
         organization = request.json["organization"]
         project = request.json["project"]
         project_info = post_json_request(
-            "http://db:5000/mongo-doc-find",
+            f"{db_endpoint}/mongo-doc-find",
             {
                 "db_name": organization,
                 "coll_name": "projects",
@@ -165,11 +169,11 @@ async def metadata_pipeline():
             },
         )
         patterns = post_json_request(
-            "http://db:5000/mongo-doc-list",
+            f"{db_endpoint}/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
         executed_patterns: list[dict[str, str]] = post_json_request(
-            "http://db:5000/mongo-coll-list",
+            f"{db_endpoint}/mongo-coll-list",
             {"db_name": organization},
         )
     except Exception as ex:
@@ -225,7 +229,7 @@ async def metadata_pipeline():
                     project,
                     pattern_id,
                     int(pattern_index / len(patterns) * 100),
-                    PipelineStatus.RUNNING,
+                    PipelineStatus.FINISHED,
                     f"Processed pattern {pattern['pattern']}",
                 )
             else:
@@ -262,19 +266,22 @@ async def metadata_pipeline():
 def adjacency_pipeline():
     if not request.json:
         abort(400)
+    gc.collect()
     success = 0
     nodes = 0
     edges = 0
     b64_image = "data:image/png;base64,"
     wordcloud_b64_image = "data:image/png;base64,"
     node_link_data = {}
+    G = None
+    wc = None
     try:
         organization = request.json["organization"]
         project = request.json["project"]
         pattern = request.json["pattern"]
         graph_type = request.json["graph_type"]
         patterns: list[dict[str, str]] = post_json_request(
-            "http://db:5000/mongo-doc-list",
+            f"{db_endpoint}/mongo-doc-list",
             {"db_name": organization, "coll_name": f"patterns#{project}"},
         )
         singular = graph_type[:-1] if graph_type != "countries" else "country"
@@ -291,7 +298,7 @@ def adjacency_pipeline():
                 f"Processing pattern {pattern}",
             )
             items = post_json_request(
-                "http://db:5000/mongo-doc-list",
+                f"{db_endpoint}/mongo-doc-list",
                 {
                     "db_name": organization,
                     "coll_name": f"{graph_type}#{project}#{pattern}",
@@ -312,7 +319,7 @@ def adjacency_pipeline():
             communities = louvain_communities(G)
             for i, community in enumerate(communities):
                 for node in community:
-                    G.nodes[node]['community'] = i
+                    G.nodes[node]["community"] = i
             plt.figure(figsize=(30, 30))
             nx.draw(
                 G,
@@ -326,12 +333,14 @@ def adjacency_pipeline():
             edges = G.number_of_edges()
             image_bytes = io.BytesIO()
             plt.savefig(image_bytes, format="jpg")
+            plt.close("all")
             image_bytes.seek(0)
             b64_image = f"{b64_image}{base64.b64encode(image_bytes.read()).decode()}"
+            image_bytes.close()
             node_link_data = nx.node_link_data(G)
 
             keyword_items = post_json_request(
-                "http://db:5000/mongo-doc-list",
+                f"{db_endpoint}/mongo-doc-list",
                 {
                     "db_name": organization,
                     "coll_name": f"wordcloud#{project}#{pattern}",
@@ -345,7 +354,7 @@ def adjacency_pipeline():
                 max_words=3000,
                 # mask=mask,
                 max_font_size=30,
-                min_font_size=0.1,
+                min_font_size=3,
                 random_state=42,
             )
             wc.generate(text)
@@ -358,8 +367,10 @@ def adjacency_pipeline():
                 bbox_inches="tight",
                 format="jpg",
             )
+            plt.close("all")
             wordcloud_image_bytes.seek(0)
             wordcloud_b64_image = f"{wordcloud_b64_image}{base64.b64encode(wordcloud_image_bytes.read()).decode()}"
+            wordcloud_image_bytes.close()
             if items:
                 pipeline_logger(
                     PipelineType.ADJACENCY,

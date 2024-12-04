@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import React, { useEffect, useContext, useState, useCallback, useRef } from 'react';
 import { AppContext } from 'contexts';
 import { query } from 'utils/queries';
@@ -113,11 +114,22 @@ export const NetworkSelector = () => {
           <ForceGraph3D
             ref={fgRef}
             graphData={networkData[0]['node_link_data']}
-            nodeLabel={'id'}
+            nodeLabel={node => `
+              <div style="text-align: center; font-size: 14px;">
+                <strong>${node.id}</strong><br/>
+                Community: <span style="color: ${node.color || 'blue'}">${node.community}</span><br/>
+                Degree: ${node.degree ?? 0}<br/>
+                Betweenness: ${(node.betweenness ?? 0).toFixed(5)}<br/>
+                Closeness: ${(node.closeness ?? 0).toFixed(5)}<br/>
+              </div>
+            `}
             nodeAutoColorBy={'community'}
-            nodeVal={node => Math.pow((node.degree ?? 1) / 40, 2)}
-            linkOpacity={0.15}
-            linkWidth={0.3}
+            // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 20, 3) / 100 } Org
+            // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 100, 3) } Authors
+            // nodeVal={node => Math.pow((node.betweenness ?? 0.00001), 0.4) * 1000} Authors
+            nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000}
+            linkOpacity={0.18}
+            linkWidth={0.4}
             onNodeClick={handleClick}
           />
           {/* <Typography variant="h4">ForceGraph2D</Typography>
