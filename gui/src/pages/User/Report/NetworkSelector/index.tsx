@@ -4,7 +4,8 @@ import { AppContext } from 'contexts';
 import { query } from 'utils/queries';
 import { ProjectSelector } from './ProjectSelector';
 import { PatternSelector } from './PaternSelector';
-import { Card, CardContent, CardMedia, Typography } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import _ from 'lodash';
 import { ForceGraph3D } from 'react-force-graph';
 import { GraphTypeSelector } from './graphTypeSelector';
@@ -35,6 +36,8 @@ export const NetworkSelector = () => {
   const [project, setProject] = useState<string>('');
   const [pattern, setPattern] = useState<string>('');
   const [networkData, setNetworkData] = useState<Record<string, any>[]>([]);
+  const [colorBy, setColorBy] = useState<string>('community');
+  const [sizeBy, setSizeBy] = useState<string>('none');
   const [selectedNode, setSelectedNode] = useState<string | number | undefined>('');
   const [openModal, setOpenModal] = useState<boolean>(false);
   const fgRef = useRef<any>(null);
@@ -74,6 +77,32 @@ export const NetworkSelector = () => {
     setOpenModal(true);
   }, [fgRef]);
 
+  const columns: GridColDef[] = [
+    { field: 'id', headerName: 'ID', width: 150 },
+    { field: 'degree', headerName: 'Degree', width: 100 },
+    { field: 'closeness', headerName: 'Closeness', width: 100 },
+    { field: 'betweenness', headerName: 'Betweenness', width: 150 },
+    { field: 'community', headerName: 'Community', width: 120 }
+  ];
+
+  const rows = networkData[0]?.node_link_data?.nodes?.map((node: NodeObject$1) => ({
+    id: node.id,
+    degree: node.degree,
+    closeness: node.closeness,
+    betweenness: node.betweenness,
+    community: node.community
+  })) || [];
+
+  const handleTableRowClick = useCallback((params: GridRowParams) => {
+    const node = networkData[0]?.node_link_data?.nodes.find(
+      (n: NodeObject$1) => n.id === params.row.id
+    );
+
+    if (node) {
+      handleClick(node); // Usa la función `handleClick` ya implementada para enfocar el nodo.
+    }
+  }, [networkData, handleClick]);
+
   return (
     <>
       <Typography variant="h5">Select Graph Type</Typography>
@@ -111,6 +140,25 @@ export const NetworkSelector = () => {
             </CardContent>
           </Card>
           <Typography variant="h4">ForceGraph3D</Typography>
+          <Typography variant="h5">Graph Configuration</Typography>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Color By</InputLabel>
+            <Select value={colorBy} onChange={(e) => setColorBy(e.target.value)}>
+              <MenuItem value="community">Community</MenuItem>
+              <MenuItem value="degree">Degree</MenuItem>
+              <MenuItem value="closeness">Closeness</MenuItem>
+              <MenuItem value="betweenness">Betweenness</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal">
+            <InputLabel>Size By</InputLabel>
+            <Select value={sizeBy} onChange={(e) => setSizeBy(e.target.value)}>
+              <MenuItem value="none">None</MenuItem>
+              <MenuItem value="degree">Degree</MenuItem>
+              <MenuItem value="closeness">Closeness</MenuItem>
+              <MenuItem value="betweenness">Betweenness</MenuItem>
+            </Select>
+          </FormControl>
           <ForceGraph3D
             ref={fgRef}
             graphData={networkData[0]['node_link_data']}
@@ -123,11 +171,14 @@ export const NetworkSelector = () => {
                 Closeness: ${(node.closeness ?? 0).toFixed(5)}<br/>
               </div>
             `}
-            nodeAutoColorBy={'community'}
+            nodeAutoColorBy={colorBy}
             // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 20, 3) / 100 } Org
             // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 100, 3) } Authors
             // nodeVal={node => Math.pow((node.betweenness ?? 0.00001), 0.4) * 1000} Authors
-            nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000}
+            // nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000} Org
+            nodeVal={(node) =>
+              sizeBy === 'none' ? 1 : node[sizeBy] ?? 1
+            }
             linkOpacity={0.18}
             linkWidth={0.4}
             onNodeClick={handleClick}
@@ -137,6 +188,15 @@ export const NetworkSelector = () => {
             graphData={networkData[0]['node_link_data']}
             nodeLabel={'id'}
           /> */}
+          <Typography variant="h5" marginTop={2}>
+            Node Metrics
+          </Typography>
+          <DataGrid
+            rows={rows}
+            columns={columns}
+            autoHeight
+            onRowClick={handleTableRowClick}
+          />
           <DataModal
             graphType={graphType}
             node={selectedNode}

@@ -32,7 +32,7 @@ app = Flask(__name__)
 CORS(app)
 
 db_endpoint = "http://192.168.1.32:5001"
-db_endpoint = "http://db:5000"
+# db_endpoint = "http://db:5000"
 
 
 class PipelineStatus(str, Enum):

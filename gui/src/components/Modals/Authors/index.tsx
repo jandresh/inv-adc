@@ -33,7 +33,7 @@ const DataModal: React.FC<{
   const handleClose = () => setOpen(false);
 
   useEffect(() => {
-    const findAuthorDocument = {
+    const findDocument = {
       'db_name': organization,
       'coll_name': `${entity}_info#${project}#${pattern}`,
       'query': {
@@ -43,7 +43,7 @@ const DataModal: React.FC<{
     query(
       'findDocument',
       setInfo,
-      findAuthorDocument
+      findDocument
     );
   }, [node, organization, pattern, project, entity]);
 
