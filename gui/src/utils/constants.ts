@@ -1,5 +1,5 @@
 // APP TEXT
-export const APP_TITLE = 'Adc Cali';
+export const APP_TITLE = 'I-ADC-UNIVALLE';
 export const APP_DESCRIPTION = 'Cali, Colombia. Breast cancer data analytics.';
 export const FOOTER_TEXT = `${new Date().getFullYear()} EISC univalle`;
 // PAGES TITLE

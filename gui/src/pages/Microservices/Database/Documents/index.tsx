@@ -12,7 +12,8 @@ export const Documents: React.FC<{ database: string, collection: string }> = (
     ? (Object.keys(documents[0])).map((key: string): GridColDef => {
       return {
         field: key,
-        headerName: key
+        headerName: key,
+        flex: 1
       };
     })
     : [];
@@ -36,7 +37,6 @@ export const Documents: React.FC<{ database: string, collection: string }> = (
       rows={documents ? documents : []}
       columns={columns}
       getRowId={(row) => row._id}
-      autoHeight
       pageSizeOptions={[10, 50, 100]}
     />
   );

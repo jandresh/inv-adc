@@ -1,4 +1,4 @@
-import { Typography } from '@mui/material';
+import { Grid } from '@mui/material';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { APP_TITLE, PAGE_TITLE_HOME } from 'utils/constants';
@@ -12,8 +12,9 @@ export const Report = () => {
           {PAGE_TITLE_HOME} | {APP_TITLE}
         </title>
       </Helmet>
-      <Typography variant="h4">Network selector</Typography>
-      <NetworkSelector />
+      <Grid container spacing={2} gap={2}>
+        <NetworkSelector />
+      </Grid>
     </>
   );
 };

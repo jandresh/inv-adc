@@ -9,7 +9,7 @@ export const Collections: React.FC<{ database: string }> = ({ database }) => {
     {
       field: 'collection',
       headerName: 'Collection',
-      flex: 100
+      flex: 1
     }
   ];
 
@@ -42,9 +42,8 @@ export const Collections: React.FC<{ database: string }> = ({ database }) => {
             : []
         }
         columns={columns}
-        autoHeight={true}
-        getRowId={(row) => row.collection}
         getRowHeight={() => 'auto'}
+        getRowId={(row) => row.collection}
         initialState={
           {
             pagination: {

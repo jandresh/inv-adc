@@ -39,6 +39,7 @@ const LayoutWrapper = styled('div')`
 `;
 
 const ContentWrapper = styled('div')`
+  width: 100%;
   display: flex;
   min-height: calc(100vh - ${FOOTER_HEIGHT}px);
 `;

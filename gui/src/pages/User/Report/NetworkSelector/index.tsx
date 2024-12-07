@@ -5,9 +5,9 @@ import { query } from 'utils/queries';
 import { ProjectSelector } from './ProjectSelector';
 import { PatternSelector } from './PaternSelector';
 import { Card, CardContent, CardMedia, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { DataGrid, GridColDef, GridRowParams } from '@mui/x-data-grid';
+import { DataGrid, GridAutosizeOptions, GridColDef, GridRowParams } from '@mui/x-data-grid';
 import _ from 'lodash';
-import { ForceGraph3D } from 'react-force-graph';
+import { ForceGraph2D, ForceGraph3D } from 'react-force-graph';
 import { GraphTypeSelector } from './graphTypeSelector';
 import DataModal from 'components/Modals/Authors';
 
@@ -36,11 +36,12 @@ export const NetworkSelector = () => {
   const [project, setProject] = useState<string>('');
   const [pattern, setPattern] = useState<string>('');
   const [networkData, setNetworkData] = useState<Record<string, any>[]>([]);
-  const [colorBy, setColorBy] = useState<string>('community');
   const [sizeBy, setSizeBy] = useState<string>('none');
   const [selectedNode, setSelectedNode] = useState<string | number | undefined>('');
   const [openModal, setOpenModal] = useState<boolean>(false);
   const fgRef = useRef<any>(null);
+  const [screenHeight, setScreenHeight] = useState<number>(window.innerHeight);
+  const [screenWidth, setScreenWidth] = useState<number>(window.innerWidth);
 
   useEffect(() => {
     if (graphType && project && pattern) {
@@ -55,6 +56,13 @@ export const NetworkSelector = () => {
         }
       );
     }
+    const handleResize = () => {
+      setScreenHeight(window.innerHeight);
+      setScreenWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [graphType, organization, pattern, project]);
 
   const handleClick = useCallback((node: NodeObject$1) => {
@@ -78,18 +86,18 @@ export const NetworkSelector = () => {
   }, [fgRef]);
 
   const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', width: 150 },
-    { field: 'degree', headerName: 'Degree', width: 100 },
-    { field: 'closeness', headerName: 'Closeness', width: 100 },
-    { field: 'betweenness', headerName: 'Betweenness', width: 150 },
-    { field: 'community', headerName: 'Community', width: 120 }
+    { field: 'id', headerName: 'ID', flex: 2 },
+    { field: 'degree', headerName: 'Degree', flex: 1, align: 'center', headerAlign: 'center' },
+    { field: 'closeness', headerName: 'Closeness', flex: 1, align: 'center', headerAlign: 'center' },
+    { field: 'betweenness', headerName: 'Betweenness', flex: 1, align: 'center', headerAlign: 'center' },
+    { field: 'community', headerName: 'Community', flex: 1, align: 'center', headerAlign: 'center' }
   ];
 
   const rows = networkData[0]?.node_link_data?.nodes?.map((node: NodeObject$1) => ({
     id: node.id,
     degree: node.degree,
-    closeness: node.closeness,
-    betweenness: node.betweenness,
+    closeness: node.closeness ? node.closeness.toFixed(5) : 0,
+    betweenness: node.betweenness ? node.betweenness.toFixed(5) : 0,
     community: node.community
   })) || [];
 
@@ -103,27 +111,49 @@ export const NetworkSelector = () => {
     }
   }, [networkData, handleClick]);
 
+  const autosizeOptions: GridAutosizeOptions = {
+    includeOutliers: true,
+    includeHeaders: true
+  };
+
+  const getMaxMetrics = (nodes: NodeObject$1[]) => {
+    return {
+      degree: Math.max(...nodes.map(node => node.degree ?? 0)),
+      closeness: Math.max(...nodes.map(node => node.closeness ?? 0)),
+      betweenness: Math.max(...nodes.map(node => node.betweenness ?? 0))
+    };
+  };
+
+  const maxMetrics = networkData[0]?.node_link_data?.nodes
+    ? getMaxMetrics(networkData[0].node_link_data.nodes)
+    : { degree: 1, closeness: 1, betweenness: 1 };
+
   return (
     <>
-      <Typography variant="h5">Select Graph Type</Typography>
-      <GraphTypeSelector setGraphType={setGraphType}/>
-      <Typography variant="h5">Select Project</Typography>
-      <ProjectSelector setProject={setProject}/>
-      <Typography variant="h5">Select Pattern</Typography>
-      <PatternSelector project={project} setPattern={setPattern}/>
+      <Card sx={{ width: screenWidth * 0.95 }}>
+        <Typography variant="h4">Network selector</Typography>
+        <Typography variant="h5">Select Graph Type</Typography>
+        <GraphTypeSelector setGraphType={setGraphType}/>
+        <Typography variant="h5">Select Project</Typography>
+        <ProjectSelector setProject={setProject}/>
+        <Typography variant="h5">Select Pattern</Typography>
+        <PatternSelector project={project} setPattern={setPattern}/>
+      </Card>
       {!_.isUndefined(networkData[0]) && (
         <>
-          <Typography variant="h4">WordCloud Graph</Typography>
-          <Card sx={{ maxWidth: 'fit-content' }}>
+          <Card>
+            <Typography variant="h4">WordCloud Graph</Typography>
             <CardMedia
+              width={screenWidth * 0.95}
               component='img'
               src={networkData[0]['wordcloud_image']}
               title="Network"
             />
           </Card>
-          <Typography variant="h4">NetworkX Graph</Typography>
-          <Card sx={{ maxWidth: 'fit-content' }}>
+          <Card sx={{ height: '70vh', overflow: 'auto' }}>
+            <Typography variant="h4">NetworkX Graph</Typography>
             <CardMedia
+              width={screenWidth * 0.95}
               component='img'
               src={networkData[0]['b64_image']}
               title="Network"
@@ -139,64 +169,82 @@ export const NetworkSelector = () => {
               </Typography>
             </CardContent>
           </Card>
-          <Typography variant="h4">ForceGraph3D</Typography>
-          <Typography variant="h5">Graph Configuration</Typography>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Color By</InputLabel>
-            <Select value={colorBy} onChange={(e) => setColorBy(e.target.value)}>
-              <MenuItem value="community">Community</MenuItem>
-              <MenuItem value="degree">Degree</MenuItem>
-              <MenuItem value="closeness">Closeness</MenuItem>
-              <MenuItem value="betweenness">Betweenness</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Size By</InputLabel>
-            <Select value={sizeBy} onChange={(e) => setSizeBy(e.target.value)}>
-              <MenuItem value="none">None</MenuItem>
-              <MenuItem value="degree">Degree</MenuItem>
-              <MenuItem value="closeness">Closeness</MenuItem>
-              <MenuItem value="betweenness">Betweenness</MenuItem>
-            </Select>
-          </FormControl>
-          <ForceGraph3D
-            ref={fgRef}
-            graphData={networkData[0]['node_link_data']}
-            nodeLabel={node => `
-              <div style="text-align: center; font-size: 14px;">
-                <strong>${node.id}</strong><br/>
-                Community: <span style="color: ${node.color || 'blue'}">${node.community}</span><br/>
-                Degree: ${node.degree ?? 0}<br/>
-                Betweenness: ${(node.betweenness ?? 0).toFixed(5)}<br/>
-                Closeness: ${(node.closeness ?? 0).toFixed(5)}<br/>
-              </div>
-            `}
-            nodeAutoColorBy={colorBy}
-            // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 20, 3) / 100 } Org
-            // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 100, 3) } Authors
-            // nodeVal={node => Math.pow((node.betweenness ?? 0.00001), 0.4) * 1000} Authors
-            // nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000} Org
-            nodeVal={(node) =>
-              sizeBy === 'none' ? 1 : node[sizeBy] ?? 1
-            }
-            linkOpacity={0.18}
-            linkWidth={0.4}
-            onNodeClick={handleClick}
-          />
-          {/* <Typography variant="h4">ForceGraph2D</Typography>
-          <ForceGraph2D
-            graphData={networkData[0]['node_link_data']}
-            nodeLabel={'id'}
-          /> */}
-          <Typography variant="h5" marginTop={2}>
-            Node Metrics
-          </Typography>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            autoHeight
-            onRowClick={handleTableRowClick}
-          />
+          <Card>
+            <Typography variant="h4">Network Graph</Typography>
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Size By</InputLabel>
+              <Select value={sizeBy} onChange={(e) => setSizeBy(e.target.value)}>
+                <MenuItem value="none">None</MenuItem>
+                <MenuItem value="degree">Degree</MenuItem>
+                <MenuItem value="closeness">Closeness</MenuItem>
+                <MenuItem value="betweenness">Betweenness</MenuItem>
+              </Select>
+            </FormControl>
+            <ForceGraph3D
+              ref={fgRef}
+              height={screenHeight * 0.7}
+              width={screenWidth * 0.95}
+              graphData={networkData[0]['node_link_data']}
+              nodeLabel={node => `
+                <div style="text-align: center; font-size: 14px;">
+                  <strong>${node.id}</strong><br/>
+                  Community: <span style="color: ${node.color || 'blue'}">${node.community}</span><br/>
+                  Degree: ${node.degree ?? 0}<br/>
+                  Betweenness: ${(node.betweenness ?? 0).toFixed(5)}<br/>
+                  Closeness: ${(node.closeness ?? 0).toFixed(5)}<br/>
+                </div>
+              `}
+              nodeAutoColorBy={'community'}
+              // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 20, 3) / 100 } Org
+              // nodeVal={node => Math.pow((node.closeness ?? 0.000001) * 100, 3) } Authors
+              // nodeVal={node => Math.pow((node.betweenness ?? 0.00001), 0.4) * 1000} Authors
+              // nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000} Org
+              nodeVal={(node) =>
+                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 100000, 2) / 1000000000
+              }
+              linkOpacity={0.15}
+              linkWidth={0.1}
+              onNodeClick={handleClick}
+            />
+          </Card>
+          <Card>
+            <Typography variant="h4">Community Graph</Typography>
+            <ForceGraph2D
+              height={screenHeight * 0.7}
+              width={screenWidth * 0.95}
+              graphData={networkData[0]['node_link_data']}
+              nodeLabel={'id'}
+              nodeVal={(node) =>
+                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 100000, 2) / 1000000000
+              }
+              nodeAutoColorBy={'community'}
+            />
+            <Typography variant="h5" marginTop={2}>
+              Node Metrics
+            </Typography>
+            <Typography variant="h6">Max Metrics</Typography>
+            <Typography>Max Degree: {maxMetrics.degree}</Typography>
+            <Typography>Max Closeness: {maxMetrics.closeness.toFixed(5)}</Typography>
+            <Typography>Max Betweenness: {maxMetrics.betweenness.toFixed(5)}</Typography>
+          </Card>
+          <Card sx={{ width: screenWidth * 0.95 }}>
+            <DataGrid
+              rows={rows}
+              columns={columns}
+              onRowClick={handleTableRowClick}
+              density="compact"
+              autosizeOptions={autosizeOptions}
+              getRowHeight={() => 'auto'}
+              initialState={
+                {
+                  pagination: {
+                    paginationModel: { pageSize: 50 }
+                  }
+                }
+              }
+              pageSizeOptions={[10, 50, 100]}
+            />
+          </Card>
           <DataModal
             graphType={graphType}
             node={selectedNode}

@@ -26,11 +26,10 @@ export const Databases: React.FC = () => {
     : [];
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <DataGrid
         rows={rows}
         columns={columns}
-        autoHeight={true}
         getRowId={(row) => row.database}
         getRowHeight={() => 'auto'}
         initialState={
@@ -47,6 +46,6 @@ export const Databases: React.FC = () => {
       />
       <Typography variant="h4">Collections</Typography>
       {database === '' ? undefined : <Collections database={database} />}
-    </>
+    </div>
   );
 };
