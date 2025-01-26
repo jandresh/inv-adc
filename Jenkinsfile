@@ -2,7 +2,7 @@ agentName = "ubuntu-2004"
 agentLabel = "${-> println 'Right Now the Agent Name is ' + agentName; return agentName}"
 pipeline {
     environment {
-        PROJECT = "inv-adc-202405"
+        PROJECT = "inv-adc-202501"
         APP_NAME = "inv-adc-app"
         CLUSTER = "jenkins-cd"
         CLUSTER_ZONE = "us-east1-d"
@@ -99,7 +99,6 @@ pipeline {
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment core --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment preprocessing --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment db --replicas=1")
-                    sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment orchestrator --replicas=1")
                     sh("kubectl --namespace=${env.BRANCH_NAME} scale deployment gui --replicas=1")
@@ -148,7 +147,6 @@ pipeline {
                     sh("kubectl --namespace=production scale deployment core --replicas=1")
                     sh("kubectl --namespace=production scale deployment preprocessing --replicas=1")
                     sh("kubectl --namespace=production scale deployment db --replicas=1")
-                    sh("kubectl --namespace=production scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=production scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=production scale deployment orchestrator --replicas=1")
                     sh("kubectl --namespace=production scale deployment gui --replicas=1")
@@ -197,7 +195,6 @@ pipeline {
                     sh("kubectl --namespace=production scale deployment core --replicas=3")
                     sh("kubectl --namespace=production scale deployment preprocessing --replicas=3")
                     sh("kubectl --namespace=production scale deployment db --replicas=3")
-                    sh("kubectl --namespace=production scale deployment mysql --replicas=1")
                     sh("kubectl --namespace=production scale deployment mongo --replicas=1")
                     sh("kubectl --namespace=production scale deployment orchestrator --replicas=3")
                     sh("kubectl --namespace=production scale deployment gui --replicas=3")
