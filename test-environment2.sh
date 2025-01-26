@@ -5,31 +5,19 @@ cd inv-adc
 for branch in `git branch -r | grep -v HEAD`;do echo -e `git show --format="%ci" $branch | head -n 1` \\t$branch; done | sort -r | head -n 1 | grep -o -P '(?<=origin/).*(?=)' > branch.txt
 export LAST_BRANCH=$(cat branch.txt)
 git checkout $LAST_BRANCH
-cd gui
-sudo docker-compose down --remove-orphans
-cd ../orchestrator
-sudo docker-compose down --remove-orphans
-cd ../db
-sudo docker-compose down --remove-orphans
-cd ../preprocessing
-sudo docker-compose down --remove-orphans
-cd ../core
-sudo docker-compose down --remove-orphans
-cd ../arxiv
-sudo docker-compose down --remove-orphans
-cd ../metapub
-sudo docker-compose down --remove-orphans
-cd kompose
+sudo docker rm -f $(sudo docker ps -a -q)
+sudo docker system prune -a -f --volumes
+cd metapub/metapub
 sudo docker-compose up -d
-cd ../../arxiv/kompose
+cd ../../arxiv/arxiv
 sudo docker-compose up -d
-cd ../../core/kompose
+cd ../../core/core
 sudo docker-compose up -d
-cd ../../preprocessing/kompose
+cd ../../preprocessing/preprocessing
 sudo docker-compose up -d
-cd ../../db/kompose
+cd ../../db/db
 sudo docker-compose up -d
-cd ../../orchestrator/kompose
+cd ../../orchestrator/orchestrator
 sudo docker-compose up -d
-cd ../../gui/kompose
+cd ../../gui/gui
 sudo docker-compose up -d

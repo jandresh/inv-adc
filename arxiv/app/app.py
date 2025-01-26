@@ -49,7 +49,7 @@ def root():
 #
 # *****query_arxiv******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "BREAST CANCER" }' http://localhost:5005/arxiv | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast cancer" }' http://localhost:5005/arxiv | jq '.' | less
 #
 
 
@@ -61,6 +61,7 @@ def query_arxiv():
     query = request.json["query"]
     count = 0
     results = big_slow_client.results(arxiv.Search(query=query, max_results=200))
+    titles = []
     for result in results:
         count = count + 1
         if count > 1000:
@@ -83,8 +84,9 @@ def query_arxiv():
             flush=True,
         )
         print([author.name for author in result.authors], flush=True)
+        titles.append(result.title)
 
-    return object_to_response({"exit": 0})
+    return object_to_response({"exit": 0, "titles": titles})
 
 
 def search_equation(query: list[str]) -> str:

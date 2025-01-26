@@ -22,7 +22,6 @@ from metapub import (
     PubMedFetcher,
 )
 import requests
-import sys
 import time
 
 app = Flask(__name__)
@@ -265,7 +264,7 @@ def fill_graph(
 #
 # *****query******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast carcinoma", "patternid": 1, "maxdocs": 200, "organization": "test4", "project": "adc-cali" }' http://localhost:5000/query
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "breast carcinoma", "patternid": 1, "maxdocs": 3, "organization": "test", "project": "adc-cali" }' http://localhost:5000/query
 #
 
 
@@ -287,7 +286,8 @@ def query():
         attempts += 1
         try:
             pmids = fetch.pmids_for_query(
-                search_equation(query.strip().split()), retmax=maxdocs
+                search_equation(query.strip().split()),
+                retmax=maxdocs * 10,
             )
             success = True
         except:
@@ -295,9 +295,6 @@ def query():
             success = False if attempts > 2 else True
     if success:
         for pmid in pmids:
-            count = count + 1
-            if count > maxdocs:
-                break
             success = False
             attempts = 0
             article = {}
@@ -309,6 +306,7 @@ def query():
                 except:
                     time.sleep(5)
                     success = False if attempts > 2 else True
+
             if success:
                 try:
                     abstract = article.get("abstract", "")
@@ -318,8 +316,9 @@ def query():
                     authors = article.get("authors", "")
                     url = ""
                     try:
-                        url = FindIt(pmid).url
-                    except:
+                        url = FindIt(pmid=pmid).url
+                    except Exception as ex:
+                        print(f"exception in find PDF {pmid}: {ex}", flush=True)
                         url = ""
                     year = article.get("year", "")
                     if not url:
@@ -679,7 +678,10 @@ def query():
                                     "add_to_set": True,
                                 },
                             )
+                        count = count + 1
+                        if count > maxdocs:
+                            break
                 except requests.exceptions.JSONDecodeError as error:
                     print(error, flush=True)
 
-    return object_to_response([{"exit": 0}])
+    return object_to_response({"exit": 0})

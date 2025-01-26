@@ -52,7 +52,6 @@ def object_to_response(object):
 def query_api(search_url, query, scroll_id=None):
     result_flag = 0
     while result_flag < 5:
-        print(f"result_flag: {result_flag}", flush=True)
         try:
             headers = {"Authorization": "Bearer " + apikey}
             if not scroll_id:
@@ -65,34 +64,23 @@ def query_api(search_url, query, scroll_id=None):
                     f"{search_url}?q={query}&limit=100&scroll_id={scroll_id}",
                     headers=headers,
                 )
-            print(
-                f"response: {str(response)}, query: {query}, scroll_id: {scroll_id}",
-                flush=True,
-            )
         except:
-            print("Control Point 1", flush=True)
-            print("Post request fail, trying again ...", flush=True)
             time.sleep(3)
             response = None
         if response is not None:
             success = False
             if str(response) == "<Response [200]>":
-                print("Control Point 2", flush=True)
                 success = True
                 try:
                     result = response.json()
                     elapsed = response.elapsed.total_seconds()
                 except:
-                    print("Control Point 3", flush=True)
                     success = False
             elif str(response) == "<Response [429]>":
                 time.sleep(300)
             if success:
-                print("Control Point 4", flush=True)
                 return result, elapsed
-        print("Control Point 6", flush=True)
         result_flag += 1
-    print("Control Point 7", flush=True)
     return None, None
 
 
@@ -227,17 +215,14 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
             time.sleep(2)
             print(f'scroll_id : {result["scroll_id"]}', flush=True)
             if results is None:
-                print("Control Point 8")
                 break
         except:
-            print("Control Point 9", flush=True)
             result = None
         if results is not None:
             scroll_id = results.get("scrollId")
             totalhits = results["totalHits"]
             result_size = len(results["results"])
             if result_size == 0:
-                print("Control Point 10", flush=True)
                 break
             for result in results["results"]:
                 try:
@@ -606,13 +591,15 @@ def iterator(search_url, query, patternid, database, project, maxdocs):
                                     "add_to_set": True,
                                 },
                             )
+
+                    count += 1
                 except requests.exceptions.JSONDecodeError as error:
                     print(error, flush=True)
-            count += result_size
+
+                if count > maxdocs:
+                    break
             print(f"{count}/{totalhits} {elapsed}s", flush=True)
-            print("Control Point 12", flush=True)
             if count > maxdocs or count == totalhits:
-                print("Control Point 13", flush=True)
                 break
         else:
             break
@@ -642,7 +629,7 @@ def query_core():
         abort(400)
     result = None
     query = request.json["query"]
-    search, seconds = query_api("https://api.core.ac.uk/v3/search/works", query)
+    search, _seconds = query_api("https://api.core.ac.uk/v3/search/works", query)
     for key, value in search.items():
         if key == "results":
             result = value
@@ -653,7 +640,7 @@ def query_core():
 #
 # *****query_core******
 # Este metodo es invocado de esta forma:
-# curl -X POST -H "Content-type: application/json" -d '{ "query": "carcinoma lobulillar de mama" }' http://localhost:5003/core | jq '.' | less
+# curl -X POST -H "Content-type: application/json" -d '{ "query": "carcinoma lobulillar de mama" }' http://localhost:5003/core2 | jq '.' | less
 #
 
 

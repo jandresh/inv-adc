@@ -3,7 +3,6 @@ services:
   db:
     image: jandresh/db:latest
     links:
-      - mysql
       - mongo
     ports:
       - "5001:5000"
@@ -28,5 +27,4 @@ networks:
     external: true
     name: custompipeline
 volumes:
-  mysql-db: null
   mongo-db: null

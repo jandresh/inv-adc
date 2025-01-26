@@ -31,8 +31,7 @@ from wordcloud import (
 app = Flask(__name__)
 CORS(app)
 
-db_endpoint = "http://192.168.1.32:5001"
-# db_endpoint = "http://db:5000"
+db_endpoint = "http://db:5000"
 
 
 class PipelineStatus(str, Enum):
@@ -219,9 +218,8 @@ async def metadata_pipeline():
             }
             tasks = [async_post_json_request(url, data) for url in urls]
             fill_metadata_results = await asyncio.gather(*tasks)
-            print(f"fill_metadata: {fill_metadata_results}", flush=True)
             if fill_metadata_results and all(
-                result[0].get("exit") == 0 for result in fill_metadata_results
+                result.get("exit") == 0 for result in fill_metadata_results
             ):
                 pipeline_logger(
                     PipelineType.METADATA,
@@ -307,7 +305,6 @@ def adjacency_pipeline():
             items_list = [
                 f'{item[singular]},{",".join(item["related"])}' for item in items
             ]
-            print(f"items_list: {items_list}", flush=True)
             G = nx.parse_adjlist(items_list, nodetype=str, delimiter=",")
             degree_dict = dict(G.degree())
             betweenness_dict = nx.betweenness_centrality(G)

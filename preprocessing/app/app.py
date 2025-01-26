@@ -80,7 +80,7 @@ def get_pdf_text_by_page(url):
 
 @app.route("/")
 def helloworld():
-    return "preprocessing endpoints: /\n/url2text\n/url2htext\n/text2locations\n/text2places\n/text2ner\n/text2emails"
+    return "preprocessing endpoints: /, /url2text, /url2htext, /text2locations, /text2places, /text2ner, /text2emails, /text2lang, /text2keywords"
 
 
 # *****text_from_pdf_url()******

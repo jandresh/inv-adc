@@ -9,8 +9,6 @@ from flask_cors import (
 )
 import json
 import pymongo
-import re
-import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -113,7 +111,7 @@ def mongo_coll_create():
         coll_name = request.json["coll_name"]
         client = pymongo.MongoClient("mongodb://adccali:adccali@mongo:27017")
         db = client[db_name]
-        collection = db[coll_name]
+        db[coll_name]
     except:
         success = 1
 
@@ -276,7 +274,7 @@ def mongo_doc_find():
         collection = db[coll_name]
         out = collection.find(query, projection)
     except:
-        out = None
+        return object_to_response([])
     data = []
     for doc in out:
         doc["_id"] = str(doc["_id"])
