@@ -5,7 +5,6 @@ import {
   DnsOutlined as DatabaseIcon,
   AutoFixHigh as PreprocessingIcon,
   DescriptionOutlined as AcademicIcon,
-  Business as InstitutionsIcon,
   SearchOutlined as QueryIcon,
   SummarizeOutlined as ReportIcon,
   History as HistoricIcon,
@@ -56,7 +55,7 @@ const routes: Array<Route> = [
     path: '/dashboard',
     isEnabled: true,
     icon: DashboardIcon,
-    allowedRoles: ['admin', 'researcher', 'user']
+    allowedRoles: ['admin']
   },
   {
     key: 'router-microservices',
@@ -72,36 +71,36 @@ const routes: Array<Route> = [
         description: 'Arxiv interface',
         component: Arxiv,
         path: '/microservices/arxiv',
-        isEnabled: true,
+        isEnabled: false,
         icon: AcademicIcon,
-        allowedRoles: ['admin', 'researcher']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-microservices-core',
         title: 'Core',
         description: 'Core interface',
         path: '/microservices/core',
-        isEnabled: true,
+        isEnabled: false,
         icon: AcademicIcon,
-        allowedRoles: ['admin', 'researcher']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-microservices-metapub',
         title: 'Metapub',
         description: 'Pubmed interface',
         path: '/microservices/metapub',
-        isEnabled: true,
+        isEnabled: false,
         icon: AcademicIcon,
-        allowedRoles: ['admin', 'researcher']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-microservices-preprocessing',
         title: 'Preprocessing',
         description: 'Preprocessing microservices',
         path: '/microservices/preprocessing',
-        isEnabled: true,
+        isEnabled: false,
         icon: PreprocessingIcon,
-        allowedRoles: ['admin', 'researcher']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-microservices-database',
@@ -118,17 +117,8 @@ const routes: Array<Route> = [
         title: 'Orchestrator',
         description: 'Orchestrator microservices',
         path: '/microservices/orchestrator',
-        isEnabled: true,
-        icon: DatabaseIcon,
-        allowedRoles: ['admin']
-      },
-      {
-        key: 'router-search-institutions',
-        title: 'Search institutions',
-        description: 'Institutions',
-        path: '/search/institutions',
         isEnabled: false,
-        icon: InstitutionsIcon,
+        icon: DatabaseIcon,
         allowedRoles: ['admin']
       }
     ]
@@ -146,9 +136,9 @@ const routes: Array<Route> = [
         title: 'Query',
         description: 'Query interface',
         path: '/user/query',
-        isEnabled: true,
+        isEnabled: false,
         icon: QueryIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-user-report',
@@ -165,9 +155,9 @@ const routes: Array<Route> = [
         title: 'Historic',
         description: 'Historic interface',
         path: '/user/historic',
-        isEnabled: true,
+        isEnabled: false,
         icon: HistoricIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       }
     ]
   },
@@ -214,7 +204,7 @@ const routes: Array<Route> = [
         title: 'Validate',
         description: 'Validate interface',
         path: '/researcher/validate',
-        isEnabled: true,
+        isEnabled: false,
         icon: ValidateIcon,
         allowedRoles: ['admin', 'researcher']
       }
@@ -272,7 +262,7 @@ const routes: Array<Route> = [
         key: 'router-settings',
         title: 'Settings',
         description: 'Account Settings',
-        path: '/account/settings',
+        path: '/',
         isEnabled: true,
         icon: SettingsIcon,
         allowedRoles: ['admin', 'researcher', 'user']
@@ -282,18 +272,18 @@ const routes: Array<Route> = [
         title: 'Preferences',
         description: 'Account Preferences',
         path: '/account/preferences',
-        isEnabled: true,
+        isEnabled: false,
         icon: PreferencesIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       },
       {
         key: 'router-billing',
         title: 'Billing',
         description: 'Account Billing',
         path: '/account/billing',
-        isEnabled: true,
+        isEnabled: false,
         icon: BillingIcon,
-        allowedRoles: ['admin', 'researcher', 'user']
+        allowedRoles: ['admin']
       }
     ]
   }
