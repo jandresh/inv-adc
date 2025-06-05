@@ -107,7 +107,7 @@ export const NetworkSelector = () => {
     );
 
     if (node) {
-      handleClick(node); // Usa la función `handleClick` ya implementada para enfocar el nodo.
+      handleClick(node);
     }
   }, [networkData, handleClick]);
 
@@ -200,10 +200,10 @@ export const NetworkSelector = () => {
               // nodeVal={node => Math.pow((node.betweenness ?? 0.00001), 0.4) * 1000} Authors
               // nodeVal={node => Math.pow((node.betweenness ?? 0) * 1000, 4) / 100000000} Org
               nodeVal={(node) =>
-                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 100000, 2) / 1000000000
+                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 10000000, 3) / 100000000000000000
               }
-              linkOpacity={0.15}
-              linkWidth={0.1}
+              linkOpacity={0.2}
+              linkWidth={0.4}
               onNodeClick={handleClick}
             />
           </Card>
@@ -215,7 +215,7 @@ export const NetworkSelector = () => {
               graphData={networkData[0]['node_link_data']}
               nodeLabel={'id'}
               nodeVal={(node) =>
-                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 100000, 2) / 1000000000
+                sizeBy === 'none' ? 1 : Math.pow((node[sizeBy] ?? 0) / maxMetrics[sizeBy as keyof typeof maxMetrics] * 1000000, 1) / 1000000000000
               }
               nodeAutoColorBy={'community'}
             />

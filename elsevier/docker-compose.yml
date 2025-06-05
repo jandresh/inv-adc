@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  elsevier:
+    build: .
+    ports:
+      - "5001:5000"  # Mapeamos al puerto 5001 para evitar conflictos con otros servicios
+    environment:
+      - ELSEVIER_API_KEY=${ELSEVIER_API_KEY}  # La API key se tomará de las variables de entorno
+    depends_on:
+      - db
+      - preprocessing
+    networks:
+      - app-network
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+  preprocessing:
+    build: 
+      context: ../preprocessing  # Asumiendo que el servicio de preprocessing está en un directorio hermano
+    ports:
+      - "5002:5000"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongodb_data: 
