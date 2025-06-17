@@ -49,8 +49,8 @@ export const AddFileForm = () => {
           .replace('é', 'e')
           .replace('í', 'i')
           .replace('ó', 'o')
-          .replace('ú', 'u')
-          .replace(/[^a-zA-Z0-9 ]/g, '');
+          .replace('ú', 'u');
+          // .replace(/[^a-zA-Z0-9 ]/g, '');
         const findProjectDocument = {
           'db_name': context.user.orgId.split('.')[0],
           'coll_name': `patterns#${values.project}`,

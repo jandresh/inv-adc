@@ -208,7 +208,8 @@ async def metadata_pipeline():
                 PipelineStatus.RUNNING,
                 f"Processing pattern {pattern['pattern']}",
             )
-            urls = [db_url("PUBMED"), db_url("ARXIV"), db_url("CORE")]
+            # urls = [db_url("PUBMED"), db_url("ARXIV"), db_url("CORE")]
+            urls = [db_url("PUBMED")]
             data = {
                 "query": pattern["pattern"],
                 "patternid": pattern["_id"],

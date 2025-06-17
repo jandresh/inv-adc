@@ -215,12 +215,12 @@ def pdf_from_pmid():
 
 
 def search_equation(query: list[str]) -> str:
-    pattern = ""
+    pattern = "("
     for i in range(len(query)):
         if i == len(query) - 1:
-            pattern += "%s[Title/Abstract]" % (query[i])
+            pattern += "(%s)" % (query[i][2:])
         else:
-            pattern += "%s[Title/Abstract] AND " % (query[i])
+            pattern += f"({query[i]})) NOT " if query[i+1].startswith(" -") else f"({query[i]}) AND "
     print(f"search_equation={pattern}", flush=True)
     return pattern
 
@@ -286,7 +286,7 @@ def query():
         attempts += 1
         try:
             pmids = fetch.pmids_for_query(
-                search_equation(query.strip().split()),
+                search_equation(query.split(",")),
                 retmax=maxdocs * 10,
             )
             success = True
